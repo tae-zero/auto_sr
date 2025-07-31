@@ -1,0 +1,11 @@
+# Node.js 관련
+node_modules/
+.next/
+
+# Python 관련
+__pycache__/
+.env
+
+# OS 관련
+.DS_Store
+Thumbs.db
