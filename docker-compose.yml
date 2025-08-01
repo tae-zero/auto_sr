@@ -1,140 +1,81 @@
-version: '3.8'
-
 services:
-  # MSA Gateway
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://gateway:8000
+    depends_on:
+      - gateway
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Gateway (FastAPI)
   gateway:
     build:
-      context: .
+      context: ./gateway
       dockerfile: Dockerfile
-    container_name: msa-gateway
     ports:
       - "8000:8000"
     environment:
-      - GATEWAY_HOST=0.0.0.0
-      - GATEWAY_PORT=8000
+      - PORT=8000
       - LOG_LEVEL=INFO
+      - GATEWAY_HOST=0.0.0.0
       - REQUEST_TIMEOUT=30
       - HEALTH_CHECK_INTERVAL=30
-    volumes:
-      - ./logs:/app/logs
+    depends_on:
+      - chat-service
     networks:
-      - msa-network
+      - app-network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    restart: unless-stopped
 
-  # User Service (테스트용)
-  user-service-1:
+  # Chat Service (FastAPI)
+  chat-service:
     build:
-      context: .
-      dockerfile: Dockerfile.test-service
-    container_name: user-service-1
+      context: ./chat-service
+      dockerfile: Dockerfile
     ports:
-      - "8001:8001"
+      - "8006:8006"
     environment:
-      - SERVICE_NAME=user-service
-      - SERVICE_PORT=8001
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=8006
+      - LOG_LEVEL=INFO
     networks:
-      - msa-network
+      - app-network
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-    restart: unless-stopped
+      start_period: 40s
 
-  user-service-2:
-    build:
-      context: .
-      dockerfile: Dockerfile.test-service
-    container_name: user-service-2
-    ports:
-      - "8002:8002"
-    environment:
-      - SERVICE_NAME=user-service
-      - SERVICE_PORT=8002
-    networks:
-      - msa-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    restart: unless-stopped
-
-  # Order Service (테스트용)
-  order-service-1:
-    build:
-      context: .
-      dockerfile: Dockerfile.test-service
-    container_name: order-service-1
-    ports:
-      - "8003:8003"
-    environment:
-      - SERVICE_NAME=order-service
-      - SERVICE_PORT=8003
-    networks:
-      - msa-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    restart: unless-stopped
-
-  order-service-2:
-    build:
-      context: .
-      dockerfile: Dockerfile.test-service
-    container_name: order-service-2
-    ports:
-      - "8004:8004"
-    environment:
-      - SERVICE_NAME=order-service
-      - SERVICE_PORT=8004
-    networks:
-      - msa-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    restart: unless-stopped
-
-  # Product Service (테스트용)
-  product-service:
-    build:
-      context: .
-      dockerfile: Dockerfile.test-service
-    container_name: product-service
-    ports:
-      - "8005:8005"
-    environment:
-      - SERVICE_NAME=product-service
-      - SERVICE_PORT=8005
-    networks:
-      - msa-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    restart: unless-stopped
-
-  # Redis (선택사항 - 향후 캐싱 기능용)
+  # Redis (캐싱 및 세션 저장)
   redis:
     image: redis:7-alpine
-    container_name: msa-redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
     networks:
-      - msa-network
+      - app-network
     restart: unless-stopped
+    command: redis-server --appendonly yes
 
 networks:
-  msa-network:
-    driver: bridge 
+  app-network:
+    driver: bridge
+
+volumes:
+  redis_data: 
