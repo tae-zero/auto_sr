@@ -38,16 +38,8 @@ class Settings(BaseSettings):
 # 전역 설정 인스턴스
 settings = Settings()
 
-# 서비스 레지스트리 설정 (Railway 환경용)
+# 서비스 레지스트리 설정 (Gateway만 배포)
 DEFAULT_SERVICE_REGISTRY = {
-    "chat-service": {
-        "instances": [
-            {"host": os.getenv("CHAT_SERVICE_URL", "localhost"), "port": 8006, "health": True, "weight": 1}
-        ],
-        "load_balancer": "round_robin",
-        "current_index": 0,
-        "health_check_path": "/health"
-    },
     "user-service": {
         "instances": [
             {"host": "localhost", "port": 8001, "health": True, "weight": 1},
