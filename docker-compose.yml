@@ -43,7 +43,7 @@ services:
   # Chat Service (FastAPI)
   chat-service:
     build:
-      context: ./chat-service
+      context: ./service/chat-service
       dockerfile: Dockerfile
     ports:
       - "8006:8006"
