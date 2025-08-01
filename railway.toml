@@ -1,7 +1,0 @@
-[build]
-builder = "dockerfile"
-
-[deploy]
-startCommand = "node server.js"
-restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 10 
