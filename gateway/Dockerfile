@@ -31,6 +31,7 @@ ENV GATEWAY_HOST=0.0.0.0
 ENV LOG_LEVEL=INFO
 
 # 🔥 핵심: PYTHONPATH를 명시한 CMD
-CMD ["sh", "-c", "PYTHONPATH=/app uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
 
 
