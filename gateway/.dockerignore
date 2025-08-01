@@ -1,0 +1,2 @@
+touch .dockerignore
+nano .dockerignore  # 위 내용 붙여넣기

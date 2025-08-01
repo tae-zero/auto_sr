@@ -11,6 +11,7 @@ from app.common.config import settings, DEFAULT_SERVICE_REGISTRY
 from app.domain.discovery.service_discovery import ServiceDiscovery
 from app.www.proxy import ProxyService
 
+
 # 로깅 설정
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
 logger = logging.getLogger(__name__)
@@ -207,11 +208,15 @@ from app.router import user_router
 # 서비스별 라우터를 메인 앱에 포함
 app.include_router(user_router.router, prefix="/api/v1", tags=["user"])
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(
-        app, 
-        host=settings.GATEWAY_HOST, 
-        port=settings.GATEWAY_PORT, 
-        reload=settings.GATEWAY_RELOAD
-    )
+# if __name__ == "__main__":
+#     import uvicorn
+#     import os
+
+#     port = int(os.environ.get("PORT", 8000))  # Railway 환경에서 포트 자동 할당됨
+
+#     uvicorn.run(
+#         "app.main:app",  # 문자열로 경로 지정 시 reload 가능
+#         host="0.0.0.0",
+#         port=port,
+#         reload=False
+#     )
