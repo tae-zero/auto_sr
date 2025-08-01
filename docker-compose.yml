@@ -11,8 +11,6 @@ services:
       - NEXT_PUBLIC_API_URL=http://gateway:8000
     depends_on:
       - gateway
-    networks:
-      - app-network
     restart: unless-stopped
 
   # Gateway (FastAPI)
@@ -30,8 +28,6 @@ services:
       - HEALTH_CHECK_INTERVAL=30
     depends_on:
       - chat-service
-    networks:
-      - app-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -51,8 +47,6 @@ services:
       - SERVICE_HOST=0.0.0.0
       - SERVICE_PORT=8006
       - LOG_LEVEL=INFO
-    networks:
-      - app-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
@@ -66,16 +60,5 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - app-network
     restart: unless-stopped
-    command: redis-server --appendonly yes
-
-networks:
-  app-network:
-    driver: bridge
-
-volumes:
-  redis_data: 
+    command: redis-server 
