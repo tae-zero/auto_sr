@@ -4,9 +4,16 @@ import { useState, useRef, useEffect } from 'react';
 import { useChatStore } from '@/store/chatStore';
 import { chatService } from '@/services/chatService';
 
+interface JsonData {
+  message: string;
+  timestamp: string;
+  id: string;
+  type: string;
+}
+
 export default function Home() {
   const [inputValue, setInputValue] = useState('');
-  const [jsonData, setJsonData] = useState<any>(null);
+  const [jsonData, setJsonData] = useState<JsonData | null>(null);
   const { messages, isLoading, addMessage, setLoading } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -26,7 +33,7 @@ export default function Home() {
     
     // 입력된 텍스트를 JSON으로 변환
     try {
-      const jsonObject = {
+      const jsonObject: JsonData = {
         message: userMessage,
         timestamp: new Date().toISOString(),
         id: Date.now().toString(),
@@ -39,6 +46,7 @@ export default function Home() {
       alert(`POST 요청으로 전송된 메시지: ${userMessage}\n\nJSON 데이터:\n${JSON.stringify(jsonObject, null, 2)}`);
       
     } catch (error) {
+      console.error('JSON 변환 중 오류가 발생했습니다:', error);
       alert('JSON 변환 중 오류가 발생했습니다.');
       return;
     }
@@ -51,6 +59,7 @@ export default function Home() {
       const response = await chatService.sendMessage(userMessage);
       addMessage(response.message, 'assistant');
     } catch (error) {
+      console.error('채팅 서비스 오류:', error);
       addMessage('죄송합니다. 오류가 발생했습니다. 다시 시도해주세요.', 'assistant');
     } finally {
       setLoading(false);

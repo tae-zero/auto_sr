@@ -5,6 +5,13 @@ export interface ChatResponse {
   timestamp: string;
 }
 
+export interface ChatHistoryItem {
+  id: string;
+  content: string;
+  role: string;
+  timestamp: string;
+}
+
 export const chatService = {
   // 메시지 전송
   sendMessage: async (message: string): Promise<ChatResponse> => {
@@ -18,7 +25,7 @@ export const chatService = {
   },
 
   // 채팅 히스토리 가져오기
-  getChatHistory: async (): Promise<any[]> => {
+  getChatHistory: async (): Promise<ChatHistoryItem[]> => {
     try {
       const response = await api.get('/chat/history');
       return response.data;
