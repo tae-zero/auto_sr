@@ -9,10 +9,10 @@ from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 from fastapi import Request
 
-from app.router.auth_router import auth_router
+from app.router.auth_router import router as auth_router
 from app.www.jwt_auth_middleware import AuthMiddleware
-from app.domain.discovery.model.service_discovery import ServiceDiscovery
-from app.domain.discovery.model.service_type import ServiceType
+from app.domain.discovery.service_discovery import ServiceDiscovery
+from app.domain.discovery.service_type import ServiceType
 from app.common.utility.constant.settings import Settings
 from app.common.utility.factory.response_factory import ResponseFactory
 
@@ -31,6 +31,17 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 Gateway API 서비스 시작")
     # Settings 초기화 및 앱 state에 등록
     app.state.settings = Settings()
+    
+    # 서비스 디스커버리 초기화 및 서비스 등록
+    app.state.service_discovery = ServiceDiscovery()
+    
+    # 기본 서비스 등록
+    app.state.service_discovery.register_service(
+        service_name="chatbot-service",
+        instances=[{"host": "chatbot-service", "port": 8006, "weight": 1}],
+        load_balancer_type="round_robin"
+    )
+    
     yield
     logger.info("🛑 Gateway API 서비스 종료")
 
@@ -76,12 +87,13 @@ async def proxy_get(
     request: Request
 ):
     try:
-        factory = ServiceDiscovery(service_type=service)
+        # app.state에서 service_discovery 가져오기
+        service_discovery = request.app.state.service_discovery
         
         # 헤더 전달 (JWT 및 사용자 ID - 미들웨어에서 이미 X-User-Id 헤더가 추가됨)
         headers = dict(request.headers)
         
-        response = await factory.request(
+        response = await service_discovery.request(
             method="GET",
             path=path,
             headers=headers
@@ -109,8 +121,8 @@ async def proxy_post(
         if file:
             logger.info(f"파일명: {file.filename}, 시트 이름: {sheet_names if sheet_names else '없음'}")
 
-        # 서비스 팩토리 생성
-        factory = ServiceDiscovery(service_type=service)
+        # app.state에서 service_discovery 가져오기
+        service_discovery = request.app.state.service_discovery
         
         # 요청 파라미터 초기화
         files = None
@@ -151,7 +163,7 @@ async def proxy_post(
                 logger.warning(f"요청 본문 읽기 실패: {str(e)}")
                 
         # 서비스에 요청 전달
-        response = await factory.request(
+        response = await service_discovery.request(
             method="POST",
             path=path,
             headers=headers,
@@ -182,12 +194,13 @@ async def proxy_post(
 @gateway_router.put("/{service}/{path:path}", summary="PUT 프록시")
 async def proxy_put(service: ServiceType, path: str, request: Request):
     try:
-        factory = ServiceDiscovery(service_type=service)
+        # app.state에서 service_discovery 가져오기
+        service_discovery = request.app.state.service_discovery
         
         # 헤더 전달 (JWT 및 사용자 ID - 미들웨어에서 이미 X-User-Id 헤더가 추가됨)
         headers = dict(request.headers)
         
-        response = await factory.request(
+        response = await service_discovery.request(
             method="PUT",
             path=path,
             headers=headers,
@@ -205,12 +218,13 @@ async def proxy_put(service: ServiceType, path: str, request: Request):
 @gateway_router.delete("/{service}/{path:path}", summary="DELETE 프록시")
 async def proxy_delete(service: ServiceType, path: str, request: Request):
     try:
-        factory = ServiceDiscovery(service_type=service)
+        # app.state에서 service_discovery 가져오기
+        service_discovery = request.app.state.service_discovery
         
         # 헤더 전달 (JWT 및 사용자 ID - 미들웨어에서 이미 X-User-Id 헤더가 추가됨)
         headers = dict(request.headers)
         
-        response = await factory.request(
+        response = await service_discovery.request(
             method="DELETE",
             path=path,
             headers=headers,
@@ -228,12 +242,13 @@ async def proxy_delete(service: ServiceType, path: str, request: Request):
 @gateway_router.patch("/{service}/{path:path}", summary="PATCH 프록시")
 async def proxy_patch(service: ServiceType, path: str, request: Request):
     try:
-        factory = ServiceDiscovery(service_type=service)
+        # app.state에서 service_discovery 가져오기
+        service_discovery = request.app.state.service_discovery
         
         # 헤더 전달 (JWT 및 사용자 ID - 미들웨어에서 이미 X-User-Id 헤더가 추가됨)
         headers = dict(request.headers)
         
-        response = await factory.request(
+        response = await service_discovery.request(
             method="PATCH",
             path=path,
             headers=headers,
