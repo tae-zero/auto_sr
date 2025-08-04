@@ -1,3 +1,6 @@
-class Model:
-    def __init__(self):
-        pass
+from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
+
+class LoginEntity(BaseModel):
+    pass
