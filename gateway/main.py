@@ -4,17 +4,11 @@ import os
 # Python 경로에 app 디렉토리 추가
 sys.path.append(os.path.join(os.path.dirname(__file__), 'app'))
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import time
 
-app = FastAPI(
-    title="MSA Gateway",
-    description="마이크로서비스 아키텍처 Gateway",
-    version="1.0.0"
-)
+app = FastAPI(title="Gateway", version="1.0.0")
 
-# CORS 설정
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,47 +18,12 @@ app.add_middleware(
 )
 
 @app.get("/")
-async def root():
-    return {
-        "message": "MSA Gateway is running!",
-        "timestamp": time.time(),
-        "status": "healthy",
-        "services": ["user-service", "order-service", "product-service"]
-    }
+def read_root():
+    return {"Hello": "World"}
 
 @app.get("/health")
-async def health():
-    return {
-        "status": "healthy",
-        "service": "gateway",
-        "timestamp": time.time()
-    }
-
-@app.get("/services")
-async def list_services():
-    return {
-        "services": [
-            {
-                "name": "user-service",
-                "instances": 2,
-                "status": "healthy"
-            },
-            {
-                "name": "order-service", 
-                "instances": 2,
-                "status": "healthy"
-            },
-            {
-                "name": "product-service",
-                "instances": 1,
-                "status": "healthy"
-            }
-        ]
-    }
-
-@app.get("/docs")
-async def docs():
-    return {"message": "Swagger docs available at /docs"}
+def health():
+    return {"status": "ok"}
 
 if __name__ == "__main__":
     import uvicorn
