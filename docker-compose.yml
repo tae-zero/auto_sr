@@ -1,36 +1,53 @@
+name: esg_mate
+
 services:
   # Frontend (Next.js)
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    container_name: frontend
     ports:
       - "3000:3000"
+    volumes:
+      - ./frontend:/app
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://gateway:8000
+      - NEXT_PUBLIC_API_URL=http://gateway:8080
+    restart: always
     depends_on:
       - gateway
-    restart: unless-stopped
+    networks:
+      - app-network
 
   # Gateway (FastAPI)
   gateway:
-    build:
-      context: ./gateway
-      dockerfile: Dockerfile
+    build: ./gateway
+    container_name: gateway
     ports:
-      - "8000:8000"
+      - "8080:8080"
+    volumes:
+      - ./gateway:/app
+    env_file:
+      - ./gateway/.env
     environment:
-      - PORT=8000
+      - PYTHONUNBUFFERED=1
+      - PORT=8080
       - LOG_LEVEL=INFO
       - GATEWAY_HOST=0.0.0.0
       - REQUEST_TIMEOUT=30
       - HEALTH_CHECK_INTERVAL=30
+    restart: always
     depends_on:
       - chat-service
-    restart: unless-stopped
+      - redis
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    networks:
+      - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -41,13 +58,21 @@ services:
     build:
       context: ./service/chat-service
       dockerfile: Dockerfile
+    container_name: chat-service
     ports:
       - "8006:8006"
+    volumes:
+      - ./service/chat-service:/app
     environment:
       - SERVICE_HOST=0.0.0.0
       - SERVICE_PORT=8006
       - LOG_LEVEL=INFO
-    restart: unless-stopped
+      - PYTHONUNBUFFERED=1
+    restart: always
+    depends_on:
+      - redis
+    networks:
+      - app-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
       interval: 30s
@@ -58,7 +83,17 @@ services:
   # Redis (캐싱 및 세션 저장)
   redis:
     image: redis:7-alpine
+    container_name: redis
     ports:
       - "6379:6379"
-    restart: unless-stopped
-    command: redis-server 
+    networks:
+      - app-network
+    restart: always
+    command: redis-server
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16 

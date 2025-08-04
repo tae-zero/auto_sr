@@ -203,10 +203,10 @@ async def proxy_request(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 # 서비스별 라우터 등록
-from app.router import user_router
+from gateway.app.router import auth_router
 
 # 서비스별 라우터를 메인 앱에 포함
-app.include_router(user_router.router, prefix="/api/v1", tags=["user"])
+app.include_router(auth_router.router, prefix="/api/v1", tags=["user"])
 
 if __name__ == "__main__":
     import uvicorn
