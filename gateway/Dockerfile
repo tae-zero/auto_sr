@@ -7,9 +7,12 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
+# Python 경로 설정
+ENV PYTHONPATH=/app
+
 EXPOSE 8080
 
-CMD ["python", "main.py"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
 
 
 
