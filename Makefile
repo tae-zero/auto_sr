@@ -50,21 +50,21 @@ logs-gateway:
 restart-gateway:
 	docker-compose stop gateway && docker-compose up -d gateway
 
-## chat-service
-build-chat:
-	docker-compose build chat-service
+## chatbot-service
+build-chatbot:
+	docker-compose build chatbot-service
 
-up-chat:
-	docker-compose up -d chat-service
+up-chatbot:
+	docker-compose up -d chatbot-service
 
-down-chat:
-	docker-compose stop chat-service
+down-chatbot:
+	docker-compose stop chatbot-service
 
-logs-chat:
-	docker-compose logs -f chat-service
+logs-chatbot:
+	docker-compose logs -f chatbot-service
 
-restart-chat:
-	docker-compose stop chat-service && docker-compose up -d chat-service
+restart-chatbot:
+	docker-compose stop chatbot-service && docker-compose up -d chatbot-service
 
 ## redis
 up-redis:
@@ -98,8 +98,8 @@ status:
 shell-gateway:
 	docker-compose exec gateway /bin/bash
 
-shell-chat:
-	docker-compose exec chat-service /bin/bash
+shell-chatbot:
+	docker-compose exec chatbot-service /bin/bash
 
 shell-frontend:
 	docker-compose exec frontend /bin/sh

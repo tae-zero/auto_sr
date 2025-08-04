@@ -39,7 +39,7 @@ services:
       - HEALTH_CHECK_INTERVAL=30
     restart: always
     depends_on:
-      - chat-service
+      - chatbot-service
       - redis
     dns:
       - 8.8.8.8
@@ -53,16 +53,16 @@ services:
       retries: 3
       start_period: 40s
 
-  # Chat Service (FastAPI)
-  chat-service:
+  # Chatbot Service (FastAPI)
+  chatbot-service:
     build:
-      context: ./service/chat-service
+      context: ./service/chatbot-service
       dockerfile: Dockerfile
-    container_name: chat-service
+    container_name: chatbot-service
     ports:
       - "8006:8006"
     volumes:
-      - ./service/chat-service:/app
+      - ./service/chatbot-service:/app
     environment:
       - SERVICE_HOST=0.0.0.0
       - SERVICE_PORT=8006

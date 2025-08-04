@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     
     # Gateway 설정
     GATEWAY_HOST: str = "0.0.0.0"
-    GATEWAY_PORT: int = 8000
+    GATEWAY_PORT: int = 8080
     GATEWAY_RELOAD: bool = True
     
     # 서비스 디스커버리 설정

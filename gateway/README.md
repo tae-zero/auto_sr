@@ -35,7 +35,7 @@ python -m app.main
 또는
 
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 ```
 
 ## API 엔드포인트
@@ -135,9 +135,9 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 COPY . .
-EXPOSE 8000
+EXPOSE 8080
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
 ```
 
 ### 환경 변수
@@ -145,7 +145,7 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 프로덕션 환경에서는 다음 환경 변수를 설정하세요:
 
 - `GATEWAY_HOST`: Gateway 호스트 (기본값: 0.0.0.0)
-- `GATEWAY_PORT`: Gateway 포트 (기본값: 8000)
+- `GATEWAY_PORT`: Gateway 포트 (기본값: 8080)
 - `REQUEST_TIMEOUT`: 요청 타임아웃 (기본값: 30)
 - `HEALTH_CHECK_INTERVAL`: 헬스 체크 간격 (기본값: 30)
 - `LOG_LEVEL`: 로그 레벨 (기본값: INFO)

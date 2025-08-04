@@ -90,7 +90,7 @@ app = FastAPI(
     },
     servers=[
         {
-            "url": "http://localhost:8000",
+            "url": "http://localhost:8080",
             "description": "개발 서버"
         },
         {
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     import uvicorn
     import os
 
-    port = int(os.environ.get("PORT", 8000))  # Railway 환경에서 포트 자동 할당됨
+    port = int(os.environ.get("PORT", 8080))  # Railway 환경에서 포트 자동 할당됨
 
     uvicorn.run(
         "app.main:app",  # 문자열로 경로 지정 시 reload 가능
