@@ -1,10 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  // Vercel에서는 output: 'standalone'이 필요하지 않음
   env: {
     PORT: process.env.PORT || '3000',
   },
+  // Vercel 최적화 설정
+  experimental: {
+    optimizePackageImports: ['@vercel/analytics']
+  }
 };
 
 export default nextConfig;
