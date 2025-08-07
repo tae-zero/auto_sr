@@ -2,14 +2,11 @@
   "version": 2,
   "builds": [
     {
-      "src": "frontend/package.json",
+      "src": "package.json",
       "use": "@vercel/next"
     }
   ],
   "env": {
     "NEXT_PUBLIC_API_URL": "@railway-gateway-url"
-  },
-  "routes": [
-    { "src": "/(.*)", "dest": "frontend/$1" }
-  ]
+  }
 }
