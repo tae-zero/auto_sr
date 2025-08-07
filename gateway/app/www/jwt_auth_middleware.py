@@ -14,7 +14,7 @@ class AuthMiddleware:
             request = Request(scope, receive)
             
             # 인증 제외할 엔드포인트들
-            if request.url.path in ["/health", "/login", "/", "/docs", "/openapi.json", "/redoc"]:
+            if request.url.path in ["/health", "/login", "/api/v1/signup", "/", "/docs", "/openapi.json", "/redoc"]:
                 return await self.app(scope, receive, send)
             
             # JWT 토큰 검증 (간단한 구현)

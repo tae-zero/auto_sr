@@ -41,6 +41,13 @@ export default function LoginPage() {
     e.preventDefault();
     // Show form data as JSON in alert
     alert(JSON.stringify(formData, null, 2));
+    axios.post('http://localhost:8080/login', formData)
+      .then(response => {
+        console.log(response.data);
+      })
+      .catch(error => {
+        console.error('Login failed:', error);
+      });
   };
 
   // Show loading while checking authentication status
@@ -106,11 +113,21 @@ export default function LoginPage() {
                   </a>
                 </div>
               </div>
-              {/* Sign Up Button */}
-
+              {/* Login Button */}
               <button
                 type="submit"
                 onClick={handleLogin}
+                className="w-full bg-blue-600 text-white py-4 rounded-2xl hover:bg-blue-700 transition-all duration-200 font-medium text-lg shadow-sm"
+              >
+                Login
+              </button>
+
+              {/* Sign Up Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  router.push('/signup');
+                }}
                 className="w-full bg-white border-2 border-gray-300 text-gray-800 py-4 rounded-2xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-lg shadow-sm"
               >
                 Sign Up
