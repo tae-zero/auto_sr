@@ -28,15 +28,21 @@ services:
       - "8080:8080"
     volumes:
       - ./gateway:/app
-    env_file:
-      - ./gateway/.env
     environment:
       - PYTHONUNBUFFERED=1
       - PORT=8080
       - LOG_LEVEL=INFO
       - GATEWAY_HOST=0.0.0.0
+      - GATEWAY_PORT=8080
+      - GATEWAY_RELOAD=false
+      - SERVICE_DISCOVERY_TYPE=static
+      - LOAD_BALANCER_TYPE=round_robin
       - REQUEST_TIMEOUT=30
       - HEALTH_CHECK_INTERVAL=30
+      - CORS_ORIGINS=["*"]
+      - CORS_ALLOW_CREDENTIALS=true
+      - CORS_ALLOW_METHODS=["*"]
+      - CORS_ALLOW_HEADERS=["*"]
     restart: always
     depends_on:
       - chatbot-service

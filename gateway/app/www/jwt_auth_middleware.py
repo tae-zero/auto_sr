@@ -13,8 +13,8 @@ class AuthMiddleware:
         if scope["type"] == "http":
             request = Request(scope, receive)
             
-            # 헬스 체크 엔드포인트는 인증 제외
-            if request.url.path in ["/health", "/", "/docs", "/openapi.json", "/redoc"]:
+            # 인증 제외할 엔드포인트들
+            if request.url.path in ["/health", "/login", "/", "/docs", "/openapi.json", "/redoc"]:
                 return await self.app(scope, receive, send)
             
             # JWT 토큰 검증 (간단한 구현)
