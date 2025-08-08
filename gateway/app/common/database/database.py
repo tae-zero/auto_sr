@@ -53,7 +53,7 @@ async def get_db():
         finally:
             await session.close()
 
-# 테이블 생성 함수 (존재하지 않는 경우에만 생성)
+# 테이블 생성 함수 (존재하지 않는 경우에만 생성, 데이터 보호)
 async def create_tables():
     try:
         async with engine.begin() as conn:
@@ -71,7 +71,10 @@ async def create_tables():
                 await conn.run_sync(Base.metadata.create_all)
                 logger.info("✅ 데이터베이스 테이블이 생성되었습니다.")
             else:
-                logger.info("ℹ️ 데이터베이스 테이블이 이미 존재합니다.")
+                # 기존 데이터 개수 확인
+                count_result = await conn.execute(text("SELECT COUNT(*) FROM users"))
+                user_count = count_result.scalar()
+                logger.info(f"ℹ️ 데이터베이스 테이블이 이미 존재합니다. (기존 사용자: {user_count}명)")
     except Exception as e:
         logger.error(f"❌ 테이블 생성 중 오류: {str(e)}")
         raise
