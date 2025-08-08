@@ -10,20 +10,22 @@ logger = logging.getLogger(__name__)
 # Railway PostgreSQL 연결 설정
 DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL:
-    # Railway PostgreSQL URL 변환 (postgres:// -> postgresql+asyncpg://)
+    # Railway PostgreSQL URL 변환 (postgres:// -> postgresql://)
     if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     logger.info(f"데이터베이스 연결: {DATABASE_URL.split('@')[0]}@***")
 else:
     # 로컬 개발용 기본값
-    DATABASE_URL = "postgresql+asyncpg://postgres:password@localhost:5432/esg_mate"
+    DATABASE_URL = "postgresql://postgres:password@localhost:5432/esg_mate"
     logger.warning("DATABASE_URL이 없습니다. 로컬 개발용 DB 사용")
 
 # 비동기 엔진 생성
 engine = create_async_engine(
     DATABASE_URL,
     echo=True,  # SQL 로그 출력 (개발용)
-    future=True
+    future=True,
+    pool_pre_ping=True,  # 연결 상태 확인
+    pool_recycle=300  # 5분마다 연결 재생성
 )
 
 # 비동기 세션 팩토리
