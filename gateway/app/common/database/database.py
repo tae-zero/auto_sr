@@ -53,7 +53,7 @@ async def get_db():
         finally:
             await session.close()
 
-# 테이블 생성 함수 (존재하지 않는 경우에만 생성)
+# 테이블 생성 함수 (존재하지 않는 경우에만 생성, 데이터 보호)
 async def create_tables():
     try:
         async with engine.begin() as conn:
@@ -75,9 +75,13 @@ async def create_tables():
                 count_result = await conn.execute(text("SELECT COUNT(*) FROM users"))
                 user_count = count_result.scalar()
                 logger.info(f"ℹ️ 데이터베이스 테이블이 이미 존재합니다. (기존 사용자: {user_count}명)")
+                
+                # 타임스탬프 컬럼 제거 로직 제거됨
     except Exception as e:
         logger.error(f"❌ 테이블 생성 중 오류: {str(e)}")
         raise
+
+# 타임스탬프 컬럼 제거 함수 - 제거됨
 
 # 데이터베이스 연결 테스트 (재시도 로직 포함)
 async def test_connection(max_retries=5, delay=2):

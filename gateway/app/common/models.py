@@ -16,9 +16,7 @@ class User(Base):
     auth_id = Column(Text, nullable=False, unique=True, index=True, comment="인증 ID")
     auth_pw = Column(Text, nullable=False, comment="인증 비밀번호 (해시)")
     
-    # 타임스탬프
-    # created_at = Column(DateTime(timezone=True), server_default=func.now(), comment="생성일시")
-    # updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), comment="수정일시")
+    # 타임스탬프 필드 제거됨
 
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}', company_id='{self.company_id}')>"
