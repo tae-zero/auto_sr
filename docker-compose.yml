@@ -108,6 +108,9 @@ services:
       - SERVICE_PORT=8008
       - LOG_LEVEL=INFO
       - PYTHONUNBUFFERED=1
+      - INIT_DATABASE=true
+      # Railway PostgreSQL 연결 (Public Network URL)
+      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
     restart: always
     depends_on:
       - redis

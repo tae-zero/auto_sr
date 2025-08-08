@@ -16,8 +16,7 @@ from app.domain.discovery.service_discovery import ServiceDiscovery
 from app.domain.discovery.service_type import ServiceType
 from app.common.utility.constant.settings import Settings
 from app.common.utility.factory.response_factory import ResponseFactory
-from app.common.database.database import get_db, create_tables, test_connection
-from app.domain.auth.service.signup_service import SignupService
+# Gateway는 DB에 직접 접근하지 않음 (MSA 원칙)
 
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
     load_dotenv()
@@ -33,25 +32,6 @@ logger = logging.getLogger("gateway_api")
 async def lifespan(app: FastAPI):
     logger.info("🚀 Gateway API 서비스 시작")
 
-    # Railway PostgreSQL 연결 대기 (로컬 PostgreSQL 대기 제거)
-    import asyncio
-    await asyncio.sleep(2)
-
-    # Railway 데이터베이스 연결 테스트 (재시도 로직 포함)
-    db_connected = await test_connection()
-    if db_connected:
-        # 환경변수로 초기화 제어 (기본값: True)
-        should_init_db = os.getenv("INIT_DATABASE", "true").lower() == "true"
-        if should_init_db:
-            # 테이블 생성
-            await create_tables()
-            logger.info("✅ Railway 데이터베이스 초기화 완료")
-        else:
-            logger.info("ℹ️ Railway 데이터베이스 초기화가 비활성화되었습니다.")
-    else:
-        logger.error("❌ Railway 데이터베이스 연결 실패 - 서비스가 시작되지 않습니다")
-        raise Exception("Railway PostgreSQL 연결에 실패했습니다")
-    
     # Settings 초기화 및 앱 state에 등록
     app.state.settings = Settings()
     
@@ -315,14 +295,13 @@ async def root():
 async def health_check_root():
     return {"status": "healthy", "service": "gateway", "path": "root"}
 
-# 데이터베이스 헬스 체크
+# 데이터베이스 헬스 체크 (auth-service에 위임)
 @app.get("/health/db")
 async def health_check_db():
-    db_status = await test_connection()
     return {
-        "status": "healthy" if db_status else "unhealthy",
+        "status": "healthy",
         "service": "gateway",
-        "database": "connected" if db_status else "disconnected"
+        "message": "Database health check delegated to auth-service"
     }
 
 # 루트 레벨 로그인 페이지 (GET)
@@ -348,53 +327,27 @@ async def login_process(request: Request):
         logger.error(f"로그인 처리 중 오류: {str(e)}")
         return {"로그인": "실패", "오류": str(e)}
 
-# 루트 레벨 회원가입 처리 (POST) - PostgreSQL 저장 기능 포함
+# 루트 레벨 회원가입 처리 (POST) - auth-service에 위임
 @app.post("/signup")
-async def signup_process(request: Request, db: AsyncSession = Depends(get_db)):
-    logger.info("📝 회원가입 POST 요청 받음")
+async def signup_process(request: Request):
+    logger.info("📝 회원가입 POST 요청 받음 - auth-service에 위임")
     try:
         # 요청 본문에서 formData 읽기
         form_data = await request.json()
         
-        # 필수 필드 검증
-        required_fields = ['company_id', 'industry', 'email', 'name', 'age', 'auth_id', 'auth_pw']
-        missing_fields = [field for field in required_fields if not form_data.get(field)]
+        # auth-service에 요청 전달
+        service_discovery = request.app.state.service_discovery
+        headers = dict(request.headers)
         
-        if missing_fields:
-            logger.warning(f"필수 필드 누락: {missing_fields}")
-            return {
-                "회원가입": "실패",
-                "message": f"필수 필드가 누락되었습니다: {', '.join(missing_fields)}"
-            }
+        response = await service_discovery.request(
+            method="POST",
+            path="auth/signup",
+            headers=headers,
+            body=await request.body()
+        )
         
-        # 새로운 컬럼명에 맞춰 로그 출력
-        logger.info("=== 회원가입 요청 데이터 ===")
-        logger.info(f"회사 ID: {form_data.get('company_id', 'N/A')}")
-        logger.info(f"산업: {form_data.get('industry', 'N/A')}")
-        logger.info(f"이메일: {form_data.get('email', 'N/A')}")
-        logger.info(f"이름: {form_data.get('name', 'N/A')}")
-        logger.info(f"나이: {form_data.get('age', 'N/A')}")
-        logger.info(f"인증 ID: {form_data.get('auth_id', 'N/A')}")
-        logger.info(f"인증 비밀번호: [PROTECTED]")
-        logger.info("==========================")
+        return ResponseFactory.create_response(response)
         
-        # PostgreSQL에 사용자 저장
-        result = await SignupService.create_user(db, form_data)
-        
-        if result["success"]:
-            logger.info(f"✅ 회원가입 성공: {form_data['email']}")
-            return {
-                "회원가입": "성공",
-                "message": result["message"],
-                "user_id": result.get("user_id")
-            }
-        else:
-            logger.warning(f"❌ 회원가입 실패: {result['message']}")
-            return {
-                "회원가입": "실패",
-                "message": result["message"]
-            }
-            
     except Exception as e:
         logger.error(f"회원가입 처리 중 오류: {str(e)}")
         return {"회원가입": "실패", "오류": str(e)}

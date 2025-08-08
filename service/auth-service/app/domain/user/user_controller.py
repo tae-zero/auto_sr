@@ -1,7 +1,10 @@
+"""
+User Controller
+"""
+from fastapi import APIRouter
 
-from fastapi import APIRouter, HTTPException, Query
-from typing import List, Optional, Dict, Any
+router = APIRouter(prefix="/user", tags=["User"])
 
-class UserController:
-  def __init__(self):
-    pass
+@router.get("/")
+async def get_user():
+    return {"message": "User endpoint"}

@@ -1,10 +1,19 @@
-from datetime import datetime
-from sqlalchemy import (
-    Column, String, DateTime, func, text
-)
-from sqlalchemy.ext.declarative import declarative_base
+"""
+User Entity
+"""
+from pydantic import BaseModel
+from typing import Optional
 
-Base = declarative_base()
+class UserEntity(BaseModel):
+    """사용자 엔티티"""
+    id: Optional[int] = None
+    company_id: str
+    industry: str
+    email: str
+    name: str
+    age: str
+    auth_id: str
+    auth_pw: str
 
-class UserEntity(Base):
-  pass
+    class Config:
+        from_attributes = True

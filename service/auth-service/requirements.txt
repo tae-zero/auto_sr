@@ -16,7 +16,7 @@ python-dotenv==1.0.1
 # 유틸리티
 python-multipart==0.0.9
 
-# JWT 토큰
+# JWT 토큰 (기본 인증용)
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 
@@ -24,3 +24,4 @@ passlib[bcrypt]==1.7.4
 asyncpg==0.29.0
 sqlalchemy[asyncio]==2.0.25
 alembic==1.13.1
+psycopg2-binary==2.9.9

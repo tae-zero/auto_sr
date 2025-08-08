@@ -1,1 +1,3 @@
-# Domain logic package
+"""
+User Domain Module
+"""
