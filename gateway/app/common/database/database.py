@@ -63,7 +63,8 @@ async def create_tables():
 async def test_connection():
     try:
         async with engine.begin() as conn:
-            await conn.execute("SELECT 1")
+            from sqlalchemy import text
+            await conn.execute(text("SELECT 1"))
         logger.info("✅ 데이터베이스 연결 성공!")
         return True
     except Exception as e:
