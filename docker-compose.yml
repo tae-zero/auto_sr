@@ -46,6 +46,7 @@ services:
     restart: always
     depends_on:
       - chatbot-service
+      - postgres
       - redis
     dns:
       - 8.8.8.8
@@ -86,6 +87,22 @@ services:
       retries: 3
       start_period: 40s
 
+  # PostgreSQL (데이터베이스)
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: esg_mate
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: always
+
   # Redis (캐싱 및 세션 저장)
   redis:
     image: redis:7-alpine
@@ -96,6 +113,9 @@ services:
       - app-network
     restart: always
     command: redis-server
+
+volumes:
+  postgres_data:
 
 networks:
   app-network:

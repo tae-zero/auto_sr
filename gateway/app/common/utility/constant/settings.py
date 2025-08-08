@@ -27,4 +27,5 @@ class Settings(BaseSettings):
     CORS_ALLOW_HEADERS: List[str] = ["*"]
     
     class Config:
-        env_file = ".env" 
+        env_file = ".env"
+        extra = "ignore"  # 추가 환경변수 무시 

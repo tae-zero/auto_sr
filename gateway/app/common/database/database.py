@@ -16,9 +16,9 @@ if DATABASE_URL:
     
     logger.info(f"데이터베이스 연결 설정 완료: {DATABASE_URL.split('@')[0]}@***")
 else:
-    # 로컬 개발용 기본값
-    DATABASE_URL = "postgresql+asyncpg://postgres:password@localhost:5432/esg_mate"
-    logger.warning("DATABASE_URL이 없습니다. 로컬 개발용 DB 사용")
+    # 로컬 개발용 기본값 (Docker 환경)
+    DATABASE_URL = "postgresql+asyncpg://postgres:password@postgres:5432/esg_mate"
+    logger.warning("DATABASE_URL이 없습니다. Docker PostgreSQL 사용")
 
 # 비동기 엔진 생성 (asyncpg 전용)
 engine = create_async_engine(
