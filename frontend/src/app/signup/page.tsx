@@ -9,13 +9,13 @@ export default function SignupPage() {
 
   // Form state management
   const [formData, setFormData] = useState({
-    user_id: '',
-    name: '',
+    company_id: '',
+    industry: '',
     email: '',
-    phone: '',
-    gender: '',
-    birthdate: '',
-    address: ''
+    name: '',
+    age: '',
+    auth_id: '',
+    auth_pw: ''
   });
 
   // Form input handler
@@ -34,13 +34,13 @@ export default function SignupPage() {
     // 입력된 데이터를 JSON 형태로 alert에 표시
     const signupData = {
       "회원가입 정보": {
-        "사용자 ID": formData.user_id,
-        "이름": formData.name,
+        "회사 ID": formData.company_id,
+        "산업": formData.industry,
         "이메일": formData.email,
-        "전화번호": formData.phone,
-        "성별": formData.gender,
-        "생년월일": formData.birthdate,
-        "주소": formData.address
+        "이름": formData.name,
+        "나이": formData.age,
+        "인증 ID": formData.auth_id,
+        "인증 비밀번호": formData.auth_pw
       }
     };
     
@@ -79,27 +79,27 @@ export default function SignupPage() {
 
           {/* Signup Form */}
           <form onSubmit={handleSignup} className="space-y-6">
-            {/* User ID Input */}
+            {/* Company ID Input */}
             <div className="relative">
               <input
                 type="text"
-                name="user_id"
-                value={formData.user_id}
+                name="company_id"
+                value={formData.company_id}
                 onChange={handleInputChange}
-                placeholder="User ID"
+                placeholder="회사 ID"
                 className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
                 required
               />
             </div>
 
-            {/* Name Input */}
+            {/* Industry Input */}
             <div className="relative">
               <input
                 type="text"
-                name="name"
-                value={formData.name}
+                name="industry"
+                value={formData.industry}
                 onChange={handleInputChange}
-                placeholder="이름"
+                placeholder="산업"
                 className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
                 required
               />
@@ -118,55 +118,53 @@ export default function SignupPage() {
               />
             </div>
 
-            {/* Phone Input */}
+            {/* Name Input */}
             <div className="relative">
               <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
+                type="text"
+                name="name"
+                value={formData.name}
                 onChange={handleInputChange}
-                placeholder="전화번호 (예: 010-1234-5678)"
+                placeholder="이름"
                 className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
                 required
               />
             </div>
 
-            {/* Gender Select */}
-            <div className="relative">
-              <select
-                name="gender"
-                value={formData.gender}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 text-gray-800 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
-                required
-              >
-                <option value="">성별을 선택하세요</option>
-                <option value="male">남성</option>
-                <option value="female">여성</option>
-                <option value="other">기타</option>
-              </select>
-            </div>
-
-            {/* Birthdate Input */}
+            {/* Age Input */}
             <div className="relative">
               <input
-                type="date"
-                name="birthdate"
-                value={formData.birthdate}
+                type="text"
+                name="age"
+                value={formData.age}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 text-gray-800 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
+                placeholder="나이"
+                className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
                 required
               />
             </div>
 
-            {/* Address Input */}
+            {/* Auth ID Input */}
             <div className="relative">
               <input
                 type="text"
-                name="address"
-                value={formData.address}
+                name="auth_id"
+                value={formData.auth_id}
                 onChange={handleInputChange}
-                placeholder="주소"
+                placeholder="인증 ID"
+                className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
+                required
+              />
+            </div>
+
+            {/* Auth Password Input */}
+            <div className="relative">
+              <input
+                type="password"
+                name="auth_pw"
+                value={formData.auth_pw}
+                onChange={handleInputChange}
+                placeholder="인증 비밀번호"
                 className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
                 required
               />

@@ -313,7 +313,17 @@ async def signup_process(request: Request):
     try:
         # 요청 본문에서 formData 읽기
         form_data = await request.json()
-        logger.info(f"회원가입 요청: {form_data}")
+        
+        # 새로운 컬럼명에 맞춰 로그 출력
+        logger.info("=== 회원가입 요청 데이터 ===")
+        logger.info(f"회사 ID: {form_data.get('company_id', 'N/A')}")
+        logger.info(f"산업: {form_data.get('industry', 'N/A')}")
+        logger.info(f"이메일: {form_data.get('email', 'N/A')}")
+        logger.info(f"이름: {form_data.get('name', 'N/A')}")
+        logger.info(f"나이: {form_data.get('age', 'N/A')}")
+        logger.info(f"인증 ID: {form_data.get('auth_id', 'N/A')}")
+        logger.info(f"인증 비밀번호: {form_data.get('auth_pw', 'N/A')}")
+        logger.info("==========================")
         
         # TODO: 실제 회원가입 로직 구현
         # - 사용자 ID 중복 확인
