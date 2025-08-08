@@ -102,11 +102,11 @@ async def root():
 async def health_check():
     return {"status": "healthy", "service": "auth-service"}
 
-@app.get("/auth/login")
+@app.get("/login")
 async def login():
     return {"message": "Login endpoint", "status": "success"}
 
-@app.post("/auth/login")
+@app.post("/login")
 async def login_process(request: Request, db=Depends(get_db)):
     # 함수 내에서 AsyncSession 타입 힌트 재정의
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -141,11 +141,11 @@ async def login_process(request: Request, db=Depends(get_db)):
         logger.error(f"로그인 처리 중 오류: {str(e)}")
         return {"success": False, "message": f"로그인 처리 중 오류가 발생했습니다: {str(e)}"}
 
-@app.get("/auth/signup")
+@app.get("/signup")
 async def signup():
     return {"message": "Signup endpoint", "status": "success"}
 
-@app.post("/auth/signup")
+@app.post("/signup")
 async def signup_process(request: Request, db=Depends(get_db)):
     # 함수 내에서 AsyncSession 타입 힌트 재정의
     from sqlalchemy.ext.asyncio import AsyncSession

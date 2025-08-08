@@ -40,8 +40,8 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // MSA 구조: Gateway를 통해 auth-service로 요청
-    axios.post('http://localhost:8080/api/v1/auth-service/auth/login', formData)
+    // Gateway를 통한 올바른 경로로 요청
+    axios.post('http://localhost:8080/api/v1/auth-service/login', formData)
       .then(response => {
         console.log('Login response:', response.data);
         
