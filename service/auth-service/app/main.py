@@ -84,10 +84,13 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",  # 로컬 접근
+        "http://localhost:3001",  # 로컬 접근 (포트 3001)
         "http://127.0.0.1:3000",  # 로컬 IP 접근
+        "http://127.0.0.1:3001",  # 로컬 IP 접근 (포트 3001)
         "http://frontend:3000",   # Docker 내부 네트워크
         "https://www.taezero.com",  # 프로덕션 도메인
         "https://taezero.com",      # 프로덕션 도메인 (www 없이)
+        "*"  # 개발 환경에서 모든 origin 허용
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -97,6 +100,10 @@ app.add_middleware(
 @app.get("/")
 async def root():
     return {"message": "Auth Service", "version": "0.1.0"}
+
+@app.get("/test")
+async def test():
+    return {"message": "Auth Service Test Endpoint", "status": "success"}
 
 @app.get("/health")
 async def health_check():

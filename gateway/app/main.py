@@ -127,6 +127,25 @@ async def proxy_post(
     sheet_names: Optional[List[str]] = Query(None, alias="sheet_name")
 ):
     try:
+        # 디버깅 로그 추가
+        logger.info(f"🔍 Gateway POST 요청: service={service}, path={path}")
+        logger.info(f"📤 요청 URL: /api/v1/{service}/{path}")
+        
+        # app.state에서 service_discovery 가져오기
+        service_discovery = request.app.state.service_discovery
+        
+        # 서비스 인스턴스 확인
+        instance = service_discovery.get_service_instance(str(service))
+        if instance:
+            logger.info(f"✅ 서비스 인스턴스 찾음: {instance.host}:{instance.port}")
+            logger.info(f"🎯 최종 요청 URL: http://{instance.host}:{instance.port}/{path}")
+        else:
+            logger.error(f"❌ 서비스 인스턴스를 찾을 수 없음: {service}")
+            logger.error(f"🔍 등록된 서비스들: {list(service_discovery.registry.keys())}")
+            return JSONResponse(
+                content={"detail": f"Service {service} not available"},
+                status_code=503
+            )
         # 로깅
         logger.info(f"🌈 POST 요청 받음: 서비스={service}, 경로={path}")
         if file:
@@ -279,9 +298,10 @@ async def proxy_patch(service: ServiceType, path: str, request: Request):
 # 404 에러 핸들러
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc):
+    logger.error(f"404 에러: {request.url}")
     return JSONResponse(
         status_code=404,
-        content={"detail": "요청한 리소스를 찾을 수 없습니다."}
+        content={"detail": f"요청한 리소스를 찾을 수 없습니다. URL: {request.url}"}
     )
 
 # 기본 루트 경로
