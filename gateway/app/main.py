@@ -65,6 +65,13 @@ async def lifespan(app: FastAPI):
         load_balancer_type="round_robin"
     )
     
+    # Auth Service 등록
+    app.state.service_discovery.register_service(
+        service_name="auth-service",
+        instances=[{"host": "auth-service", "port": 8008, "weight": 1}],
+        load_balancer_type="round_robin"
+    )
+    
     yield
     logger.info("🛑 Gateway API 서비스 종료")
 
@@ -82,6 +89,8 @@ app.add_middleware(
         "http://localhost:3000",  # 로컬 접근
         "http://127.0.0.1:3000",  # 로컬 IP 접근
         "http://frontend:3000",   # Docker 내부 네트워크
+        "https://www.taezero.com",  # 프로덕션 도메인
+        "https://taezero.com",      # 프로덕션 도메인 (www 없이)
         "*"  # 개발 환경에서 모든 origin 허용
     ], # 프론트엔드 주소 명시
     allow_credentials=True,  # HttpOnly 쿠키 사용을 위해 필수

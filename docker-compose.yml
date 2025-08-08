@@ -50,6 +50,8 @@ services:
     depends_on:
       chatbot-service:
         condition: service_started
+      auth-service:
+        condition: service_started
       redis:
         condition: service_started
     dns:

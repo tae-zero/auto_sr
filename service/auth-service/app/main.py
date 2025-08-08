@@ -1,3 +1,6 @@
+"""
+Auth 서비스 메인 애플리케이션 진입점
+"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -32,7 +35,13 @@ app = FastAPI(
 # CORS 미들웨어 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",  # 로컬 접근
+        "http://127.0.0.1:3000",  # 로컬 IP 접근
+        "http://frontend:3000",   # Docker 내부 네트워크
+        "https://www.taezero.com",  # 프로덕션 도메인
+        "https://taezero.com",      # 프로덕션 도메인 (www 없이)
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
