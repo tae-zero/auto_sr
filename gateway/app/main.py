@@ -377,8 +377,7 @@ async def signup_process(request: Request, db: AsyncSession = Depends(get_db)):
             return {
                 "회원가입": "성공",
                 "message": result["message"],
-                "user_id": result.get("user_id"),
-                "created_at": result.get("created_at")
+                "user_id": result.get("user_id")
             }
         else:
             logger.warning(f"❌ 회원가입 실패: {result['message']}")

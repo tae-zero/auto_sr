@@ -76,8 +76,7 @@ class SignupService:
                 "success": True,
                 "message": "회원가입이 완료되었습니다.",
                 "user_id": new_user.id,
-                "email": new_user.email,
-                "created_at": new_user.created_at.isoformat()
+                "email": new_user.email
             }
             
         except IntegrityError as e:

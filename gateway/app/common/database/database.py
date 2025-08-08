@@ -53,7 +53,7 @@ async def get_db():
         finally:
             await session.close()
 
-# 테이블 생성 함수 (존재하지 않는 경우에만 생성, 데이터 보호)
+# 테이블 생성 함수 (존재하지 않는 경우에만 생성)
 async def create_tables():
     try:
         async with engine.begin() as conn:
