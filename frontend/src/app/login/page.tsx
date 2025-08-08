@@ -45,12 +45,12 @@ export default function LoginPage() {
       .then(response => {
         console.log('Login response:', response.data);
         
-        // 성공 메시지 표시
-        if (response.data.success) {
-          alert(`✅ ${response.data.message}\n\n이름: ${response.data.name}\n이메일: ${response.data.email}\n회사 ID: ${response.data.company_id}`);
-          // TODO: 로그인 성공 후 대시보드로 이동
-          // router.push('/dashboard');
-        } else {
+                 // 성공 메시지 표시
+         if (response.data.success) {
+           alert(`✅ ${response.data.message}\n\n이름: ${response.data.name}\n이메일: ${response.data.email}\n회사 ID: ${response.data.company_id}`);
+           // 로그인 성공 후 메인페이지로 이동
+           router.push('/');
+         } else {
           alert(`❌ ${response.data.message}`);
         }
       })
