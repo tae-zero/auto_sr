@@ -1,15 +1,25 @@
 """
 Auth 서비스 메인 애플리케이션 진입점
 """
-from fastapi import FastAPI, Request, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.ext.asyncio import AsyncSession
-
 import os
 import logging
 import sys
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Request, Depends
+from fastapi.middleware.cors import CORSMiddleware
+
+# SQLAlchemy AsyncSession 강제 import
+try:
+    from sqlalchemy.ext.asyncio import AsyncSession
+    print("✅ AsyncSession import 성공")
+except ImportError as e:
+    print(f"❌ AsyncSession import 실패: {e}")
+    # 대체 방법
+    import sqlalchemy.ext.asyncio
+    AsyncSession = sqlalchemy.ext.asyncio.AsyncSession
+    print("✅ AsyncSession 대체 import 성공")
 
 # 환경 변수 로드
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
@@ -97,7 +107,10 @@ async def login():
     return {"message": "Login endpoint", "status": "success"}
 
 @app.post("/auth/login")
-async def login_process(request: Request, db: AsyncSession = Depends(get_db)):
+async def login_process(request: Request, db=Depends(get_db)):
+    # 함수 내에서 AsyncSession 타입 힌트 재정의
+    from sqlalchemy.ext.asyncio import AsyncSession
+    db: AsyncSession = db
     logger.info("🔐 로그인 POST 요청 받음")
     try:
         # 요청 본문에서 formData 읽기
@@ -133,7 +146,10 @@ async def signup():
     return {"message": "Signup endpoint", "status": "success"}
 
 @app.post("/auth/signup")
-async def signup_process(request: Request, db: AsyncSession = Depends(get_db)):
+async def signup_process(request: Request, db=Depends(get_db)):
+    # 함수 내에서 AsyncSession 타입 힌트 재정의
+    from sqlalchemy.ext.asyncio import AsyncSession
+    db: AsyncSession = db
     logger.info("📝 회원가입 POST 요청 받음")
     try:
         # 요청 본문에서 formData 읽기
