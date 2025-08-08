@@ -45,9 +45,12 @@ services:
       - CORS_ALLOW_HEADERS=["*"]
     restart: always
     depends_on:
-      - chatbot-service
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      chatbot-service:
+        condition: service_started
+      redis:
+        condition: service_started
     dns:
       - 8.8.8.8
       - 8.8.4.4
@@ -102,6 +105,12 @@ services:
     networks:
       - app-network
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d esg_mate"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # Redis (캐싱 및 세션 저장)
   redis:

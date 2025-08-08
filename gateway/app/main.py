@@ -33,7 +33,11 @@ logger = logging.getLogger("gateway_api")
 async def lifespan(app: FastAPI):
     logger.info("🚀 Gateway API 서비스 시작")
     
-    # 데이터베이스 연결 테스트
+    # PostgreSQL 시작 대기
+    import asyncio
+    await asyncio.sleep(3)
+    
+    # 데이터베이스 연결 테스트 (재시도 로직 포함)
     db_connected = await test_connection()
     if db_connected:
         # 테이블 생성

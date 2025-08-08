@@ -59,14 +59,21 @@ async def create_tables():
         await conn.run_sync(Base.metadata.create_all)
     logger.info("데이터베이스 테이블이 생성되었습니다.")
 
-# 데이터베이스 연결 테스트
-async def test_connection():
-    try:
-        async with engine.begin() as conn:
-            from sqlalchemy import text
-            await conn.execute(text("SELECT 1"))
-        logger.info("✅ 데이터베이스 연결 성공!")
-        return True
-    except Exception as e:
-        logger.error(f"❌ 데이터베이스 연결 실패: {str(e)}")
-        return False
+# 데이터베이스 연결 테스트 (재시도 로직 포함)
+async def test_connection(max_retries=5, delay=2):
+    for attempt in range(max_retries):
+        try:
+            async with engine.begin() as conn:
+                from sqlalchemy import text
+                await conn.execute(text("SELECT 1"))
+            logger.info("✅ 데이터베이스 연결 성공!")
+            return True
+        except Exception as e:
+            logger.warning(f"❌ 데이터베이스 연결 시도 {attempt + 1}/{max_retries} 실패: {str(e)}")
+            if attempt < max_retries - 1:
+                import asyncio
+                await asyncio.sleep(delay)
+                logger.info(f"🔄 {delay}초 후 재시도...")
+            else:
+                logger.error(f"❌ 최대 재시도 횟수 초과. 데이터베이스 연결 실패")
+                return False
