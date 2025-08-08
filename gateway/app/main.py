@@ -32,12 +32,12 @@ logger = logging.getLogger("gateway_api")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("🚀 Gateway API 서비스 시작")
-    
-    # PostgreSQL 시작 대기
+
+    # Railway PostgreSQL 연결 대기 (로컬 PostgreSQL 대기 제거)
     import asyncio
-    await asyncio.sleep(3)
-    
-    # 데이터베이스 연결 테스트 (재시도 로직 포함)
+    await asyncio.sleep(2)
+
+    # Railway 데이터베이스 연결 테스트 (재시도 로직 포함)
     db_connected = await test_connection()
     if db_connected:
         # 환경변수로 초기화 제어 (기본값: True)
@@ -45,11 +45,12 @@ async def lifespan(app: FastAPI):
         if should_init_db:
             # 테이블 생성
             await create_tables()
-            logger.info("✅ 데이터베이스 초기화 완료")
+            logger.info("✅ Railway 데이터베이스 초기화 완료")
         else:
-            logger.info("ℹ️ 데이터베이스 초기화가 비활성화되었습니다.")
+            logger.info("ℹ️ Railway 데이터베이스 초기화가 비활성화되었습니다.")
     else:
-        logger.warning("⚠️ 데이터베이스 연결 실패 - 일부 기능이 제한될 수 있습니다")
+        logger.error("❌ Railway 데이터베이스 연결 실패 - 서비스가 시작되지 않습니다")
+        raise Exception("Railway PostgreSQL 연결에 실패했습니다")
     
     # Settings 초기화 및 앱 state에 등록
     app.state.settings = Settings()

@@ -5,20 +5,18 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Railway PostgreSQL 연결 설정
+# Railway PostgreSQL 연결 설정 (필수)
 DATABASE_URL = os.getenv("DATABASE_URL")
-if DATABASE_URL:
-    # Railway PostgreSQL URL을 asyncpg용으로 변환
-    if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
-    elif DATABASE_URL.startswith("postgresql://") and "asyncpg" not in DATABASE_URL:
-        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
-    
-    logger.info(f"데이터베이스 연결 설정 완료: {DATABASE_URL.split('@')[0]}@***")
-else:
-    # 로컬 개발용 기본값 (Docker 환경)
-    DATABASE_URL = "postgresql+asyncpg://postgres:password@postgres:5432/esg_mate"
-    logger.warning("DATABASE_URL이 없습니다. Docker PostgreSQL 사용")
+if not DATABASE_URL:
+    raise ValueError("❌ DATABASE_URL 환경변수가 설정되지 않았습니다. Railway PostgreSQL 연결이 필요합니다.")
+
+# Railway PostgreSQL URL을 asyncpg용으로 변환
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+elif DATABASE_URL.startswith("postgresql://") and "asyncpg" not in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+logger.info(f"✅ Railway PostgreSQL 연결 설정 완료: {DATABASE_URL.split('@')[0]}@***")
 
 # 비동기 엔진 생성 (asyncpg 전용)
 engine = create_async_engine(

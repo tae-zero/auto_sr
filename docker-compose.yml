@@ -44,10 +44,10 @@ services:
       - CORS_ALLOW_METHODS=["*"]
       - CORS_ALLOW_HEADERS=["*"]
       - INIT_DATABASE=true
+      # Railway PostgreSQL 연결
+      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@postgres.railway.internal:5432/railway
     restart: always
     depends_on:
-      postgres:
-        condition: service_healthy
       chatbot-service:
         condition: service_started
       redis:
@@ -91,27 +91,7 @@ services:
       retries: 3
       start_period: 40s
 
-  # PostgreSQL (데이터베이스)
-  postgres:
-    image: postgres:15-alpine
-    container_name: postgres
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: esg_mate
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - app-network
-    restart: always
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d esg_mate"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+  # PostgreSQL (데이터베이스) - 제거됨 (Railway PostgreSQL 사용)
 
   # Redis (캐싱 및 세션 저장)
   redis:
@@ -123,9 +103,6 @@ services:
       - app-network
     restart: always
     command: redis-server
-
-volumes:
-  postgres_data:
 
 networks:
   app-network:
