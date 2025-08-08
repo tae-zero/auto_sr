@@ -3,6 +3,7 @@ Auth 서비스 메인 애플리케이션 진입점
 """
 from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import os
 import logging
