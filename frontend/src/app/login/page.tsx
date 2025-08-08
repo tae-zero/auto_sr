@@ -40,8 +40,9 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // auth-service로 직접 요청
-    axios.post('http://localhost:8008/login', formData)
+    // auth-service로 직접 요청 (환경변수 사용)
+    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_SERVICE_URL || 'https://auth-service-production-1deb.up.railway.app';
+    axios.post(`${authServiceUrl}/login`, formData)
       .then(response => {
         console.log('Login response:', response.data);
         
