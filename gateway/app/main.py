@@ -303,7 +303,7 @@ async def health_check_db():
         "message": "Database health check delegated to auth-service"
     }
 
-# 기본 루트 경로들만 유지
+# Gateway는 순수한 라우팅만 담당 (MSA 원칙)
 
 
 # ✅ 서버 실행

@@ -47,16 +47,29 @@ export default function SignupPage() {
     // JSON을 보기 좋게 포맷팅하여 alert에 표시
     alert(JSON.stringify(signupData, null, 2));
     
-    // TODO: Send signup data to backend
-    axios.post('http://localhost:8080/signup', formData)
+    // MSA 구조: Gateway를 통해 auth-service로 요청
+    axios.post('http://localhost:8080/api/v1/auth-service/auth/signup', formData)
       .then(response => {
         console.log('Signup successful:', response.data);
-        alert('회원가입이 완료되었습니다!');
-        router.push('/login');
+        
+        // 성공 메시지 표시
+        if (response.data.success) {
+          alert(`✅ ${response.data.message}\n\n이메일: ${response.data.email}\n사용자 ID: ${response.data.user_id}`);
+          // 로그인 페이지로 자동 이동
+          router.push('/login');
+        } else {
+          alert(`❌ ${response.data.message}`);
+        }
       })
       .catch(error => {
         console.error('Signup failed:', error);
-        alert('회원가입에 실패했습니다.');
+        
+        // 에러 응답 처리
+        if (error.response && error.response.data) {
+          alert(`❌ 회원가입 실패: ${error.response.data.message || error.response.data.detail || '알 수 없는 오류'}`);
+        } else {
+          alert('❌ 회원가입에 실패했습니다. 서버 연결을 확인해주세요.');
+        }
       });
   };
 

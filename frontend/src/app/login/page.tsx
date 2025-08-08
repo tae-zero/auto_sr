@@ -11,8 +11,8 @@ export default function LoginPage() {
 
   // Form state management
   const [formData, setFormData] = useState({
-    username: '',
-    password: ''
+    auth_id: '',
+    auth_pw: ''
   });
 
   // Check authentication status on component mount
@@ -39,14 +39,30 @@ export default function LoginPage() {
   // Login form submission
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Show form data as JSON in alert
-    alert(JSON.stringify(formData, null, 2));
-    axios.post('http://localhost:8080/login', formData)
+    
+    // MSA 구조: Gateway를 통해 auth-service로 요청
+    axios.post('http://localhost:8080/api/v1/auth-service/auth/login', formData)
       .then(response => {
-        console.log(response.data);
+        console.log('Login response:', response.data);
+        
+        // 성공 메시지 표시
+        if (response.data.success) {
+          alert(`✅ ${response.data.message}\n\n이름: ${response.data.name}\n이메일: ${response.data.email}\n회사 ID: ${response.data.company_id}`);
+          // TODO: 로그인 성공 후 대시보드로 이동
+          // router.push('/dashboard');
+        } else {
+          alert(`❌ ${response.data.message}`);
+        }
       })
       .catch(error => {
         console.error('Login failed:', error);
+        
+        // 에러 응답 처리
+        if (error.response && error.response.data) {
+          alert(`❌ 로그인 실패: ${error.response.data.message || error.response.data.detail || '알 수 없는 오류'}`);
+        } else {
+          alert('❌ 로그인에 실패했습니다. 서버 연결을 확인해주세요.');
+        }
       });
   };
 
@@ -75,27 +91,27 @@ export default function LoginPage() {
 
             {/* Login Form */}
             <div className="space-y-8">
-              {/* Username Input */}
+              {/* Auth ID Input */}
               <div className="relative">
                 <input
                   type="text"
-                  name="username"
-                  value={formData.username}
+                  name="auth_id"
+                  value={formData.auth_id}
                   onChange={handleInputChange}
-                  placeholder="Username"
+                  placeholder="인증 ID"
                   className="w-full px-0 py-4 text-lg text-gray-800 placeholder-gray-400 bg-transparent border-0 border-b-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-all duration-300"
                   required
                 />
               </div>
 
-              {/* Password Input */}
+              {/* Auth Password Input */}
               <div className="relative">
                 <input
                   type="password"
-                  name="password"
-                  value={formData.password}
+                  name="auth_pw"
+                  value={formData.auth_pw}
                   onChange={handleInputChange}
-                  placeholder="Password"
+                  placeholder="인증 비밀번호"
                   className="w-full px-0 py-4 text-lg text-gray-800 placeholder-gray-400 bg-transparent border-0 border-b-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-all duration-300"
                   required
                 />

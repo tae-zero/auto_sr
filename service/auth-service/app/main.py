@@ -3,7 +3,7 @@ Auth 서비스 메인 애플리케이션 진입점
 """
 from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.ext.asyncio import AsyncSession
+
 import os
 import logging
 import sys
@@ -30,6 +30,7 @@ logger = logging.getLogger("auth_service")
 # DB 관련 import
 from app.common.database.database import get_db, create_tables, test_connection
 from app.domain.auth.service.signup_service import SignupService
+from app.domain.auth.service.login_service import LoginService
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -102,11 +103,29 @@ async def login_process(request: Request, db: AsyncSession = Depends(get_db)):
         form_data = await request.json()
         logger.info(f"로그인 시도: {form_data.get('auth_id', 'N/A')}")
         
-        # TODO: 로그인 로직 구현 (비밀번호 검증 등)
-        return {"로그인": "성공", "받은 데이터": form_data}
+        # 필수 필드 검증
+        required_fields = ['auth_id', 'auth_pw']
+        missing_fields = [field for field in required_fields if not form_data.get(field)]
+        
+        if missing_fields:
+            logger.warning(f"필수 필드 누락: {missing_fields}")
+            return {
+                "success": False,
+                "message": f"필수 필드가 누락되었습니다: {', '.join(missing_fields)}"
+            }
+        
+        # LoginService를 통한 인증
+        result = await LoginService.authenticate_user(
+            db, 
+            form_data['auth_id'], 
+            form_data['auth_pw']
+        )
+        
+        return result
+        
     except Exception as e:
         logger.error(f"로그인 처리 중 오류: {str(e)}")
-        return {"로그인": "실패", "오류": str(e)}
+        return {"success": False, "message": f"로그인 처리 중 오류가 발생했습니다: {str(e)}"}
 
 @app.get("/auth/signup")
 async def signup():
@@ -147,14 +166,15 @@ async def signup_process(request: Request, db: AsyncSession = Depends(get_db)):
         if result["success"]:
             logger.info(f"✅ 회원가입 성공: {form_data['email']}")
             return {
-                "회원가입": "성공",
+                "success": True,
                 "message": result["message"],
-                "user_id": result.get("user_id")
+                "user_id": result.get("user_id"),
+                "email": result.get("email")
             }
         else:
             logger.warning(f"❌ 회원가입 실패: {result['message']}")
             return {
-                "회원가입": "실패",
+                "success": False,
                 "message": result["message"]
             }
             
