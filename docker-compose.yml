@@ -1,24 +1,24 @@
 name: esg_mate
 
 services:
-  # Frontend (Next.js)
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: frontend
-    ports:
-      - "3001:3000"
-    volumes:
-      - ./frontend:/app
-    environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://gateway:8080
-    restart: always
-    depends_on:
-      - gateway
-    networks:
-      - app-network
+  # Frontend (Next.js) - 임시 비활성화
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: frontend
+  #   ports:
+  #     - "3001:3000"
+  #   volumes:
+  #     - ./frontend:/app
+  #   environment:
+  #     - NODE_ENV=development
+  #     - NEXT_PUBLIC_API_URL=http://gateway:8080
+  #   restart: always
+  #   depends_on:
+  #     - gateway
+  #   networks:
+  #     - app-network
 
   # Gateway (FastAPI)
   gateway:
