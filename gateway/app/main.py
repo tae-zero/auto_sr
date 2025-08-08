@@ -40,9 +40,14 @@ async def lifespan(app: FastAPI):
     # 데이터베이스 연결 테스트 (재시도 로직 포함)
     db_connected = await test_connection()
     if db_connected:
-        # 테이블 생성
-        await create_tables()
-        logger.info("✅ 데이터베이스 초기화 완료")
+        # 환경변수로 초기화 제어 (기본값: True)
+        should_init_db = os.getenv("INIT_DATABASE", "true").lower() == "true"
+        if should_init_db:
+            # 테이블 생성
+            await create_tables()
+            logger.info("✅ 데이터베이스 초기화 완료")
+        else:
+            logger.info("ℹ️ 데이터베이스 초기화가 비활성화되었습니다.")
     else:
         logger.warning("⚠️ 데이터베이스 연결 실패 - 일부 기능이 제한될 수 있습니다")
     
