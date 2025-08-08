@@ -9,6 +9,11 @@ from dotenv import load_dotenv
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
     load_dotenv()
 
+# Railway 환경변수 처리
+PORT = os.getenv("PORT", "8008")
+if not PORT.isdigit():
+    PORT = "8008"
+
 # 로깅 설정
 logging.basicConfig(
     level=logging.INFO,
@@ -59,5 +64,5 @@ async def signup_process():
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", os.getenv("SERVICE_PORT", 8008)))
+    port = int(PORT)
     uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
