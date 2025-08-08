@@ -1,0 +1,26 @@
+# FastAPI 및 웹 서버
+fastapi==0.109.2
+uvicorn==0.27.1
+
+# HTTP 클라이언트
+httpx==0.25.2
+aiohttp==3.9.1
+
+# 데이터 검증 및 설정
+pydantic==2.6.1
+pydantic-settings==2.1.0
+
+# 환경 변수 관리
+python-dotenv==1.0.1
+
+# 유틸리티
+python-multipart==0.0.9
+
+# JWT 토큰
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# PostgreSQL 데이터베이스 (비동기 전용)
+asyncpg==0.29.0
+sqlalchemy[asyncio]==2.0.25
+alembic==1.13.1

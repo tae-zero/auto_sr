@@ -91,6 +91,33 @@ services:
       retries: 3
       start_period: 40s
 
+  # Auth Service (FastAPI)
+  auth-service:
+    build:
+      context: ./service/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "8008:8008"
+    volumes:
+      - ./service/auth-service:/app
+    environment:
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=8008
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+    restart: always
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   # PostgreSQL (데이터베이스) - 제거됨 (Railway PostgreSQL 사용)
 
   # Redis (캐싱 및 세션 저장)

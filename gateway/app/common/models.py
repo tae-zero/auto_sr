@@ -5,7 +5,7 @@ from .database.database import Base
 
 class User(Base):
     """사용자 테이블"""
-    __tablename__ = "users"
+    __tablename__ = "user"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     company_id = Column(Text, nullable=False, comment="회사 ID")

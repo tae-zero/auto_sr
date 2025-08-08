@@ -62,7 +62,7 @@ async def create_tables():
             result = await conn.execute(text("""
                 SELECT EXISTS (
                     SELECT FROM information_schema.tables 
-                    WHERE table_name = 'users'
+                    WHERE table_name = 'user'
                 );
             """))
             table_exists = result.scalar()
@@ -72,7 +72,7 @@ async def create_tables():
                 logger.info("✅ 데이터베이스 테이블이 생성되었습니다.")
             else:
                 # 기존 데이터 개수 확인
-                count_result = await conn.execute(text("SELECT COUNT(*) FROM users"))
+                count_result = await conn.execute(text("SELECT COUNT(*) FROM user"))
                 user_count = count_result.scalar()
                 logger.info(f"ℹ️ 데이터베이스 테이블이 이미 존재합니다. (기존 사용자: {user_count}명)")
                 
