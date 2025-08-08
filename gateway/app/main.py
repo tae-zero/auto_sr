@@ -2,7 +2,6 @@ from typing import Optional, List
 from fastapi import APIRouter, FastAPI, Request, UploadFile, File, Query, HTTPException, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy.ext.asyncio import AsyncSession
 import os
 import logging
 import sys
@@ -304,53 +303,7 @@ async def health_check_db():
         "message": "Database health check delegated to auth-service"
     }
 
-# 루트 레벨 로그인 페이지 (GET)
-@app.get("/login")
-async def login_page():
-    return {"message": "로그인 페이지", "status": "success"}
-
-# 루트 레벨 회원가입 페이지 (GET)
-@app.get("/signup")
-async def signup_page():
-    return {"message": "회원가입 페이지", "status": "success"}
-
-# 루트 레벨 로그인 처리 (POST)
-@app.post("/login")
-async def login_process(request: Request):
-    logger.info("🔐 로그인 POST 요청 받음")
-    try:
-        # 요청 본문에서 formData 읽기
-        form_data = await request.json()
-        logger.info(f"로그인 성공: {form_data}")
-        return {"로그인": "성공", "받은 데이터": form_data}
-    except Exception as e:
-        logger.error(f"로그인 처리 중 오류: {str(e)}")
-        return {"로그인": "실패", "오류": str(e)}
-
-# 루트 레벨 회원가입 처리 (POST) - auth-service에 위임
-@app.post("/signup")
-async def signup_process(request: Request):
-    logger.info("📝 회원가입 POST 요청 받음 - auth-service에 위임")
-    try:
-        # 요청 본문에서 formData 읽기
-        form_data = await request.json()
-        
-        # auth-service에 요청 전달
-        service_discovery = request.app.state.service_discovery
-        headers = dict(request.headers)
-        
-        response = await service_discovery.request(
-            method="POST",
-            path="auth/signup",
-            headers=headers,
-            body=await request.body()
-        )
-        
-        return ResponseFactory.create_response(response)
-        
-    except Exception as e:
-        logger.error(f"회원가입 처리 중 오류: {str(e)}")
-        return {"회원가입": "실패", "오류": str(e)}
+# 기본 루트 경로들만 유지
 
 
 # ✅ 서버 실행
