@@ -84,6 +84,10 @@ gateway_router.include_router(auth_router)
 # 필요시: gateway_router.include_router(user_router)
 app.include_router(gateway_router)
 
+# 동적 라우팅을 위한 별도 라우터
+dynamic_router = APIRouter(prefix="/api/v1", tags=["Dynamic Routing"])
+app.include_router(dynamic_router)
+
 # 🪡🪡🪡 파일이 필요한 서비스 목록 (현재는 없음)
 FILE_REQUIRED_SERVICES = set()
 

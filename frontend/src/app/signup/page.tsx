@@ -47,8 +47,8 @@ export default function SignupPage() {
     // JSON을 보기 좋게 포맷팅하여 alert에 표시
     alert(JSON.stringify(signupData, null, 2));
     
-    // Gateway를 통한 올바른 경로로 요청
-    axios.post('http://localhost:8080/api/v1/auth-service/signup', formData)
+    // auth-service로 직접 요청
+    axios.post('http://localhost:8008/signup', formData)
       .then(response => {
         console.log('Signup successful:', response.data);
         

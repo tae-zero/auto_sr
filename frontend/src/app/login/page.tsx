@@ -40,8 +40,8 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Gateway를 통한 올바른 경로로 요청
-    axios.post('http://localhost:8080/api/v1/auth-service/login', formData)
+    // auth-service로 직접 요청
+    axios.post('http://localhost:8008/login', formData)
       .then(response => {
         console.log('Login response:', response.data);
         

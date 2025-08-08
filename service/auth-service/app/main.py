@@ -93,7 +93,7 @@ app.add_middleware(
         "*"  # 개발 환경에서 모든 origin 허용
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
 )
 
