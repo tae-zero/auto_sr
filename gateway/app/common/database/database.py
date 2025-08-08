@@ -1,8 +1,6 @@
 import os
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy import Column, String, DateTime, Integer
-from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -10,22 +8,27 @@ logger = logging.getLogger(__name__)
 # Railway PostgreSQL 연결 설정
 DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL:
-    # Railway PostgreSQL URL 변환 (postgres:// -> postgresql+asyncpg://)
+    # Railway PostgreSQL URL을 asyncpg용으로 변환
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
-    logger.info(f"데이터베이스 연결: {DATABASE_URL.split('@')[0]}@***")
+    elif DATABASE_URL.startswith("postgresql://") and "asyncpg" not in DATABASE_URL:
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+    
+    logger.info(f"데이터베이스 연결 설정 완료: {DATABASE_URL.split('@')[0]}@***")
 else:
     # 로컬 개발용 기본값
     DATABASE_URL = "postgresql+asyncpg://postgres:password@localhost:5432/esg_mate"
     logger.warning("DATABASE_URL이 없습니다. 로컬 개발용 DB 사용")
 
-# 비동기 엔진 생성
+# 비동기 엔진 생성 (asyncpg 전용)
 engine = create_async_engine(
     DATABASE_URL,
     echo=True,  # SQL 로그 출력 (개발용)
     future=True,
     pool_pre_ping=True,  # 연결 상태 확인
-    pool_recycle=300  # 5분마다 연결 재생성
+    pool_recycle=300,  # 5분마다 연결 재생성
+    pool_size=10,  # 연결 풀 크기
+    max_overflow=20  # 최대 추가 연결 수
 )
 
 # 비동기 세션 팩토리
