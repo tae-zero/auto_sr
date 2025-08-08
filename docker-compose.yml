@@ -8,11 +8,11 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - ./frontend:/app
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://gateway:8080
     restart: always
     depends_on:

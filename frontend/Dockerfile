@@ -20,5 +20,5 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 ENV NODE_ENV=development
 
-# Start the application in development mode
-CMD ["npm", "run", "dev"] 
+# Start the application in development mode with SWC disabled
+CMD ["npm", "run", "dev", "--", "--turbo"] 
