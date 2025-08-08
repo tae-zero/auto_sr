@@ -44,8 +44,8 @@ services:
       - CORS_ALLOW_METHODS=["*"]
       - CORS_ALLOW_HEADERS=["*"]
       - INIT_DATABASE=true
-      # Railway PostgreSQL 연결
-      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@postgres.railway.internal:5432/railway
+      # Railway PostgreSQL 연결 (Public Network URL)
+      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
     restart: always
     depends_on:
       chatbot-service:

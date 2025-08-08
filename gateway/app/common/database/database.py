@@ -8,7 +8,9 @@ logger = logging.getLogger(__name__)
 # Railway PostgreSQL 연결 설정 (필수)
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
-    raise ValueError("❌ DATABASE_URL 환경변수가 설정되지 않았습니다. Railway PostgreSQL 연결이 필요합니다.")
+    # 로컬 개발용 임시 설정 (실제 Railway URL로 교체 필요)
+    logger.warning("⚠️ DATABASE_URL이 없습니다. 로컬 개발용 임시 설정을 사용합니다.")
+    DATABASE_URL = "postgresql://postgres:password@localhost:5432/esg_mate"
 
 # Railway PostgreSQL URL을 asyncpg용으로 변환
 if DATABASE_URL.startswith("postgres://"):
