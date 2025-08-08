@@ -40,22 +40,24 @@ async def lifespan(app: FastAPI):
     await asyncio.sleep(2)
 
     # Railway 데이터베이스 연결 테스트
-    db_connected = await test_connection()
-    if db_connected:
-        # 환경변수로 초기화 제어 (기본값: True)
-        should_init_db = os.getenv("INIT_DATABASE", "true").lower() == "true"
-        if should_init_db:
-            # 테이블 생성
-            await create_tables()
-            logger.info("✅ Railway 데이터베이스 초기화 완료")
+    try:
+        db_connected = await test_connection()
+        if db_connected:
+            # 환경변수로 초기화 제어 (기본값: True)
+            should_init_db = os.getenv("INIT_DATABASE", "true").lower() == "true"
+            if should_init_db:
+                # 테이블 생성
+                await create_tables()
+                logger.info("✅ Railway 데이터베이스 초기화 완료")
+            else:
+                logger.info("ℹ️ Railway 데이터베이스 초기화가 비활성화되었습니다.")
         else:
-            logger.info("ℹ️ Railway 데이터베이스 초기화가 비활성화되었습니다.")
-    else:
-        logger.error("❌ Railway 데이터베이스 연결 실패 - 서비스가 시작되지 않습니다")
-        raise Exception("Railway PostgreSQL 연결에 실패했습니다")
+            logger.warning("⚠️ Railway 데이터베이스 연결 실패 - 서비스는 계속 실행됩니다")
+    except Exception as e:
+        logger.warning(f"⚠️ 데이터베이스 초기화 중 오류 (서비스는 계속 실행): {str(e)}")
     
     yield
-    logger.info("🛑 Auth Service 종료")
+    logger.info("�� Auth Service 종료")
 
 # FastAPI 앱 생성
 app = FastAPI(

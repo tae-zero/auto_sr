@@ -12,7 +12,10 @@ logger = logging.getLogger("auth_service_db")
 # Railway PostgreSQL 연결 설정 (필수)
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
-    raise ValueError("❌ DATABASE_URL 환경변수가 설정되지 않았습니다. Railway PostgreSQL 연결이 필요합니다.")
+    logger.warning("⚠️ DATABASE_URL 환경변수가 설정되지 않았습니다.")
+    # Railway에서 기본값 설정
+    DATABASE_URL = "postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway"
+    logger.info("ℹ️ 기본 Railway PostgreSQL URL을 사용합니다.")
 
 # Railway PostgreSQL URL을 asyncpg용으로 변환
 if DATABASE_URL.startswith("postgres://"):
