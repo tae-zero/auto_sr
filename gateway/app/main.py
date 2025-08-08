@@ -2,6 +2,7 @@ from typing import Optional, List
 from fastapi import APIRouter, FastAPI, Request, UploadFile, File, Query, HTTPException, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 import os
 import logging
 import sys
@@ -15,6 +16,8 @@ from app.domain.discovery.service_discovery import ServiceDiscovery
 from app.domain.discovery.service_type import ServiceType
 from app.common.utility.constant.settings import Settings
 from app.common.utility.factory.response_factory import ResponseFactory
+from app.common.database.database import get_db, create_tables, test_connection
+from app.domain.auth.service.signup_service import SignupService
 
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
     load_dotenv()
@@ -29,6 +32,16 @@ logger = logging.getLogger("gateway_api")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("🚀 Gateway API 서비스 시작")
+    
+    # 데이터베이스 연결 테스트
+    db_connected = await test_connection()
+    if db_connected:
+        # 테이블 생성
+        await create_tables()
+        logger.info("✅ 데이터베이스 초기화 완료")
+    else:
+        logger.warning("⚠️ 데이터베이스 연결 실패 - 일부 기능이 제한될 수 있습니다")
+    
     # Settings 초기화 및 앱 state에 등록
     app.state.settings = Settings()
     
@@ -283,6 +296,16 @@ async def root():
 async def health_check_root():
     return {"status": "healthy", "service": "gateway", "path": "root"}
 
+# 데이터베이스 헬스 체크
+@app.get("/health/db")
+async def health_check_db():
+    db_status = await test_connection()
+    return {
+        "status": "healthy" if db_status else "unhealthy",
+        "service": "gateway",
+        "database": "connected" if db_status else "disconnected"
+    }
+
 # 루트 레벨 로그인 페이지 (GET)
 @app.get("/login")
 async def login_page():
@@ -306,13 +329,24 @@ async def login_process(request: Request):
         logger.error(f"로그인 처리 중 오류: {str(e)}")
         return {"로그인": "실패", "오류": str(e)}
 
-# 루트 레벨 회원가입 처리 (POST)
+# 루트 레벨 회원가입 처리 (POST) - PostgreSQL 저장 기능 포함
 @app.post("/signup")
-async def signup_process(request: Request):
+async def signup_process(request: Request, db: AsyncSession = Depends(get_db)):
     logger.info("📝 회원가입 POST 요청 받음")
     try:
         # 요청 본문에서 formData 읽기
         form_data = await request.json()
+        
+        # 필수 필드 검증
+        required_fields = ['company_id', 'industry', 'email', 'name', 'age', 'auth_id', 'auth_pw']
+        missing_fields = [field for field in required_fields if not form_data.get(field)]
+        
+        if missing_fields:
+            logger.warning(f"필수 필드 누락: {missing_fields}")
+            return {
+                "회원가입": "실패",
+                "message": f"필수 필드가 누락되었습니다: {', '.join(missing_fields)}"
+            }
         
         # 새로운 컬럼명에 맞춰 로그 출력
         logger.info("=== 회원가입 요청 데이터 ===")
@@ -322,20 +356,27 @@ async def signup_process(request: Request):
         logger.info(f"이름: {form_data.get('name', 'N/A')}")
         logger.info(f"나이: {form_data.get('age', 'N/A')}")
         logger.info(f"인증 ID: {form_data.get('auth_id', 'N/A')}")
-        logger.info(f"인증 비밀번호: {form_data.get('auth_pw', 'N/A')}")
+        logger.info(f"인증 비밀번호: [PROTECTED]")
         logger.info("==========================")
         
-        # TODO: 실제 회원가입 로직 구현
-        # - 사용자 ID 중복 확인
-        # - 이메일 중복 확인
-        # - 비밀번호 해싱
-        # - 데이터베이스 저장
+        # PostgreSQL에 사용자 저장
+        result = await SignupService.create_user(db, form_data)
         
-        return {
-            "회원가입": "성공", 
-            "받은 데이터": form_data,
-            "message": "회원가입이 완료되었습니다."
-        }
+        if result["success"]:
+            logger.info(f"✅ 회원가입 성공: {form_data['email']}")
+            return {
+                "회원가입": "성공",
+                "message": result["message"],
+                "user_id": result.get("user_id"),
+                "created_at": result.get("created_at")
+            }
+        else:
+            logger.warning(f"❌ 회원가입 실패: {result['message']}")
+            return {
+                "회원가입": "실패",
+                "message": result["message"]
+            }
+            
     except Exception as e:
         logger.error(f"회원가입 처리 중 오류: {str(e)}")
         return {"회원가입": "실패", "오류": str(e)}
