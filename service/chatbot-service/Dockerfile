@@ -27,4 +27,5 @@ ENV SERVICE_HOST=0.0.0.0
 ENV PORT=8006
 
 # Railway의 PORT 환경변수를 사용하여 애플리케이션 실행
+# PORT 환경변수가 없으면 기본값 8006 사용
 CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8006}"]
