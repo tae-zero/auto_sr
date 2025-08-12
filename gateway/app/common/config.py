@@ -5,10 +5,17 @@ import os
 class Settings(BaseSettings):
     """애플리케이션 설정"""
     
+    # Database Configuration
+    DATABASE_URL: str = "postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@postgres.railway.internal:5432/railway"
+    
     # Gateway 설정
     GATEWAY_HOST: str = "0.0.0.0"
-    GATEWAY_PORT: int = 8080
+    GATEWAY_PORT: int = int(os.getenv("GATEWAY_PORT", "8080"))
     GATEWAY_RELOAD: bool = True
+    
+    # Service Ports
+    AUTH_SERVICE_PORT: int = int(os.getenv("AUTH_SERVICE_PORT", "8008"))
+    CHATBOT_SERVICE_PORT: int = int(os.getenv("CHATBOT_SERVICE_PORT", "8006"))
     
     # 서비스 디스커버리 설정
     SERVICE_DISCOVERY_TYPE: str = "static"  # static, consul, eureka
@@ -40,27 +47,17 @@ settings = Settings()
 
 # 서비스 레지스트리 설정 (Gateway만 배포)
 DEFAULT_SERVICE_REGISTRY = {
-    "user-service": {
+    "auth-service": {
         "instances": [
-            {"host": "localhost", "port": 8001, "health": True, "weight": 1},
-            {"host": "localhost", "port": 8002, "health": True, "weight": 1}
+            {"host": "localhost", "port": settings.AUTH_SERVICE_PORT, "health": True, "weight": 1},
         ],
         "load_balancer": "round_robin",
         "current_index": 0,
         "health_check_path": "/health"
     },
-    "order-service": {
+    "chatbot-service": {
         "instances": [
-            {"host": "localhost", "port": 8003, "health": True, "weight": 1},
-            {"host": "localhost", "port": 8004, "health": True, "weight": 1}
-        ],
-        "load_balancer": "round_robin",
-        "current_index": 0,
-        "health_check_path": "/health"
-    },
-    "product-service": {
-        "instances": [
-            {"host": "localhost", "port": 8005, "health": True, "weight": 1}
+            {"host": "localhost", "port": settings.CHATBOT_SERVICE_PORT, "health": True, "weight": 1}
         ],
         "load_balancer": "round_robin",
         "current_index": 0,

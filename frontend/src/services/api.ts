@@ -1,7 +1,30 @@
 import axios from 'axios';
 
+// 환경변수에서 API URL 가져오기
+const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
+const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:8008';
+const CHATBOT_URL = process.env.NEXT_PUBLIC_CHATBOT_URL || 'http://localhost:8006';
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://your-gateway-service.railway.app',
+  baseURL: GATEWAY_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Auth Service API
+export const authApi = axios.create({
+  baseURL: AUTH_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Chatbot Service API
+export const chatbotApi = axios.create({
+  baseURL: CHATBOT_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
