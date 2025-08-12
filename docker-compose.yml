@@ -45,12 +45,23 @@ services:
       - CORS_ALLOW_HEADERS=["*"]
       - INIT_DATABASE=true
       # Railway PostgreSQL 연결 (Public Network URL)
-      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
+      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrO@gondola.proxy.rlwy.net:46735/railway
+      # AI 및 LangChain 설정
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4}
+      - OPENAI_MAX_TOKENS=${OPENAI_MAX_TOKENS:-2000}
+      - OPENAI_TEMPERATURE=${OPENAI_TEMPERATURE:-0.3}
+      - VECTOR_DB_TYPE=${VECTOR_DB_TYPE:-chroma}
+      - CHROMA_PERSIST_DIRECTORY=${CHROMA_PERSIST_DIRECTORY:-./chroma_db}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-20971520}
+      - SUPPORTED_FILE_TYPES=${SUPPORTED_FILE_TYPES:-txt,pdf,docx,md}
     restart: always
     depends_on:
       chatbot-service:
         condition: service_started
       auth-service:
+        condition: service_started
+      tcfd-service:
         condition: service_started
       redis:
         condition: service_started
@@ -110,7 +121,7 @@ services:
       - PYTHONUNBUFFERED=1
       - INIT_DATABASE=true
       # Railway PostgreSQL 연결 (Public Network URL)
-      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
+      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrO@gondola.proxy.rlwy.net:46735/railway
     restart: always
     depends_on:
       - redis
@@ -118,6 +129,43 @@ services:
       - app-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # TCFD Service (FastAPI + LangChain)
+  tcfd-service:
+    build:
+      context: ./service/tcfd-service
+      dockerfile: Dockerfile
+    container_name: tcfd-service
+    ports:
+      - "8005:8005"
+    volumes:
+      - ./service/tcfd-service:/app
+      - tcfd_chroma_data:/app/chroma_db
+    environment:
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=8005
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      # AI 및 LangChain 설정
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4}
+      - OPENAI_MAX_TOKENS=${OPENAI_MAX_TOKENS:-2000}
+      - OPENAI_TEMPERATURE=${OPENAI_TEMPERATURE:-0.3}
+      - VECTOR_DB_TYPE=${VECTOR_DB_TYPE:-chroma}
+      - CHROMA_PERSIST_DIRECTORY=${CHROMA_PERSIST_DIRECTORY:-./chroma_db}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-20971520}
+      - SUPPORTED_FILE_TYPES=${SUPPORTED_FILE_TYPES:-txt,pdf,docx,md}
+    restart: always
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -135,6 +183,10 @@ services:
       - app-network
     restart: always
     command: redis-server
+
+volumes:
+  tcfd_chroma_data:
+    driver: local
 
 networks:
   app-network:

@@ -3,17 +3,20 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Install pnpm globally
+RUN npm install -g pnpm
 
-# Install dependencies
-RUN npm ci --only=production
+# Copy package files
+COPY package*.json pnpm-lock.yaml ./
+
+# Install all dependencies (including devDependencies for build)
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN pnpm run build
 
 # Production stage
 FROM node:18-alpine AS runner
