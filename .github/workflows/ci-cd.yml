@@ -115,12 +115,17 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         
-    - name: Deploy to Railway
+    # Railway 배포는 수동으로 설정해야 함 (각 서비스별 개별 프로젝트)
+    - name: Railway Deployment Info
       if: github.ref == 'refs/heads/main'
-      uses: bervProject/railway-deploy@v1.0.0
-      with:
-        service: ${{ matrix.service }}
-        token: ${{ secrets.RAILWAY_TOKEN }}
+      run: |
+        echo "🚂 Railway 배포 정보:"
+        echo "서비스: ${{ matrix.service }}"
+        echo "Railway에서 다음 단계를 수행하세요:"
+        echo "1. Railway Dashboard에서 새 프로젝트 생성"
+        echo "2. GitHub 저장소 연결"
+        echo "3. 서비스 경로: ${{ matrix.service == 'gateway' && 'gateway' || 'service/' + matrix.service }}"
+        echo "4. 환경변수 설정: RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN }}"
 
   # Integration Tests
   integration:

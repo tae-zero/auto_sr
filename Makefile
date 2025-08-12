@@ -115,6 +115,10 @@ ci-deploy:
 	@echo "git push origin main"
 	@echo "또는"
 	@echo "git push origin develop"
+	@echo ""
+	@echo "🚂 Railway 배포는 수동으로 설정해야 합니다:"
+	@echo "각 서비스를 별도 프로젝트로 배포하세요."
+	@echo "자세한 내용은 RAILWAY-DEPLOYMENT.md를 참조하세요."
 
 ci-logs:
 	@echo "📊 GitHub Actions 로그 확인:"

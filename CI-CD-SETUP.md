@@ -46,7 +46,7 @@ RAILWAY_TOKEN=your_railway_token_here
 2. **의존성 설치** → `pip install -r requirements.txt`
 3. **테스트 실행** → pytest (설정된 경우)
 4. **Docker 이미지 빌드** → GitHub Container Registry에 푸시
-5. **배포** → Railway에 자동 배포 (main 브랜치만)
+5. **배포** → Railway에 수동 배포 (각 서비스별 개별 프로젝트)
 
 ### **통합 테스트**
 1. **모든 서비스 빌드 완료** 후 실행
@@ -164,3 +164,4 @@ make test-services   # 실행 중인 서비스 테스트
 - [Vercel 배포 가이드](https://vercel.com/docs/deployments)
 - [Railway 배포 가이드](https://docs.railway.app/deploy/deployments)
 - [Docker GitHub Actions](https://docs.docker.com/ci-cd/github-actions/)
+- [Railway 배포 상세 가이드](./RAILWAY-DEPLOYMENT.md)
