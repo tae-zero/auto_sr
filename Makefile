@@ -126,3 +126,15 @@ ci-secrets:
 	@echo "VERCEL_ORG_ID: Vercel 조직 ID"
 	@echo "VERCEL_PROJECT_ID: Vercel 프로젝트 ID"
 	@echo "RAILWAY_TOKEN: Railway API 토큰"
+
+# 🧪 테스트 관련 명령어
+test-services:
+	@echo "🧪 서비스 테스트 실행 중..."
+	@./scripts/test-services.sh
+
+test-local:
+	@echo "🧪 로컬 환경 테스트..."
+	@make up
+	@sleep 30
+	@./scripts/test-services.sh
+	@make down

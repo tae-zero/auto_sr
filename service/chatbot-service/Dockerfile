@@ -18,13 +18,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Railway 배포용 포트 설정 (service/chatbot-service)
-EXPOSE 8001
+EXPOSE 8006
 
 # 환경 변수 설정
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 ENV SERVICE_HOST=0.0.0.0
-ENV PORT=8001
+ENV PORT=8006
 
 # Railway의 PORT 환경변수를 사용하여 애플리케이션 실행
-CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8001}"]
+CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8006}"]

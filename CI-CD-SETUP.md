@@ -72,17 +72,26 @@ RAILWAY_TOKEN=your_railway_token_here
 .github/
 ├── workflows/
 │   ├── ci-cd.yml          # 메인 CI/CD 파이프라인
-│   └── docker-build.yml   # Docker 빌드 전용
+│   ├── docker-build.yml   # Docker 빌드 전용
+│   └── test.yml           # 테스트 및 코드 품질 검사
 ├── frontend/
+│   ├── Dockerfile         # Frontend Docker 설정
 │   ├── railway.json       # Railway 배포 설정
 │   └── vercel.json        # Vercel 배포 설정
 ├── gateway/
+│   ├── Dockerfile         # Gateway Docker 설정
 │   └── railway.json       # Gateway Railway 설정
-└── service/
-    ├── auth-service/
-    │   └── railway.json   # Auth Service Railway 설정
-    └── chatbot-service/
-        └── railway.json   # Chatbot Service Railway 설정
+├── service/
+│   ├── auth-service/
+│   │   ├── Dockerfile     # Auth Service Docker 설정
+│   │   └── railway.json   # Auth Service Railway 설정
+│   └── chatbot-service/
+│       ├── Dockerfile     # Chatbot Service Docker 설정
+│       └── railway.json   # Chatbot Service Railway 설정
+├── scripts/
+│   ├── deploy-status.sh   # 배포 상태 확인 스크립트
+│   └── test-services.sh   # 서비스 테스트 스크립트
+└── Makefile               # CI/CD 및 개발 명령어
 ```
 
 ## 🚀 **배포 환경**
@@ -112,6 +121,10 @@ make logs-frontend
 
 # 시스템 정리
 make down
+
+# 🧪 테스트 실행
+make test-local      # 로컬 환경에서 전체 테스트
+make test-services   # 실행 중인 서비스 테스트
 ```
 
 ## 📊 **모니터링 및 로그**

@@ -18,8 +18,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 애플리케이션 코드 복사
 COPY . .
 
-# 포트 노출 (Railway 동적 포트 지원)
+# Railway 동적 포트 지원
 EXPOSE 8008
 
-# 애플리케이션 실행 (Railway 동적 포트 지원)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8008"]
+# 환경 변수 설정
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV SERVICE_HOST=0.0.0.0
+ENV PORT=8008
+
+# Railway의 PORT 환경변수를 사용하여 애플리케이션 실행
+CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8008}"]
