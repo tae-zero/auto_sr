@@ -1,0 +1,44 @@
+# FastAPI 및 웹 서버
+fastapi==0.109.2
+uvicorn==0.27.1
+
+# HTTP 클라이언트
+httpx==0.25.2
+
+# 데이터 검증 및 설정
+pydantic==2.6.1
+pydantic-settings==2.1.0
+
+# 환경 변수 관리
+python-dotenv==1.0.1
+
+# PostgreSQL 데이터베이스
+asyncpg==0.29.0
+sqlalchemy[asyncio]==2.0.25
+
+# LangChain 및 AI 관련
+langchain==0.1.0
+langchain-openai==0.0.5
+langchain-community==0.0.10
+openai==1.12.0
+tiktoken==0.5.2
+
+# 벡터 데이터베이스
+chromadb==0.4.22
+faiss-cpu==1.7.4
+
+# 문서 처리
+python-docx==1.1.0
+PyPDF2==3.0.1
+markdown==3.5.2
+
+# 데이터 분석
+pandas==2.1.4
+numpy==1.24.3
+matplotlib==3.7.2
+seaborn==0.12.2
+
+# TCFD 관련
+requests==2.31.0
+beautifulsoup4==4.12.2
+lxml==4.9.3

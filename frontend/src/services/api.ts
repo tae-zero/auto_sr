@@ -31,6 +31,42 @@ export const chatbotApi = axios.create({
   },
 });
 
+// AI Service API (Gateway를 통해)
+export const aiApi = {
+  // AI 서비스 상태 확인
+  healthCheck: () => api.get('/api/v1/ai/health'),
+  
+  // AI 챗봇 대화
+  chat: (message: string, chatHistory: any[] = []) => {
+    const formData = new FormData();
+    formData.append('message', message);
+    formData.append('chat_history', JSON.stringify(chatHistory));
+    
+    return api.post('/api/v1/ai/chat', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  
+  // 문서 업로드
+  uploadDocument: (file: File, description: string = '') => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('description', description);
+    
+    return api.post('/api/v1/ai/upload-document', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  
+  // 벡터 검색
+  search: (query: string, topK: number = 5) => 
+    api.get(`/api/v1/ai/search?query=${encodeURIComponent(query)}&top_k=${topK}`),
+};
+
 // 요청 인터셉터
 api.interceptors.request.use(
   (config) => {
