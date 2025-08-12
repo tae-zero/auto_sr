@@ -47,9 +47,9 @@ from app.domain.auth.service.login_service import LoginService
 async def lifespan(app: FastAPI):
     logger.info("🚀 Auth Service 시작")
 
-    # Railway PostgreSQL 연결 대기
+    # Railway PostgreSQL 연결 대기 (시간 단축)
     import asyncio
-    await asyncio.sleep(2)
+    await asyncio.sleep(1)
 
     # Railway 데이터베이스 연결 테스트
     try:
@@ -68,8 +68,11 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"⚠️ 데이터베이스 초기화 중 오류 (서비스는 계속 실행): {str(e)}")
     
+    # 서비스 시작 완료 로그
+    logger.info("✅ Auth Service 시작 완료 - Health endpoint 사용 가능")
+    
     yield
-    logger.info("�� Auth Service 종료")
+    logger.info("🛑 Auth Service 종료")
 
 # FastAPI 앱 생성
 app = FastAPI(
