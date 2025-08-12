@@ -25,8 +25,7 @@ EXPOSE 8008
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 ENV SERVICE_HOST=0.0.0.0
-ENV PORT=8008
 
 # Railway의 PORT 환경변수를 사용하여 애플리케이션 실행
-# PORT 환경변수가 없으면 기본값 8008 사용
-CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8008}"]
+# 포트를 완전히 하드코딩하여 환경변수 문제 해결
+CMD ["sh", "-c", "echo 'Starting Auth service on port 8008' && python -m uvicorn app.main:app --host 0.0.0.0 --port 8008 --log-level info"]
