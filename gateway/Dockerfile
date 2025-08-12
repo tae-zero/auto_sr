@@ -27,4 +27,5 @@ ENV PORT=8080
 
 # Railway의 PORT 환경변수를 사용하여 애플리케이션 실행 (Gateway)
 # PORT 환경변수가 없으면 기본값 8080 사용
-CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+# 로그 레벨을 info로 설정하여 디버깅 정보 출력
+CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080} --log-level info"]
