@@ -94,11 +94,15 @@ app.add_middleware(
         "https://www.taezero.com",  # 프로덕션 도메인
         "https://taezero.com",      # 프로덕션 도메인 (www 없이)
         "https://auth-service-production-1deb.up.railway.app",  # Railway auth-service
+        "https://*.up.railway.app",  # Railway 모든 서브도메인
+        "https://*.railway.app",     # Railway 모든 도메인
         "*"  # 개발 환경에서 모든 origin 허용
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=86400,  # CORS preflight 캐시 시간 (24시간)
 )
 
 @app.get("/")

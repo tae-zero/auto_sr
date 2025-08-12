@@ -5,18 +5,24 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: frontend
     ports:
       - "3001:3000"
     volumes:
       - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+      - /app/.pnpm-store
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://gateway:8080
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
     restart: always
     depends_on:
-      - gateway
+      gateway:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -45,7 +51,7 @@ services:
       - CORS_ALLOW_HEADERS=["*"]
       - INIT_DATABASE=true
       # Railway PostgreSQL 연결 (Public Network URL)
-      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrO@gondola.proxy.rlwy.net:46735/railway
+      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
       # AI 및 LangChain 설정
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4}
@@ -57,14 +63,14 @@ services:
       - SUPPORTED_FILE_TYPES=${SUPPORTED_FILE_TYPES:-txt,pdf,docx,md}
     restart: always
     depends_on:
-      chatbot-service:
-        condition: service_started
-      auth-service:
-        condition: service_started
-      tcfd-service:
-        condition: service_started
       redis:
-        condition: service_started
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      chatbot-service:
+        condition: service_healthy
+      tcfd-service:
+        condition: service_healthy
     dns:
       - 8.8.8.8
       - 8.8.4.4
@@ -121,7 +127,7 @@ services:
       - PYTHONUNBUFFERED=1
       - INIT_DATABASE=true
       # Railway PostgreSQL 연결 (Public Network URL)
-      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrO@gondola.proxy.rlwy.net:46735/railway
+      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
     restart: always
     depends_on:
       - redis
@@ -183,6 +189,12 @@ services:
       - app-network
     restart: always
     command: redis-server
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 volumes:
   tcfd_chroma_data:

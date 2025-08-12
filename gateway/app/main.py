@@ -8,6 +8,7 @@ import sys
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 from fastapi import Request
+import asyncio
 
 from app.router.auth_router import router as auth_router
 from app.www.jwt_auth_middleware import AuthMiddleware
@@ -38,17 +39,36 @@ async def lifespan(app: FastAPI):
     app.state.service_discovery = ServiceDiscovery()
     
     # Auth Service 연결 테스트
-    auth_service_url = os.getenv("RAILWAY_AUTH_SERVICE_URL", "http://localhost:8008")
+    # Railway 환경에서는 RAILWAY_AUTH_SERVICE_URL 사용, 로컬에서는 Docker 컨테이너 이름 사용
+    auth_service_url = os.getenv("RAILWAY_AUTH_SERVICE_URL")
+    if auth_service_url:
+        # Railway 환경
+        logger.info(f"🚀 Railway 환경에서 Auth Service 연결 시도: {auth_service_url}")
+    else:
+        # 로컬 Docker 환경
+        auth_service_url = "http://auth-service:8008"
+        logger.info(f"🚀 로컬 Docker 환경에서 Auth Service 연결 시도: {auth_service_url}")
+    
     try:
         import httpx
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get(f"{auth_service_url}/health")
-            if response.status_code == 200:
-                logger.info(f"✅ Auth Service 연결 성공: {auth_service_url}")
-            else:
-                logger.warning(f"⚠️ Auth Service 응답 이상: {response.status_code}")
+        # 더 긴 타임아웃과 재시도 로직
+        for attempt in range(3):
+            try:
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    response = await client.get(f"{auth_service_url}/health")
+                    if response.status_code == 200:
+                        logger.info(f"✅ Auth Service 연결 성공: {auth_service_url}")
+                        break
+                    else:
+                        logger.warning(f"⚠️ Auth Service 응답 이상 (시도 {attempt + 1}/3): {response.status_code}")
+            except Exception as e:
+                logger.warning(f"⚠️ Auth Service 연결 시도 {attempt + 1}/3 실패: {str(e)}")
+                if attempt < 2:  # 마지막 시도가 아니면 잠시 대기
+                    await asyncio.sleep(2)
+                else:
+                    logger.warning(f"⚠️ Auth Service 연결 최종 실패 (서비스는 계속 실행): {str(e)}")
     except Exception as e:
-        logger.warning(f"⚠️ Auth Service 연결 실패 (서비스는 계속 실행): {str(e)}")
+        logger.warning(f"⚠️ Auth Service 연결 테스트 중 오류 (서비스는 계속 실행): {str(e)}")
     
     # 기본 서비스 등록
     app.state.service_discovery.register_service(

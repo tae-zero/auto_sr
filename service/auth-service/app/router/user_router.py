@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Cookie, HTTPException, Query
 from fastapi.responses import JSONResponse
 
-from http://app.domain.auth.controller.google_controller import GoogleController
+# from http://app.domain.auth.controller.google_controller import GoogleController
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
-google_controller = GoogleController()
+# google_controller = GoogleController()
 
 @auth_router.get("/google/login", summary="Google 로그인 시작")
 async def google_login(

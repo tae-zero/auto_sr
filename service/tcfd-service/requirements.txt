@@ -1,6 +1,7 @@
 # FastAPI 및 웹 서버
 fastapi==0.109.2
 uvicorn==0.27.1
+python-multipart==0.0.6
 
 # HTTP 클라이언트
 httpx==0.25.2
