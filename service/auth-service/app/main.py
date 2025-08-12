@@ -49,14 +49,14 @@ async def lifespan(app: FastAPI):
 
     # Railway PostgreSQL 연결 대기 (시간 단축)
     import asyncio
-    await asyncio.sleep(1)
+    await asyncio.sleep(2)  # 연결 대기 시간 증가
 
     # Railway 데이터베이스 연결 테스트
     try:
         db_connected = await test_connection()
         if db_connected:
-            # 환경변수로 초기화 제어 (기본값: True)
-            should_init_db = os.getenv("INIT_DATABASE", "true").lower() == "true"
+            # 환경변수로 초기화 제어 (기본값: False - Railway에서는 처음에 false로 설정)
+            should_init_db = os.getenv("INIT_DATABASE", "false").lower() == "true"
             if should_init_db:
                 # 테이블 생성
                 await create_tables()
@@ -67,6 +67,7 @@ async def lifespan(app: FastAPI):
             logger.warning("⚠️ Railway 데이터베이스 연결 실패 - 서비스는 계속 실행됩니다")
     except Exception as e:
         logger.warning(f"⚠️ 데이터베이스 초기화 중 오류 (서비스는 계속 실행): {str(e)}")
+        logger.warning("⚠️ 데이터베이스 연결 없이 서비스가 시작됩니다")
     
     # 서비스 시작 완료 로그
     logger.info("✅ Auth Service 시작 완료 - Health endpoint 사용 가능")

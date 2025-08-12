@@ -41,7 +41,7 @@ export default function LoginPage() {
     e.preventDefault();
     
     // auth-service로 직접 요청 (환경변수 사용)
-    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_SERVICE_URL || 'https://auth-service-production-1deb.up.railway.app';
+    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:8008';
     axios.post(`${authServiceUrl}/login`, formData)
       .then(response => {
         console.log('Login response:', response.data);

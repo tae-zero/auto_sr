@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// 환경변수에서 API URL 가져오기
+// 환경변수에서 API URL 가져오기 (로컬 개발 시 하드코딩)
 const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
-const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:8008';
+const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:8008';  // 로컬 auth-service
 const CHATBOT_URL = process.env.NEXT_PUBLIC_CHATBOT_URL || 'http://localhost:8006';
 
 const api = axios.create({
