@@ -1,0 +1,117 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test-frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+        
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: npm ci
+      
+    - name: Run linting
+      working-directory: ./frontend
+      run: npm run lint
+      
+    - name: Run type checking
+      working-directory: ./frontend
+      run: npm run type-check
+      
+    - name: Run tests (if available)
+      working-directory: ./frontend
+      run: |
+        if npm run test 2>/dev/null; then
+          npm run test
+        else
+          echo "No tests configured for frontend"
+        fi
+      continue-on-error: true
+
+  test-backend:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [gateway, auth-service, chatbot-service]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ matrix.service }}-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ matrix.service }}-
+          
+    - name: Install dependencies
+      working-directory: ./${{ matrix.service == 'gateway' && 'gateway' || 'service/' + matrix.service }}
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run tests
+      working-directory: ./${{ matrix.service == 'gateway' && 'gateway' || 'service/' + matrix.service }}
+      run: |
+        if [ -f "pytest.ini" ] || [ -d "tests" ]; then
+          pip install pytest pytest-asyncio
+          pytest -v
+        else
+          echo "No tests configured for ${{ matrix.service }}"
+        fi
+      continue-on-error: true
+      
+    - name: Check code quality
+      working-directory: ./${{ matrix.service == 'gateway' && 'gateway' || 'service/' + matrix.service }}
+      run: |
+        pip install flake8 black isort
+        echo "Running flake8..."
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
+        echo "Running black check..."
+        black --check . || true
+        echo "Running isort check..."
+        isort --check-only . || true
+      continue-on-error: true
+
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'

@@ -103,3 +103,26 @@ shell-chatbot:
 
 shell-frontend:
 	docker-compose exec frontend /bin/sh
+
+# 🚀 CI/CD 관련 명령어
+ci-status:
+	@echo "🔍 CI/CD 상태 확인 중..."
+	@./scripts/deploy-status.sh
+
+ci-deploy:
+	@echo "🚀 CI/CD 배포 트리거..."
+	@echo "코드를 main 또는 develop 브랜치에 푸시하세요:"
+	@echo "git push origin main"
+	@echo "또는"
+	@echo "git push origin develop"
+
+ci-logs:
+	@echo "📊 GitHub Actions 로그 확인:"
+	@echo "https://github.com/$(shell git config --get remote.origin.url | sed 's/.*github.com[:/]\([^/]*\/[^/]*\).*/\1/')/actions"
+
+ci-secrets:
+	@echo "🔐 필요한 GitHub Secrets:"
+	@echo "VERCEL_TOKEN: Vercel API 토큰"
+	@echo "VERCEL_ORG_ID: Vercel 조직 ID"
+	@echo "VERCEL_PROJECT_ID: Vercel 프로젝트 ID"
+	@echo "RAILWAY_TOKEN: Railway API 토큰"
