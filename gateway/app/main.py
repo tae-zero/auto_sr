@@ -45,9 +45,9 @@ async def lifespan(app: FastAPI):
         # Railway 환경
         logger.info(f"🚀 Railway 환경에서 Auth Service 연결 시도: {auth_service_url}")
     else:
-        # 로컬 Docker 환경
-        auth_service_url = "http://auth-service:8008"
-        logger.info(f"🚀 로컬 Docker 환경에서 Auth Service 연결 시도: {auth_service_url}")
+        # 로컬 Docker 환경 또는 Railway에서 환경변수가 설정되지 않은 경우
+        auth_service_url = "http://localhost:8008"  # 로컬 auth-service
+        logger.info(f"🚀 로컬 Auth Service 연결 시도: {auth_service_url}")
     
     try:
         import httpx
