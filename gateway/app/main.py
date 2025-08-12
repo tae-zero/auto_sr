@@ -37,6 +37,19 @@ async def lifespan(app: FastAPI):
     # 서비스 디스커버리 초기화 및 서비스 등록
     app.state.service_discovery = ServiceDiscovery()
     
+    # Auth Service 연결 테스트
+    auth_service_url = os.getenv("RAILWAY_AUTH_SERVICE_URL", "http://localhost:8008")
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(f"{auth_service_url}/health")
+            if response.status_code == 200:
+                logger.info(f"✅ Auth Service 연결 성공: {auth_service_url}")
+            else:
+                logger.warning(f"⚠️ Auth Service 응답 이상: {response.status_code}")
+    except Exception as e:
+        logger.warning(f"⚠️ Auth Service 연결 실패 (서비스는 계속 실행): {str(e)}")
+    
     # 기본 서비스 등록
     app.state.service_discovery.register_service(
         service_name="chatbot-service",
