@@ -37,7 +37,7 @@ export const aiApi = {
   healthCheck: () => api.get('/api/v1/ai/health'),
   
   // AI 챗봇 대화
-  chat: (message: string, chatHistory: any[] = []) => {
+  chat: (message: string, chatHistory: unknown[] = []) => {
     const formData = new FormData();
     formData.append('message', message);
     formData.append('chat_history', JSON.stringify(chatHistory));

@@ -8,8 +8,7 @@ const nextConfig: NextConfig = {
     PORT: process.env.PORT || '3000',
   },
   
-  // SWC 비활성화 (Docker 환경에서 문제 해결)
-  swcMinify: false,
+  // SWC 비활성화 제거 (Next.js 15에서 지원되지 않음)
   
   // Vercel 최적화 설정
   experimental: {

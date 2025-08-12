@@ -47,7 +47,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  login: async (username: string, password: string) => {
+  login: async (username: string, _password: string) => {
     try {
       // TODO: 실제 로그인 API 호출
       // 임시 로그인 로직

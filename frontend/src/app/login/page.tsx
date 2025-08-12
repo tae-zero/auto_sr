@@ -7,7 +7,7 @@ import axios from 'axios';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isAuthenticated, isInitialized, checkAuthStatus } = useAuthStore();
+  const { isInitialized, checkAuthStatus } = useAuthStore();
 
   // Form state management
   const [formData, setFormData] = useState({
