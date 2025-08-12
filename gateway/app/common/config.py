@@ -13,7 +13,11 @@ class Settings(BaseSettings):
     GATEWAY_PORT: int = int(os.getenv("GATEWAY_PORT", "8080"))
     GATEWAY_RELOAD: bool = True
     
-    # Service Ports
+    # Railway Service URLs (프로덕션 환경)
+    RAILWAY_AUTH_SERVICE_URL: str = os.getenv("RAILWAY_AUTH_SERVICE_URL", "")
+    RAILWAY_CHATBOT_SERVICE_URL: str = os.getenv("RAILWAY_CHATBOT_SERVICE_URL", "")
+    
+    # Service Ports (로컬 개발 환경)
     AUTH_SERVICE_PORT: int = int(os.getenv("AUTH_SERVICE_PORT", "8008"))
     CHATBOT_SERVICE_PORT: int = int(os.getenv("CHATBOT_SERVICE_PORT", "8006"))
     
@@ -45,22 +49,49 @@ class Settings(BaseSettings):
 # 전역 설정 인스턴스
 settings = Settings()
 
-# 서비스 레지스트리 설정 (Gateway만 배포)
-DEFAULT_SERVICE_REGISTRY = {
-    "auth-service": {
-        "instances": [
-            {"host": "localhost", "port": settings.AUTH_SERVICE_PORT, "health": True, "weight": 1},
-        ],
-        "load_balancer": "round_robin",
-        "current_index": 0,
-        "health_check_path": "/health"
-    },
-    "chatbot-service": {
-        "instances": [
-            {"host": "localhost", "port": settings.CHATBOT_SERVICE_PORT, "health": True, "weight": 1}
-        ],
-        "load_balancer": "round_robin",
-        "current_index": 0,
-        "health_check_path": "/health"
-    }
-} 
+# 서비스 레지스트리 설정 (Railway 환경 감지)
+def get_service_registry():
+    """Railway 환경인지 확인하고 적절한 서비스 레지스트리 반환"""
+    if settings.RAILWAY_AUTH_SERVICE_URL:
+        # Railway 프로덕션 환경
+        return {
+            "auth-service": {
+                "instances": [
+                    {"host": settings.RAILWAY_AUTH_SERVICE_URL.replace("https://", "").split("/")[0], "port": 443, "health": True, "weight": 1, "ssl": True},
+                ],
+                "load_balancer": "round_robin",
+                "current_index": 0,
+                "health_check_path": "/health"
+            },
+            "chatbot-service": {
+                "instances": [
+                    {"host": settings.RAILWAY_CHATBOT_SERVICE_URL.replace("https://", "").split("/")[0], "port": 443, "health": True, "weight": 1, "ssl": True},
+                ],
+                "load_balancer": "round_robin",
+                "current_index": 0,
+                "health_check_path": "/health"
+            }
+        }
+    else:
+        # 로컬 개발 환경
+        return {
+            "auth-service": {
+                "instances": [
+                    {"host": "localhost", "port": settings.AUTH_SERVICE_PORT, "health": True, "weight": 1},
+                ],
+                "load_balancer": "round_robin",
+                "current_index": 0,
+                "health_check_path": "/health"
+            },
+            "chatbot-service": {
+                "instances": [
+                    {"host": "localhost", "port": settings.CHATBOT_SERVICE_PORT, "health": True, "weight": 1},
+                ],
+                "load_balancer": "round_robin",
+                "current_index": 0,
+                "health_check_path": "/health"
+            }
+        }
+
+# 동적 서비스 레지스트리
+DEFAULT_SERVICE_REGISTRY = get_service_registry() 
