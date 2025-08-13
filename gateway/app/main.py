@@ -11,6 +11,7 @@ from fastapi import Request
 import asyncio
 
 from app.domain.auth.controller.auth_controller import router as auth_router
+from app.router.tcfd_router import router as tcfd_router
 from app.www.jwt_auth_middleware import AuthMiddleware
 from app.domain.discovery.service_discovery import ServiceDiscovery
 from app.domain.discovery.service_type import ServiceType
@@ -150,6 +151,9 @@ app.add_middleware(AuthMiddleware)
 
 # ✅ MSV 패턴의 Auth 도메인 컨트롤러 사용
 app.include_router(auth_router)
+
+# ✅ TCFD Service 라우터 추가
+app.include_router(tcfd_router)
 
 # 404 에러 핸들러
 @app.exception_handler(404)

@@ -72,6 +72,18 @@ async def get_all_companies():
         logger.error(f"회사 목록 조회 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/company-financial-data")
+async def get_company_financial_data_by_query(company_name: str = Query(...)):
+    """쿼리 파라미터로 회사별 재무정보 조회 (Gateway 호환용)"""
+    try:
+        tcfd_service = TCFDService()
+        result = await tcfd_service.get_company_financial_data(company_name)
+        return result
+        
+    except Exception as e:
+        logger.error(f"회사별 재무정보 조회 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/analyze-report", response_model=TCFDAnalysisResponse)
 async def analyze_tcfd_report(
     file: UploadFile = File(...),
