@@ -52,8 +52,8 @@ export const apiClient = axios.create({
 // Auth Service API
 export const authAPI = {
   // Gateway를 통한 인증
-  signup: (data: SignupData): Promise<{ data: AuthResponse }> => apiClient.post('/auth/signup', data),
-  login: (data: LoginData): Promise<{ data: AuthResponse }> => apiClient.post('/auth/login', data),
+  signup: (data: SignupData): Promise<{ data: AuthResponse }> => apiClient.post('/api/v1/auth/signup', data),
+  login: (data: LoginData): Promise<{ data: AuthResponse }> => apiClient.post('/api/v1/auth/login', data),
   
   // 직접 auth-service 연결 (백업용)
   signupDirect: (data: SignupData): Promise<{ data: AuthResponse }> => axios.post(`${AUTH_URL}/signup`, data),

@@ -49,7 +49,7 @@ export default function SignupPage() {
     
     // Gateway를 통해 auth-service로 요청 (환경변수 사용)
     const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
-    axios.post(`${gatewayUrl}/auth/signup`, formData)
+    axios.post(`${gatewayUrl}/api/v1/auth/signup`, formData)
       .then((response: { data: { success: boolean; message: string; email?: string; user_id?: string } }) => {
         console.log('Signup successful:', response.data);
         
