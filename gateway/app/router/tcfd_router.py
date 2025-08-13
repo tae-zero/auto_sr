@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, HTTPException
 from app.domain.discovery.service_discovery import ServiceDiscovery
 import httpx
 import logging
+import traceback
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/tcfd", tags=["tcfd"])
@@ -16,7 +17,7 @@ async def get_companies(request: Request):
         service_discovery: ServiceDiscovery = request.app.state.service_discovery
         logger.info(f"📡 Service Discovery 상태: {service_discovery}")
         
-        tcfd_service = service_discovery.get_service("tcfd-service")
+        tcfd_service = service_discovery.get_service_instance("tcfd-service")
         logger.info(f"🎯 TCFD Service 인스턴스: {tcfd_service}")
         
         if not tcfd_service:
@@ -24,7 +25,7 @@ async def get_companies(request: Request):
             raise HTTPException(status_code=503, detail="TCFD Service를 찾을 수 없습니다")
         
         # TCFD Service로 요청 전달
-        host = tcfd_service['host']
+        host = tcfd_service.host
         if not host.startswith('http'):
             host = f"https://{host}"
         
@@ -48,7 +49,6 @@ async def get_companies(request: Request):
     except Exception as e:
         logger.error(f"❌ TCFD Service 요청 실패: {str(e)}")
         logger.error(f"❌ 오류 타입: {type(e).__name__}")
-        import traceback
         logger.error(f"❌ 스택 트레이스: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"TCFD Service 요청 실패: {str(e)}")
 
@@ -62,7 +62,7 @@ async def get_company_financial_data(request: Request, company_name: str):
         service_discovery: ServiceDiscovery = request.app.state.service_discovery
         logger.info(f"📡 Service Discovery 상태: {service_discovery}")
         
-        tcfd_service = service_discovery.get_service("tcfd-service")
+        tcfd_service = service_discovery.get_service_instance("tcfd-service")
         logger.info(f"🎯 TCFD Service 인스턴스: {tcfd_service}")
         
         if not tcfd_service:
@@ -70,7 +70,7 @@ async def get_company_financial_data(request: Request, company_name: str):
             raise HTTPException(status_code=503, detail="TCFD Service를 찾을 수 없습니다")
         
         # TCFD Service로 요청 전달
-        host = tcfd_service['host']
+        host = tcfd_service.host
         if not host.startswith('http'):
             host = f"https://{host}"
         
@@ -98,6 +98,5 @@ async def get_company_financial_data(request: Request, company_name: str):
     except Exception as e:
         logger.error(f"❌ TCFD Service 요청 실패: {str(e)}")
         logger.error(f"❌ 오류 타입: {type(e).__name__}")
-        import traceback
         logger.error(f"❌ 스택 트레이스: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"TCFD Service 요청 실패: {str(e)}")
