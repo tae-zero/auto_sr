@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     // Gateway를 통해 TCFD Service에 연결
-    const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
+    const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://autosr-production.up.railway.app';
     const response = await fetch(`${gatewayUrl}/api/v1/tcfd/companies`);
     
     if (!response.ok) {

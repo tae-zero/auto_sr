@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Gateway를 통해 TCFD Service에 연결
-    const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
+    const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://autosr-production.up.railway.app';
     const response = await fetch(`${gatewayUrl}/api/v1/tcfd/company-financial-data?company_name=${encodeURIComponent(companyName)}`);
     
     if (!response.ok) {
