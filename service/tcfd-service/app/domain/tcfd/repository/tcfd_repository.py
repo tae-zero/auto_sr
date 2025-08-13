@@ -16,13 +16,42 @@ logger = logging.getLogger(__name__)
 
 class TCFDRepository:
     def __init__(self):
-        self.db_config = {
-            'host': os.getenv('DB_HOST', 'localhost'),
-            'port': os.getenv('DB_PORT', '5432'),
-            'user': os.getenv('DB_USER', 'postgres'),
-            'password': os.getenv('DB_PASSWORD', ''),
-            'database': os.getenv('DB_NAME', 'railway')
-        }
+        # DATABASE_URL 우선, 없으면 개별 환경변수 사용
+        database_url = os.getenv('DATABASE_URL')
+        if database_url:
+            # DATABASE_URL 파싱: postgresql://user:password@host:port/database
+            try:
+                from urllib.parse import urlparse
+                parsed = urlparse(database_url)
+                self.db_config = {
+                    'host': parsed.hostname,
+                    'port': parsed.port or 5432,
+                    'user': parsed.username,
+                    'password': parsed.password,
+                    'database': parsed.path.lstrip('/')
+                }
+                logger.info(f"✅ DATABASE_URL에서 설정 로드: {parsed.hostname}:{parsed.port}")
+            except Exception as e:
+                logger.error(f"❌ DATABASE_URL 파싱 실패: {str(e)}")
+                # 폴백: 개별 환경변수 사용
+                self.db_config = {
+                    'host': os.getenv('DB_HOST', 'localhost'),
+                    'port': os.getenv('DB_PORT', '5432'),
+                    'user': os.getenv('DB_USER', 'postgres'),
+                    'password': os.getenv('DB_PASSWORD', ''),
+                    'database': os.getenv('DB_NAME', 'railway')
+                }
+        else:
+            # 개별 환경변수 사용
+            self.db_config = {
+                'host': os.getenv('DB_HOST', 'localhost'),
+                'port': os.getenv('DB_PORT', '5432'),
+                'user': os.getenv('DB_USER', 'postgres'),
+                'password': os.getenv('DB_PASSWORD', ''),
+                'database': os.getenv('DB_NAME', 'railway')
+            }
+            logger.info(f"✅ 개별 환경변수에서 설정 로드: {self.db_config['host']}:{self.db_config['port']}")
+        
         self.pool = None
     
     async def get_connection(self):
