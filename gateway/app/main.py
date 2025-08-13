@@ -92,6 +92,18 @@ async def lifespan(app: FastAPI):
                 load_balancer_type="round_robin"
             )
             logger.info(f"✅ Railway TCFD Service 등록: {tcfd_service_url}")
+            
+            # TCFD Service 연결 테스트
+            try:
+                import httpx
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    response = await client.get(f"{tcfd_service_url}/health")
+                    if response.status_code == 200:
+                        logger.info(f"✅ TCFD Service 연결 성공: {tcfd_service_url}")
+                    else:
+                        logger.warning(f"⚠️ TCFD Service 응답 이상: {response.status_code}")
+            except Exception as e:
+                logger.warning(f"⚠️ TCFD Service 연결 테스트 실패: {str(e)}")
         
         # Auth Service는 이미 설정됨
         if auth_service_url:
