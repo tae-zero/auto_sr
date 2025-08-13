@@ -63,13 +63,18 @@ export default function TcfdSrPage() {
     try {
       const response = await fetch('/api/companies');
       if (!response.ok) {
-        throw new Error('회사 목록 로드 실패');
+        throw new Error(`회사 목록 로드 실패: ${response.status}`);
       }
       
       const data = await response.json();
+      if (data.success === false) {
+        throw new Error(data.error || '회사 목록을 불러올 수 없습니다');
+      }
+      
       setAvailableCompanies(data.companies || []);
     } catch (error) {
       console.error('회사 목록 로드 실패:', error);
+      setCompanyError(error instanceof Error ? error.message : '알 수 없는 오류');
     }
   };
 
@@ -83,10 +88,14 @@ export default function TcfdSrPage() {
     try {
       const response = await fetch(`/api/company-financial-data?company_name=${encodeURIComponent(companyName)}`);
       if (!response.ok) {
-        throw new Error('회사별 재무정보 로드 실패');
+        throw new Error(`회사별 재무정보 로드 실패: ${response.status}`);
       }
       
       const data = await response.json();
+      if (data.success === false) {
+        throw new Error(data.error || '재무정보를 불러올 수 없습니다');
+      }
+      
       setCompanyFinancialData(data);
     } catch (error) {
       setCompanyError(error instanceof Error ? error.message : '알 수 없는 오류');

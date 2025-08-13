@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // 직접 TCFD Service에 연결 (Gateway 우회)
-    const tcfdServiceUrl = process.env.TCFD_SERVICE_URL || 'http://localhost:8005';
-    const response = await fetch(`${tcfdServiceUrl}/api/v1/tcfd/companies`);
+    // Gateway를 통해 TCFD Service에 연결
+    const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
+    const response = await fetch(`${gatewayUrl}/api/v1/tcfd/companies`);
     
     if (!response.ok) {
-      throw new Error(`TCFD Service error: ${response.status}`);
+      throw new Error(`Gateway error: ${response.status}`);
     }
     
     const data = await response.json();

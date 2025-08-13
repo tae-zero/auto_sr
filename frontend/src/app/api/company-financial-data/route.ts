@@ -7,20 +7,17 @@ export async function GET(request: NextRequest) {
     
     if (!companyName) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: '회사명이 필요합니다' 
-        },
+        { success: false, error: '회사명이 필요합니다' },
         { status: 400 }
       );
     }
-    
-    // Gateway를 통해 TCFD Service의 회사별 재무정보 API 호출
-    const gatewayUrl = process.env.GATEWAY_URL || 'http://localhost:8080';
-    const response = await fetch(`${gatewayUrl}/api/v1/tcfd/financial-data/company/${encodeURIComponent(companyName)}`);
+
+    // Gateway를 통해 TCFD Service에 연결
+    const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
+    const response = await fetch(`${gatewayUrl}/api/v1/tcfd/company-financial-data?company_name=${encodeURIComponent(companyName)}`);
     
     if (!response.ok) {
-      throw new Error(`TCFD Service error: ${response.status}`);
+      throw new Error(`Gateway error: ${response.status}`);
     }
     
     const data = await response.json();

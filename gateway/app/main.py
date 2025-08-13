@@ -71,18 +71,54 @@ async def lifespan(app: FastAPI):
         logger.warning(f"⚠️ Auth Service 연결 테스트 중 오류 (서비스는 계속 실행): {str(e)}")
     
     # 기본 서비스 등록
-    app.state.service_discovery.register_service(
-        service_name="chatbot-service",
-        instances=[{"host": "chatbot-service", "port": 8006, "weight": 1}],
-        load_balancer_type="round_robin"
-    )
-    
-    # Auth Service 등록
-    app.state.service_discovery.register_service(
-        service_name="auth-service",
-        instances=[{"host": "auth-service", "port": 8008, "weight": 1}],
-        load_balancer_type="round_robin"
-    )
+    if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+        # Railway 환경: 환경변수로 설정된 URL 사용
+        chatbot_service_url = os.getenv("RAILWAY_CHATBOT_SERVICE_URL")
+        tcfd_service_url = os.getenv("RAILWAY_TCFD_SERVICE_URL")
+        
+        if chatbot_service_url:
+            app.state.service_discovery.register_service(
+                service_name="chatbot-service",
+                instances=[{"host": chatbot_service_url, "port": 443, "weight": 1}],
+                load_balancer_type="round_robin"
+            )
+            logger.info(f"✅ Railway Chatbot Service 등록: {chatbot_service_url}")
+        
+        if tcfd_service_url:
+            app.state.service_discovery.register_service(
+                service_name="tcfd-service",
+                instances=[{"host": tcfd_service_url, "port": 443, "weight": 1}],
+                load_balancer_type="round_robin"
+            )
+            logger.info(f"✅ Railway TCFD Service 등록: {tcfd_service_url}")
+        
+        # Auth Service는 이미 설정됨
+        if auth_service_url:
+            app.state.service_discovery.register_service(
+                service_name="auth-service",
+                instances=[{"host": auth_service_url, "port": 443, "weight": 1}],
+                load_balancer_type="round_robin"
+            )
+            logger.info(f"✅ Railway Auth Service 등록: {auth_service_url}")
+    else:
+        # 로컬 Docker 환경: 컨테이너 이름 사용
+        app.state.service_discovery.register_service(
+            service_name="chatbot-service",
+            instances=[{"host": "chatbot-service", "port": 8006, "weight": 1}],
+            load_balancer_type="round_robin"
+        )
+        
+        app.state.service_discovery.register_service(
+            service_name="auth-service",
+            instances=[{"host": "auth-service", "port": 8008, "weight": 1}],
+            load_balancer_type="round_robin"
+        )
+        
+        app.state.service_discovery.register_service(
+            service_name="tcfd-service",
+            instances=[{"host": "tcfd-service", "port": 8005, "weight": 1}],
+            load_balancer_type="round_robin"
+        )
     
     yield
     logger.info("🛑 Gateway API 서비스 종료")
