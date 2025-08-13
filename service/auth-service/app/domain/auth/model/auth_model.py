@@ -4,7 +4,7 @@ Auth Service Auth Pydantic 모델
 - 데이터 전송 객체 (DTO)
 """
 from pydantic import BaseModel, Field, validator
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 from datetime import datetime
 
 class LoginRequest(BaseModel):
@@ -56,7 +56,7 @@ class AuthResponse(BaseModel):
     """인증 응답 모델"""
     success: bool = Field(..., description="성공 여부")
     message: str = Field(..., description="응답 메시지")
-    user_id: Optional[str] = Field(None, description="사용자 ID")
+    user_id: Optional[Union[str, int]] = Field(None, description="사용자 ID")  # 문자열 또는 정수 허용
     email: Optional[str] = Field(None, description="이메일")
     token: Optional[str] = Field(None, description="JWT 토큰")
     error: Optional[str] = Field(None, description="에러 메시지")

@@ -57,7 +57,7 @@ class SignupService:
             return {
                 "success": True,
                 "message": "회원가입이 완료되었습니다.",
-                "user_id": new_user.id,
+                "user_id": new_user.id,  # 원래 정수값 그대로 반환
                 "email": new_user.email
             }
             

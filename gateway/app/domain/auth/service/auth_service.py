@@ -11,7 +11,7 @@ import os
 import time
 from fastapi import HTTPException, Request
 from app.domain.auth.repository.auth_repository import AuthRepository
-from app.domain.auth.model.auth_model import AuthRequest, AuthResponse
+from app.domain.auth.model.auth_model import AuthRequest, AuthResponse, LoginRequest
 from app.domain.auth.entity.auth_entity import AuthEntity
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,8 @@ logger = logging.getLogger(__name__)
 class AuthService:
     def __init__(self):
         self.repository = AuthRepository()
-        self.auth_service_url = os.getenv("AUTH_SERVICE_URL", "http://localhost:8008")
+        # 도커 환경에서는 auth-service 컨테이너 이름 사용
+        self.auth_service_url = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8008")
         self.http_client = httpx.AsyncClient(timeout=30.0)
     
     async def process_signup(self, request: AuthRequest) -> Dict[str, Any]:
@@ -28,14 +29,14 @@ class AuthService:
             # 비즈니스 로직 검증
             self._validate_signup_request(request)
             
-            # Auth Service로 요청 전달
-            response = await self._forward_to_auth_service("/signup", request.dict())
+            # Auth Service로 요청 전달 (Pydantic v2 호환)
+            response = await self._forward_to_auth_service("/signup", request.model_dump())
             
             # 결과 저장
             auth_entity = AuthEntity(
                 user_id=response.get("user_id"),
                 email=request.email,
-                company_id=request.company_id,
+                company_id=request.company_id or "",
                 status="active"
             )
             await self.repository.save_auth_data(auth_entity)
@@ -46,18 +47,18 @@ class AuthService:
             logger.error(f"회원가입 처리 실패: {str(e)}")
             raise Exception(f"회원가입 처리 실패: {str(e)}")
     
-    async def process_login(self, request: AuthRequest) -> Dict[str, Any]:
+    async def process_login(self, request: LoginRequest) -> Dict[str, Any]:
         """로그인 처리"""
         try:
             # 비즈니스 로직 검증
             self._validate_login_request(request)
             
-            # Auth Service로 요청 전달
-            response = await self._forward_to_auth_service("/login", request.dict())
+            # Auth Service로 요청 전달 (Pydantic v2 호환)
+            response = await self._forward_to_auth_service("/login", request.model_dump())
             
-            # 로그인 기록 저장
+            # 로그인 기록 저장 (email이 없으므로 auth_id 사용)
             await self.repository.log_login_attempt(
-                email=request.email,
+                email=request.auth_id,  # auth_id를 email 대신 사용
                 success=True,
                 timestamp=response.get("timestamp")
             )
@@ -210,24 +211,21 @@ class AuthService:
     
     def _validate_signup_request(self, request: AuthRequest) -> None:
         """회원가입 요청 검증"""
-        if not request.email or not request.email.strip():
+        if not request.email or not isinstance(request.email, str) or not request.email.strip():
             raise ValueError("이메일은 필수입니다")
         
-        if not request.auth_id or not request.auth_id.strip():
+        if not request.auth_id or not isinstance(request.auth_id, str) or not request.auth_id.strip():
             raise ValueError("아이디는 필수입니다")
         
-        if not request.auth_pw or len(request.auth_pw) < 6:
+        if not request.auth_pw or not isinstance(request.auth_pw, str) or len(request.auth_pw.strip()) < 6:
             raise ValueError("비밀번호는 6자 이상이어야 합니다")
-        
-        if not request.company_id or not request.company_id.strip():
-            raise ValueError("회사 ID는 필수입니다")
     
-    def _validate_login_request(self, request: AuthRequest) -> None:
+    def _validate_login_request(self, request: LoginRequest) -> None:
         """로그인 요청 검증"""
-        if not request.auth_id or not request.auth_id.strip():
+        if not request.auth_id or not isinstance(request.auth_id, str) or not request.auth_id.strip():
             raise ValueError("아이디는 필수입니다")
         
-        if not request.auth_pw or not request.auth_pw.strip():
+        if not request.auth_pw or not isinstance(request.auth_pw, str) or not request.auth_pw.strip():
             raise ValueError("비밀번호는 필수입니다")
     
     async def _forward_to_auth_service(
@@ -246,17 +244,26 @@ class AuthService:
             if headers:
                 default_headers.update(headers)
             
+            # auth-service는 /api/v1/auth 경로를 사용하므로 이를 반영
+            full_endpoint = f"/api/v1/auth{endpoint}"
+            full_url = f"{self.auth_service_url}{full_endpoint}"
+            
+            logger.info(f"Auth Service로 요청 전달: {full_url}")
+            logger.info(f"요청 데이터: {data}")
+            
             response = await self.http_client.post(
-                f"{self.auth_service_url}{endpoint}",
+                full_url,
                 json=data,
                 headers=default_headers
             )
             
+            logger.info(f"Auth Service 응답 상태: {response.status_code}")
             response.raise_for_status()
             return response.json()
             
         except httpx.HTTPStatusError as e:
             logger.error(f"Auth Service 응답 오류: {e.response.status_code}")
+            logger.error(f"응답 내용: {e.response.text}")
             raise Exception(f"Auth Service 응답 오류: {e.response.status_code}")
         except Exception as e:
             logger.error(f"Auth Service 요청 전달 실패: {str(e)}")

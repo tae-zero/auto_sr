@@ -9,13 +9,14 @@ from typing import Dict, Any, Optional, List
 import logging
 import httpx
 from app.domain.auth.service.auth_service import AuthService
-from app.domain.auth.model.auth_model import AuthRequest, AuthResponse
+from app.domain.auth.repository.auth_repository import AuthRepository
+from app.domain.auth.model.auth_model import AuthRequest, AuthResponse, LoginRequest
 from app.domain.auth.schema.auth_schema import AuthValidation
 from app.domain.discovery.service_discovery import ServiceDiscovery
 from app.common.utility.factory.response_factory import ResponseFactory
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/v1", tags=["인증"])
+router = APIRouter(prefix="/api/v1/auth", tags=["인증"])
 
 # 동적 라우팅을 위한 별도 라우터
 dynamic_router = APIRouter(prefix="/api/v1", tags=["Dynamic Routing"])
@@ -41,6 +42,7 @@ async def health_check():
 async def signup(request: AuthRequest):
     """회원가입"""
     try:
+        logger.info(f"회원가입 요청 받음: {request.dict()}")
         service = AuthService()
         result = await service.process_signup(request)
         return AuthResponse(
@@ -50,10 +52,11 @@ async def signup(request: AuthRequest):
         )
     except Exception as e:
         logger.error(f"회원가입 실패: {str(e)}")
+        logger.error(f"요청 데이터: {request.dict() if hasattr(request, 'dict') else 'N/A'}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/login", response_model=AuthResponse)
-async def login(request: AuthRequest):
+async def login(request: LoginRequest):
     """로그인"""
     try:
         service = AuthService()
