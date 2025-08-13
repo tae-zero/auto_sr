@@ -17,13 +17,11 @@ interface LoginData {
 }
 
 interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp?: string;
   message: string;
   chat_history?: ChatMessage[];
-}
-
-interface DocumentUpload {
-  file: File;
-  description: string;
 }
 
 interface AuthResponse {

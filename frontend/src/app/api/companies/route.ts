@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // 직접 TCFD Service에 연결 (Gateway 우회)
     const tcfdServiceUrl = process.env.TCFD_SERVICE_URL || 'http://localhost:8005';

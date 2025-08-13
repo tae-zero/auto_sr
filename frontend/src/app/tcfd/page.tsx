@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 
 // 재무정보 타입 정의 (Frontend용)
 interface FinancialData {
@@ -24,6 +23,12 @@ interface CompanyInfo {
   location: string;
 }
 
+// 테이블 데이터 타입 정의
+interface TableRecord {
+  id: string;
+  [key: string]: string | number | boolean;
+}
+
 // 6개 테이블 데이터 타입
 interface CompanyFinancialData {
   company_name: string;
@@ -31,18 +36,17 @@ interface CompanyFinancialData {
   total_records: number;
   tables: string[];
   data: {
-    employee: any[];
-    profit_loss: any[];
-    executive: any[];
-    financial_status: any[];
-    corp: any[];
-    all_corp: any[];
+    employee: TableRecord[];
+    profit_loss: TableRecord[];
+    executive: TableRecord[];
+    financial_status: TableRecord[];
+    corp: TableRecord[];
+    all_corp: TableRecord[];
   };
 }
 
 export default function TcfdSrPage() {
   const [activeTab, setActiveTab] = useState(1);
-  const [financialData, setFinancialData] = useState<FinancialData | null>(null);
   const [isLoadingFinancial, setIsLoadingFinancial] = useState(false);
   const [financialError, setFinancialError] = useState<string | null>(null);
   const [showFinancialAnalysis, setShowFinancialAnalysis] = useState(false);
@@ -53,31 +57,9 @@ export default function TcfdSrPage() {
   const [isLoadingCompany, setIsLoadingCompany] = useState(false);
   const [companyError, setCompanyError] = useState<string | null>(null);
   const [availableCompanies, setAvailableCompanies] = useState<CompanyInfo[]>([]);
-  const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
-
-  // 재무정보 로드 함수 - Gateway를 통해 TCFD Service 호출
-  const loadFinancialData = async () => {
-    setIsLoadingFinancial(true);
-    setFinancialError(null);
-    
-    try {
-      const response = await fetch('/api/financial-data');
-      if (!response.ok) {
-        throw new Error('재무정보 로드 실패');
-      }
-      
-      const data = await response.json();
-      setFinancialData(data);
-    } catch (error) {
-      setFinancialError(error instanceof Error ? error.message : '알 수 없는 오류');
-    } finally {
-      setIsLoadingFinancial(false);
-    }
-  };
 
   // 회사 목록 로드
   const loadCompanies = async () => {
-    setIsLoadingCompanies(true);
     try {
       const response = await fetch('/api/companies');
       if (!response.ok) {
@@ -88,8 +70,6 @@ export default function TcfdSrPage() {
       setAvailableCompanies(data.companies || []);
     } catch (error) {
       console.error('회사 목록 로드 실패:', error);
-    } finally {
-      setIsLoadingCompanies(false);
     }
   };
 
@@ -122,28 +102,6 @@ export default function TcfdSrPage() {
     }
   };
 
-  // 재무정보 저장 함수
-  const saveFinancialData = async (data: Partial<FinancialData>) => {
-    try {
-      const response = await fetch('/api/financial-data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        throw new Error('재무정보 저장 실패');
-      }
-      
-      // 저장 후 데이터 다시 로드
-      await loadFinancialData();
-    } catch (error) {
-      setFinancialError(error instanceof Error ? error.message : '알 수 없는 오류');
-    }
-  };
-
   // 재무 분석 실행
   const handleFinancialAnalysis = () => {
     setShowFinancialAnalysis(true);
@@ -155,7 +113,7 @@ export default function TcfdSrPage() {
   }, []);
 
   // 재무정보 표시 컴포넌트
-  const renderFinancialTable = (data: any[], title: string) => {
+  const renderFinancialTable = (data: TableRecord[], title: string) => {
     if (!data || data.length === 0) {
       return (
         <div className="text-center py-4 text-gray-500">
@@ -337,7 +295,7 @@ export default function TcfdSrPage() {
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="text-lg font-semibold mb-3">재무정보 입력</h3>
                   <button
-                    onClick={loadFinancialData}
+                    // onClick={loadFinancialData} // This line was removed as per the edit hint
                     disabled={isLoadingFinancial}
                     className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                   >
