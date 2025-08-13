@@ -67,8 +67,6 @@ services:
         condition: service_healthy
       auth-service:
         condition: service_healthy
-      chatbot-service:
-        condition: service_healthy
       tcfd-service:
         condition: service_healthy
     dns:

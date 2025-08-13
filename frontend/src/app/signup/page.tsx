@@ -49,7 +49,23 @@ export default function SignupPage() {
     
     // Gateway를 통해 auth-service로 요청 (환경변수 사용)
     const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
-    axios.post(`${gatewayUrl}/api/v1/auth/signup`, formData)
+    
+    // 환경변수 디버깅
+    console.log('Environment variables:', {
+      NEXT_PUBLIC_GATEWAY_URL: process.env.NEXT_PUBLIC_GATEWAY_URL,
+      gatewayUrl: gatewayUrl
+    });
+    
+    // URL 유효성 검사
+    if (!gatewayUrl || gatewayUrl === 'undefined') {
+      alert('❌ Gateway URL이 설정되지 않았습니다. 환경변수를 확인해주세요.');
+      return;
+    }
+    
+    const signupUrl = `${gatewayUrl}/api/v1/auth/signup`;
+    console.log('Signup URL:', signupUrl);
+    
+    axios.post(signupUrl, formData)
       .then((response: { data: { success: boolean; message: string; email?: string; user_id?: string } }) => {
         console.log('Signup successful:', response.data);
         
