@@ -1,11 +1,4 @@
 # TCFD Domain - MSV Pattern with Layered Architecture
+# 재무정보 처리에만 집중 (AI 기능은 TCFD Report Service로 이전)
 
-from .analysis_service import TCFDAnalysisService
-from .report_service import TCFDReportService
-from .risk_assessment_service import RiskAssessmentService
-
-__all__ = [
-    "TCFDAnalysisService",
-    "TCFDReportService", 
-    "RiskAssessmentService"
-]
+__all__ = []

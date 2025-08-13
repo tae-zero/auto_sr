@@ -90,12 +90,12 @@ services:
       dockerfile: Dockerfile
     container_name: chatbot-service
     ports:
-      - "8006:8006"
+      - "8001:8001"
     volumes:
       - ./service/chatbot-service:/app
     environment:
       - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8006
+      - SERVICE_PORT=8001
       - LOG_LEVEL=INFO
       - PYTHONUNBUFFERED=1
     restart: always
@@ -104,37 +104,88 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
-  # Auth Service (FastAPI)
-  auth-service:
+  # Materiality Service (FastAPI)
+  materiality-service:
     build:
-      context: ./service/auth-service
+      context: ./service/materiality-service
       dockerfile: Dockerfile
-    container_name: auth-service
+    container_name: materiality-service
     ports:
-      - "8008:8008"
+      - "8002:8002"
     volumes:
-      - ./service/auth-service:/app
+      - ./service/materiality-service:/app
     environment:
       - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8008
+      - SERVICE_PORT=8002
       - LOG_LEVEL=INFO
       - PYTHONUNBUFFERED=1
-      - INIT_DATABASE=true
-      # Railway PostgreSQL 연결 (Public Network URL)
-      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
     restart: always
     depends_on:
       - redis
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # GRI Service (FastAPI)
+  gri-service:
+    build:
+      context: ./service/gri-service
+      dockerfile: Dockerfile
+    container_name: gri-service
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./service/gri-service:/app
+    environment:
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=8003
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+    restart: always
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # GRI Report Service (FastAPI)
+  grireport-service:
+    build:
+      context: ./service/grireport-service
+      dockerfile: Dockerfile
+    container_name: grireport-service
+    ports:
+      - "8004:8004"
+    volumes:
+      - ./service/grireport-service:/app
+    environment:
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=8004
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+    restart: always
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -176,13 +227,13 @@ services:
       dockerfile: Dockerfile
     container_name: tcfd-report-service
     ports:
-      - "8007:8007"
+      - "8006:8006"
     volumes:
       - ./service/tcfdreport-service:/app
       - tcfd_chroma_data:/app/chroma_db
     environment:
       - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8007
+      - SERVICE_PORT=8006
       - LOG_LEVEL=INFO
       - PYTHONUNBUFFERED=1
       # AI 및 LangChain 설정
@@ -200,7 +251,64 @@ services:
     networks:
       - app-network
     healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Survey Service (FastAPI)
+  survey-service:
+    build:
+      context: ./service/survey-service
+      dockerfile: Dockerfile
+    container_name: survey-service
+    ports:
+      - "8007:8007"
+    volumes:
+      - ./service/survey-service:/app
+    environment:
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=8007
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+    restart: always
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Auth Service (FastAPI)
+  auth-service:
+    build:
+      context: ./service/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "8008:8008"
+    volumes:
+      - ./service/auth-service:/app
+    environment:
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=8008
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - INIT_DATABASE=true
+      # Railway PostgreSQL 연결 (Public Network URL)
+      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
+    restart: always
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
       interval: 30s
       timeout: 10s
       retries: 3
