@@ -3,6 +3,7 @@ from app.domain.discovery.service_discovery import ServiceDiscovery
 import httpx
 import logging
 import traceback
+import os
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/tcfd", tags=["tcfd"])
@@ -26,8 +27,13 @@ async def get_companies(request: Request):
         
         # TCFD Service로 요청 전달
         host = tcfd_service.host
-        if not host.startswith('http'):
-            host = f"https://{host}"
+        # URL이 이미 완전한 형태인지 확인
+        if not host.startswith(('http://', 'https://')):
+            # Docker 환경에서는 http:// 사용, Railway에서는 https:// 사용
+            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+                host = f"https://{host}"
+            else:
+                host = f"http://{host}"
         
         logger.info(f"🌐 TCFD Service URL: {host}")
         logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfd/companies")
@@ -71,8 +77,13 @@ async def get_company_financial_data(request: Request, company_name: str):
         
         # TCFD Service로 요청 전달
         host = tcfd_service.host
-        if not host.startswith('http'):
-            host = f"https://{host}"
+        # URL이 이미 완전한 형태인지 확인
+        if not host.startswith(('http://', 'https://')):
+            # Docker 환경에서는 http:// 사용, Railway에서는 https:// 사용
+            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+                host = f"https://{host}"
+            else:
+                host = f"http://{host}"
         
         logger.info(f"🌐 TCFD Service URL: {host}")
         logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfd/company-financial-data")

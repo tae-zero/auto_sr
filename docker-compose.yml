@@ -50,6 +50,11 @@ services:
       - CORS_ALLOW_METHODS=["*"]
       - CORS_ALLOW_HEADERS=["*"]
       - INIT_DATABASE=true
+      # Railway 환경변수 설정
+      - RAILWAY_ENVIRONMENT=true
+      - RAILWAY_TCFD_SERVICE_URL=https://tcfd-service-production.up.railway.app
+      - RAILWAY_AUTH_SERVICE_URL=https://auth-service-production.up.railway.app
+      - RAILWAY_CHATBOT_SERVICE_URL=https://chatbot-service-production.up.railway.app
       # Railway PostgreSQL 연결 (Public Network URL)
       - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
       # AI 및 LangChain 설정

@@ -96,17 +96,16 @@ async def lifespan(app: FastAPI):
         else:
             logger.warning(f"⚠️ RAILWAY_TCFD_SERVICE_URL이 설정되지 않음: {tcfd_service_url}")
             
-            # TCFD Service 연결 테스트
-            try:
-                import httpx
-                async with httpx.AsyncClient(timeout=10.0) as client:
-                    response = await client.get(f"{tcfd_service_url}/health")
-                    if response.status_code == 200:
-                        logger.info(f"✅ TCFD Service 연결 성공: {tcfd_service_url}")
-                    else:
-                        logger.warning(f"⚠️ TCFD Service 응답 이상: {response.status_code}")
-            except Exception as e:
-                logger.warning(f"⚠️ TCFD Service 연결 테스트 실패: {str(e)}")
+            # Railway 환경에서 TCFD Service URL이 없으면 기본값 사용
+            default_tcfd_url = "https://tcfd-service-production.up.railway.app"
+            logger.info(f"🔧 기본 TCFD Service URL 사용: {default_tcfd_url}")
+            
+            app.state.service_discovery.register_service(
+                service_name="tcfd-service",
+                instances=[{"host": default_tcfd_url, "port": 443, "weight": 1}],
+                load_balancer_type="round_robin"
+            )
+            logger.info(f"✅ 기본 TCFD Service 등록 완료: {default_tcfd_url}")
         
         # Auth Service는 이미 설정됨
         if auth_service_url:
