@@ -1,6 +1,4 @@
-"""
-TCFD Domain Package
-"""
+# TCFD Domain - MSV Pattern with Layered Architecture
 
 from .analysis_service import TCFDAnalysisService
 from .report_service import TCFDReportService

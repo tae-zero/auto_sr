@@ -40,8 +40,6 @@ logger = logging.getLogger("auth_service")
 
 # DB 관련 import
 from app.common.database.database import get_db, create_tables, test_connection
-from app.domain.auth.service.signup_service import SignupService
-from app.domain.auth.service.login_service import LoginService
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -78,7 +76,7 @@ async def lifespan(app: FastAPI):
 # FastAPI 앱 생성
 app = FastAPI(
     title="Auth Service",
-    description="Authentication and Authorization Service",
+    description="Authentication and Authorization Service - MSV Pattern with Layered Architecture",
     version="0.1.0",
     lifespan=lifespan
 )
@@ -106,114 +104,37 @@ app.add_middleware(
     max_age=86400,  # CORS preflight 캐시 시간 (24시간)
 )
 
+# ✅ MSV 패턴의 Auth 도메인 컨트롤러 사용
+from app.domain.auth.controller.auth_controller import router as auth_router
+app.include_router(auth_router)
+
+# 기본 루트 경로
 @app.get("/")
 async def root():
-    return {"message": "Auth Service", "version": "0.1.0"}
+    return {
+        "message": "Auth Service", 
+        "version": "0.1.0",
+        "architecture": "MSV Pattern with Layered Architecture",
+        "description": "인증 및 권한 관리 서비스"
+    }
 
-@app.get("/test")
-async def test():
-    return {"message": "Auth Service Test Endpoint", "status": "success"}
-
+# 루트 레벨 헬스 체크
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "auth-service"}
+    return {
+        "status": "healthy", 
+        "service": "auth-service",
+        "architecture": "MSV Pattern with Layered Architecture"
+    }
 
-@app.get("/login")
-async def login():
-    return {"message": "Login endpoint", "status": "success"}
-
-@app.post("/login")
-async def login_process(request: Request, db=Depends(get_db)):
-    # 함수 내에서 AsyncSession 타입 힌트 재정의
-    from sqlalchemy.ext.asyncio import AsyncSession
-    db: AsyncSession = db
-    logger.info("🔐 로그인 POST 요청 받음")
-    try:
-        # 요청 본문에서 formData 읽기
-        form_data = await request.json()
-        logger.info(f"로그인 시도: {form_data.get('auth_id', 'N/A')}")
-        
-        # 필수 필드 검증
-        required_fields = ['auth_id', 'auth_pw']
-        missing_fields = [field for field in required_fields if not form_data.get(field)]
-        
-        if missing_fields:
-            logger.warning(f"필수 필드 누락: {missing_fields}")
-            return {
-                "success": False,
-                "message": f"필수 필드가 누락되었습니다: {', '.join(missing_fields)}"
-            }
-        
-        # LoginService를 통한 인증
-        result = await LoginService.authenticate_user(
-            db, 
-            form_data['auth_id'], 
-            form_data['auth_pw']
-        )
-        
-        return result
-        
-    except Exception as e:
-        logger.error(f"로그인 처리 중 오류: {str(e)}")
-        return {"success": False, "message": f"로그인 처리 중 오류가 발생했습니다: {str(e)}"}
-
-@app.get("/signup")
-async def signup():
-    return {"message": "Signup endpoint", "status": "success"}
-
-@app.post("/signup")
-async def signup_process(request: Request, db=Depends(get_db)):
-    # 함수 내에서 AsyncSession 타입 힌트 재정의
-    from sqlalchemy.ext.asyncio import AsyncSession
-    db: AsyncSession = db
-    logger.info("📝 회원가입 POST 요청 받음")
-    try:
-        # 요청 본문에서 formData 읽기
-        form_data = await request.json()
-        
-        # 필수 필드 검증
-        required_fields = ['company_id', 'industry', 'email', 'name', 'age', 'auth_id', 'auth_pw']
-        missing_fields = [field for field in required_fields if not form_data.get(field)]
-        
-        if missing_fields:
-            logger.warning(f"필수 필드 누락: {missing_fields}")
-            return {
-                "회원가입": "실패",
-                "message": f"필수 필드가 누락되었습니다: {', '.join(missing_fields)}"
-            }
-        
-        # 새로운 컬럼명에 맞춰 로그 출력
-        logger.info("=== 회원가입 요청 데이터 ===")
-        logger.info(f"회사 ID: {form_data.get('company_id', 'N/A')}")
-        logger.info(f"산업: {form_data.get('industry', 'N/A')}")
-        logger.info(f"이메일: {form_data.get('email', 'N/A')}")
-        logger.info(f"이름: {form_data.get('name', 'N/A')}")
-        logger.info(f"나이: {form_data.get('age', 'N/A')}")
-        logger.info(f"인증 ID: {form_data.get('auth_id', 'N/A')}")
-        logger.info(f"인증 비밀번호: [PROTECTED]")
-        logger.info("==========================")
-        
-        # PostgreSQL에 사용자 저장
-        result = await SignupService.create_user(db, form_data)
-        
-        if result["success"]:
-            logger.info(f"✅ 회원가입 성공: {form_data['email']}")
-            return {
-                "success": True,
-                "message": result["message"],
-                "user_id": result.get("user_id"),
-                "email": result.get("email")
-            }
-        else:
-            logger.warning(f"❌ 회원가입 실패: {result['message']}")
-            return {
-                "success": False,
-                "message": result["message"]
-            }
-            
-    except Exception as e:
-        logger.error(f"회원가입 처리 중 오류: {str(e)}")
-        return {"회원가입": "실패", "오류": str(e)}
+# 테스트 엔드포인트
+@app.get("/test")
+async def test():
+    return {
+        "message": "Auth Service Test Endpoint", 
+        "status": "success",
+        "architecture": "MSV Pattern with Layered Architecture"
+    }
 
 if __name__ == "__main__":
     import uvicorn
