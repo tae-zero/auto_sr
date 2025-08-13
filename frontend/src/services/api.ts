@@ -1,12 +1,13 @@
 import axios from 'axios';
 
-// 환경변수에서 API URL 가져오기 (로컬 개발 시 하드코딩)
+// API 기본 설정
+const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:8008';
 const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
-const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:8008';  // 로컬 auth-service
 const CHATBOT_URL = process.env.NEXT_PUBLIC_CHATBOT_URL || 'http://localhost:8006';
 
-const api = axios.create({
-  baseURL: GATEWAY_URL,
+// API 클라이언트 설정
+export const apiClient = axios.create({
+  baseURL: GATEWAY_URL, // Gateway를 기본 URL로 설정
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -14,13 +15,15 @@ const api = axios.create({
 });
 
 // Auth Service API
-export const authApi = axios.create({
-  baseURL: AUTH_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+export const authAPI = {
+  // Gateway를 통한 인증
+  signup: (data: any) => apiClient.post('/auth/signup', data),
+  login: (data: any) => apiClient.post('/auth/login', data),
+  
+  // 직접 auth-service 연결 (백업용)
+  signupDirect: (data: any) => axios.post(`${AUTH_URL}/signup`, data),
+  loginDirect: (data: any) => axios.post(`${AUTH_URL}/login`, data),
+};
 
 // Chatbot Service API
 export const chatbotApi = axios.create({
@@ -34,7 +37,7 @@ export const chatbotApi = axios.create({
 // AI Service API (Gateway를 통해)
 export const aiApi = {
   // AI 서비스 상태 확인
-  healthCheck: () => api.get('/api/v1/ai/health'),
+  healthCheck: () => apiClient.get('/api/v1/ai/health'),
   
   // AI 챗봇 대화
   chat: (message: string, chatHistory: unknown[] = []) => {
@@ -42,7 +45,7 @@ export const aiApi = {
     formData.append('message', message);
     formData.append('chat_history', JSON.stringify(chatHistory));
     
-    return api.post('/api/v1/ai/chat', formData, {
+    return apiClient.post('/api/v1/ai/chat', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -55,7 +58,7 @@ export const aiApi = {
     formData.append('file', file);
     formData.append('description', description);
     
-    return api.post('/api/v1/ai/upload-document', formData, {
+    return apiClient.post('/api/v1/ai/upload-document', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -64,11 +67,11 @@ export const aiApi = {
   
   // 벡터 검색
   search: (query: string, topK: number = 5) => 
-    api.get(`/api/v1/ai/search?query=${encodeURIComponent(query)}&top_k=${topK}`),
+    apiClient.get(`/api/v1/ai/search?query=${encodeURIComponent(query)}&top_k=${topK}`),
 };
 
 // 요청 인터셉터
-api.interceptors.request.use(
+apiClient.interceptors.request.use(
   (config) => {
     // 토큰이 있다면 헤더에 추가
     if (typeof window !== 'undefined') {
@@ -85,7 +88,7 @@ api.interceptors.request.use(
 );
 
 // 응답 인터셉터
-api.interceptors.response.use(
+apiClient.interceptors.response.use(
   (response) => {
     return response;
   },
@@ -101,4 +104,4 @@ api.interceptors.response.use(
   }
 );
 
-export default api; 
+export default apiClient; 

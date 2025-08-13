@@ -47,9 +47,9 @@ export default function SignupPage() {
     // JSON을 보기 좋게 포맷팅하여 alert에 표시
     alert(JSON.stringify(signupData, null, 2));
     
-    // auth-service로 직접 요청 (환경변수 사용)
-    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:8008';
-    axios.post(`${authServiceUrl}/signup`, formData)
+    // Gateway를 통해 auth-service로 요청 (환경변수 사용)
+    const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
+    axios.post(`${gatewayUrl}/auth/signup`, formData)
       .then(response => {
         console.log('Signup successful:', response.data);
         
