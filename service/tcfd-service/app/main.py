@@ -1,5 +1,6 @@
 """
 TCFD Service - Climate-related Financial Disclosures with AI Analysis
+MSV 패턴의 계층형 아키텍처 적용
 """
 import os
 import logging
@@ -24,7 +25,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("tcfd_service")
 
-# TCFD 관련 import
+# 새로운 계층형 구조 import
+from app.controller.financial_controller import router as financial_router
 from app.domain.tcfd.analysis_service import TCFDAnalysisService
 from app.domain.tcfd.report_service import TCFDReportService
 from app.domain.tcfd.risk_assessment_service import RiskAssessmentService
@@ -46,7 +48,7 @@ async def lifespan(app: FastAPI):
 # FastAPI 앱 생성
 app = FastAPI(
     title="TCFD Service",
-    description="Climate-related Financial Disclosures with AI Analysis",
+    description="Climate-related Financial Disclosures with AI Analysis - MSV Pattern with Layered Architecture",
     version="0.1.0",
     lifespan=lifespan
 )
@@ -74,6 +76,9 @@ async def startup_event():
     app.state.tcfd_report_service = TCFDReportService()
     app.state.risk_assessment_service = RiskAssessmentService()
 
+# 라우터 등록 - 새로운 계층형 구조
+app.include_router(financial_router)
+
 # Health Check
 @app.get("/health")
 async def health_check():
@@ -81,10 +86,19 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "tcfd-service",
-        "ai_services": "enabled" if hasattr(app.state, 'tcfd_analysis_service') else "disabled"
+        "architecture": "MSV Pattern with Layered Architecture",
+        "ai_services": "enabled" if hasattr(app.state, 'tcfd_analysis_service') else "disabled",
+        "layers": [
+            "Controller Layer - API 엔드포인트",
+            "Service Layer - 비즈니스 로직",
+            "Repository Layer - 데이터 접근",
+            "Entity Layer - 데이터베이스 엔티티",
+            "Model Layer - Pydantic 모델",
+            "Schema Layer - 데이터 스키마"
+        ]
     }
 
-# TCFD 분석 엔드포인트
+# 기존 TCFD 분석 엔드포인트 (점진적 마이그레이션을 위해 유지)
 @app.post("/api/v1/tcfd/analyze-report")
 async def analyze_tcfd_report(
     file: UploadFile = File(...),
@@ -101,133 +115,66 @@ async def analyze_tcfd_report(
         
         return {
             "success": True,
-            "analysis_result": result,
-            "message": "TCFD 보고서 분석이 완료되었습니다."
+            "data": result,
+            "message": "TCFD 보고서 분석 완료"
         }
-        
     except Exception as e:
         logger.error(f"TCFD 보고서 분석 실패: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"분석 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/v1/tcfd/assess-risks")
-async def assess_climate_risks(
-    company_data: Dict[str, Any]
+# TCFD 위험 평가 엔드포인트
+@app.post("/api/v1/tcfd/risk-assessment")
+async def assess_tcfd_risk(
+    company_info: str = Form(...),
+    financial_data: str = Form(...)
 ):
-    """기후 리스크 평가"""
+    """TCFD 위험 평가"""
     try:
-        risk_assessment = await app.state.risk_assessment_service.assess_risks(
-            company_data=company_data
+        company_data = json.loads(company_info)
+        financial_info = json.loads(financial_data)
+        
+        result = await app.state.risk_assessment_service.assess_climate_risk(
+            company_info=company_data,
+            financial_data=financial_info
         )
         
         return {
             "success": True,
-            "risk_assessment": risk_assessment,
-            "message": "기후 리스크 평가가 완료되었습니다."
+            "data": result,
+            "message": "TCFD 위험 평가 완료"
         }
-        
     except Exception as e:
-        logger.error(f"기후 리스크 평가 실패: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"리스크 평가 실패: {str(e)}")
+        logger.error(f"TCFD 위험 평가 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/v1/tcfd/generate-report")
+# TCFD 보고서 생성 엔드포인트
+@app.post("/api/v1/tcfd/generate-report")
 async def generate_tcfd_report(
-    company_id: str,
-    report_type: str = "annual"
+    company_info: str = Form(...),
+    financial_data: str = Form(...),
+    risk_assessment: str = Form(...)
 ):
     """TCFD 보고서 생성"""
     try:
-        report = await app.state.tcfd_report_service.generate_report(
-            company_id=company_id,
-            report_type=report_type
+        company_data = json.loads(company_info)
+        financial_info = json.loads(financial_data)
+        risk_info = json.loads(risk_assessment)
+        
+        result = await app.state.tcfd_report_service.generate_report(
+            company_info=company_data,
+            financial_data=financial_info,
+            risk_assessment=risk_info
         )
         
         return {
             "success": True,
-            "report": report,
-            "message": "TCFD 보고서가 생성되었습니다."
+            "data": result,
+            "message": "TCFD 보고서 생성 완료"
         }
-        
     except Exception as e:
         logger.error(f"TCFD 보고서 생성 실패: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"보고서 생성 실패: {str(e)}")
-
-@app.post("/api/v1/tcfd/upload-documents")
-async def upload_tcfd_documents(
-    files: List[UploadFile] = File(...),
-    company_id: str = Form(...),
-    document_type: str = Form(...)
-):
-    """TCFD 관련 문서 업로드"""
-    try:
-        uploaded_docs = []
-        
-        for file in files:
-            doc_info = await app.state.tcfd_analysis_service.upload_document(
-                file=file,
-                company_id=company_id,
-                document_type=document_type
-            )
-            uploaded_docs.append(doc_info)
-        
-        return {
-            "success": True,
-            "uploaded_documents": uploaded_docs,
-            "message": f"{len(uploaded_docs)}개의 문서가 업로드되었습니다."
-        }
-        
-    except Exception as e:
-        logger.error(f"문서 업로드 실패: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"문서 업로드 실패: {str(e)}")
-
-@app.get("/api/v1/tcfd/search-knowledge")
-async def search_tcfd_knowledge(
-    query: str,
-    company_id: Optional[str] = None,
-    top_k: int = 5
-):
-    """TCFD 지식 베이스 검색"""
-    try:
-        search_results = await app.state.tcfd_analysis_service.search_knowledge(
-            query=query,
-            company_id=company_id,
-            top_k=top_k
-        )
-        
-        return {
-            "success": True,
-            "query": query,
-            "results": search_results,
-            "total_results": len(search_results)
-        }
-        
-    except Exception as e:
-        logger.error(f"지식 검색 실패: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"검색 실패: {str(e)}")
-
-# 서비스 정보
-@app.get("/api/v1/tcfd/service-info")
-async def get_service_info():
-    """TCFD 서비스 정보"""
-    return {
-        "service_name": "TCFD Service",
-        "version": "0.1.0",
-        "description": "Climate-related Financial Disclosures with AI Analysis",
-        "features": [
-            "TCFD 보고서 AI 분석",
-            "기후 리스크 평가",
-            "TCFD 보고서 생성",
-            "문서 업로드 및 벡터화",
-            "지식 베이스 검색"
-        ],
-        "ai_capabilities": [
-            "LangChain 기반 문서 분석",
-            "OpenAI GPT 모델 통합",
-            "벡터 데이터베이스 검색",
-            "자연어 처리"
-        ]
-    }
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", "8005"))
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

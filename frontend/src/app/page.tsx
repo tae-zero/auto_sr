@@ -223,9 +223,19 @@ export default function Home() {
                   {item.description}
                 </p>
                 <div className="text-center">
-                  <button className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
-                    MORE
-                  </button>
+                  {item.title === "TCFD 기준으로 SR작성해볼까?" ? (
+                    <Link href="/tcfd">
+                      <button 
+                        className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                      >
+                        MORE
+                      </button>
+                    </Link>
+                  ) : (
+                    <button className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
+                      MORE
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -349,7 +359,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Portfolio. All rights reserved.</p>
+            <p>&copy; 2025 Portfolio. All rights reserved.</p>
           </div>
         </div>
       </footer>

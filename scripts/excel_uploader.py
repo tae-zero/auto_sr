@@ -7,7 +7,7 @@ class ExcelUploader:
     
     def __init__(self):
         """초기화"""
-        self.database_url = "postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway"
+        self.database_url = ""
         self.engine = None
         
         # 업로드할 파일 목록
