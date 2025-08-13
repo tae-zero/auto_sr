@@ -86,12 +86,15 @@ async def lifespan(app: FastAPI):
             logger.info(f"✅ Railway Chatbot Service 등록: {chatbot_service_url}")
         
         if tcfd_service_url:
+            logger.info(f"🔍 RAILWAY_TCFD_SERVICE_URL 로딩됨: {tcfd_service_url}")
             app.state.service_discovery.register_service(
                 service_name="tcfd-service",
                 instances=[{"host": tcfd_service_url, "port": 443, "weight": 1}],
                 load_balancer_type="round_robin"
             )
-            logger.info(f"✅ Railway TCFD Service 등록: {tcfd_service_url}")
+            logger.info(f"✅ Railway TCFD Service 등록 완료: {tcfd_service_url}")
+        else:
+            logger.warning(f"⚠️ RAILWAY_TCFD_SERVICE_URL이 설정되지 않음: {tcfd_service_url}")
             
             # TCFD Service 연결 테스트
             try:
