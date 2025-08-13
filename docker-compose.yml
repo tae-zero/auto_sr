@@ -110,87 +110,6 @@ services:
       retries: 3
       start_period: 40s
 
-  # Materiality Service (FastAPI)
-  materiality-service:
-    build:
-      context: ./service/materiality-service
-      dockerfile: Dockerfile
-    container_name: materiality-service
-    ports:
-      - "8002:8002"
-    volumes:
-      - ./service/materiality-service:/app
-    environment:
-      - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8002
-      - LOG_LEVEL=INFO
-      - PYTHONUNBUFFERED=1
-    restart: always
-    depends_on:
-      - redis
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # GRI Service (FastAPI)
-  gri-service:
-    build:
-      context: ./service/gri-service
-      dockerfile: Dockerfile
-    container_name: gri-service
-    ports:
-      - "8003:8003"
-    volumes:
-      - ./service/gri-service:/app
-    environment:
-      - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8003
-      - LOG_LEVEL=INFO
-      - PYTHONUNBUFFERED=1
-    restart: always
-    depends_on:
-      - redis
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # GRI Report Service (FastAPI)
-  grireport-service:
-    build:
-      context: ./service/grireport-service
-      dockerfile: Dockerfile
-    container_name: grireport-service
-    ports:
-      - "8004:8004"
-    volumes:
-      - ./service/grireport-service:/app
-    environment:
-      - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8004
-      - LOG_LEVEL=INFO
-      - PYTHONUNBUFFERED=1
-    restart: always
-    depends_on:
-      - redis
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
   # TCFD Service (FastAPI + 재무정보 처리)
   tcfd-service:
     build:
@@ -252,33 +171,6 @@ services:
       - app-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # Survey Service (FastAPI)
-  survey-service:
-    build:
-      context: ./service/survey-service
-      dockerfile: Dockerfile
-    container_name: survey-service
-    ports:
-      - "8007:8007"
-    volumes:
-      - ./service/survey-service:/app
-    environment:
-      - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8007
-      - LOG_LEVEL=INFO
-      - PYTHONUNBUFFERED=1
-    restart: always
-    depends_on:
-      - redis
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
       interval: 30s
       timeout: 10s
       retries: 3
