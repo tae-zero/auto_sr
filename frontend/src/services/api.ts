@@ -1,5 +1,31 @@
 import axios from 'axios';
 
+// 타입 정의
+interface SignupData {
+  company_id: string;
+  industry: string;
+  email: string;
+  name: string;
+  age: string;
+  auth_id: string;
+  auth_pw: string;
+}
+
+interface LoginData {
+  auth_id: string;
+  auth_pw: string;
+}
+
+interface ChatMessage {
+  message: string;
+  chat_history?: any[];
+}
+
+interface DocumentUpload {
+  file: File;
+  description: string;
+}
+
 // API 기본 설정
 const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:8008';
 const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
@@ -17,30 +43,40 @@ export const apiClient = axios.create({
 // Auth Service API
 export const authAPI = {
   // Gateway를 통한 인증
-  signup: (data: any) => apiClient.post('/auth/signup', data),
-  login: (data: any) => apiClient.post('/auth/login', data),
+  signup: (data: SignupData) => apiClient.post('/auth/signup', data),
+  login: (data: LoginData) => apiClient.post('/auth/login', data),
   
   // 직접 auth-service 연결 (백업용)
-  signupDirect: (data: any) => axios.post(`${AUTH_URL}/signup`, data),
-  loginDirect: (data: any) => axios.post(`${AUTH_URL}/login`, data),
+  signupDirect: (data: SignupData) => axios.post(`${AUTH_URL}/signup`, data),
+  loginDirect: (data: LoginData) => axios.post(`${AUTH_URL}/login`, data),
 };
 
 // Chatbot Service API
-export const chatbotApi = axios.create({
-  baseURL: CHATBOT_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
+export const chatbotAPI = {
+  // 챗봇 서비스 상태 확인
+  healthCheck: () => axios.get(`${CHATBOT_URL}/health`),
+  
+  // 챗봇 대화
+  chat: (message: string, chatHistory: any[] = []) => {
+    const formData = new FormData();
+    formData.append('message', message);
+    formData.append('chat_history', JSON.stringify(chatHistory));
+    
+    return axios.post(`${CHATBOT_URL}/chat`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   },
-});
+};
 
-// AI Service API (Gateway를 통해)
+// AI Service API
 export const aiApi = {
   // AI 서비스 상태 확인
   healthCheck: () => apiClient.get('/api/v1/ai/health'),
   
   // AI 챗봇 대화
-  chat: (message: string, chatHistory: unknown[] = []) => {
+  chat: (message: string, chatHistory: any[] = []) => {
     const formData = new FormData();
     formData.append('message', message);
     formData.append('chat_history', JSON.stringify(chatHistory));
@@ -53,7 +89,7 @@ export const aiApi = {
   },
   
   // 문서 업로드
-  uploadDocument: (file: File, description: string = '') => {
+  uploadDocument: (file: File, description: string) => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('description', description);
@@ -74,11 +110,9 @@ export const aiApi = {
 apiClient.interceptors.request.use(
   (config) => {
     // 토큰이 있다면 헤더에 추가
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -93,12 +127,9 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
+    // 401 에러 시 토큰 제거
     if (error.response?.status === 401) {
-      // 인증 오류 처리
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-      }
+      localStorage.removeItem('auth_token');
     }
     return Promise.reject(error);
   }
