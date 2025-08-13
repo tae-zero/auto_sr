@@ -15,12 +15,45 @@ interface FinancialData {
   company_id: string;
 }
 
+// 회사 정보 타입
+interface CompanyInfo {
+  id: string;
+  name: string;
+  industry: string;
+  size: string;
+  location: string;
+}
+
+// 6개 테이블 데이터 타입
+interface CompanyFinancialData {
+  company_name: string;
+  company_id: string;
+  total_records: number;
+  tables: string[];
+  data: {
+    employee: any[];
+    profit_loss: any[];
+    executive: any[];
+    financial_status: any[];
+    corp: any[];
+    all_corp: any[];
+  };
+}
+
 export default function TcfdSrPage() {
   const [activeTab, setActiveTab] = useState(1);
   const [financialData, setFinancialData] = useState<FinancialData | null>(null);
   const [isLoadingFinancial, setIsLoadingFinancial] = useState(false);
   const [financialError, setFinancialError] = useState<string | null>(null);
   const [showFinancialAnalysis, setShowFinancialAnalysis] = useState(false);
+  
+  // 새로운 상태들
+  const [companyName, setCompanyName] = useState('');
+  const [companyFinancialData, setCompanyFinancialData] = useState<CompanyFinancialData | null>(null);
+  const [isLoadingCompany, setIsLoadingCompany] = useState(false);
+  const [companyError, setCompanyError] = useState<string | null>(null);
+  const [availableCompanies, setAvailableCompanies] = useState<CompanyInfo[]>([]);
+  const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
 
   // 재무정보 로드 함수 - Gateway를 통해 TCFD Service 호출
   const loadFinancialData = async () => {
@@ -28,29 +61,68 @@ export default function TcfdSrPage() {
     setFinancialError(null);
     
     try {
-      // Gateway를 통해 TCFD Service의 재무정보 API 호출
-      const response = await fetch('/api/financial-data', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
+      const response = await fetch('/api/financial-data');
       if (!response.ok) {
-        throw new Error('재무정보를 불러오는데 실패했습니다.');
+        throw new Error('재무정보 로드 실패');
       }
-
+      
       const data = await response.json();
       setFinancialData(data);
     } catch (error) {
-      console.error('재무정보 로드 오류:', error);
-      setFinancialError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
+      setFinancialError(error instanceof Error ? error.message : '알 수 없는 오류');
     } finally {
       setIsLoadingFinancial(false);
     }
   };
 
-  // 재무정보 저장 함수 - Gateway를 통해 TCFD Service 호출
+  // 회사 목록 로드
+  const loadCompanies = async () => {
+    setIsLoadingCompanies(true);
+    try {
+      const response = await fetch('/api/companies');
+      if (!response.ok) {
+        throw new Error('회사 목록 로드 실패');
+      }
+      
+      const data = await response.json();
+      setAvailableCompanies(data.companies || []);
+    } catch (error) {
+      console.error('회사 목록 로드 실패:', error);
+    } finally {
+      setIsLoadingCompanies(false);
+    }
+  };
+
+  // 회사별 재무정보 로드
+  const loadCompanyFinancialData = async (companyName: string) => {
+    if (!companyName.trim()) return;
+    
+    setIsLoadingCompany(true);
+    setCompanyError(null);
+    
+    try {
+      const response = await fetch(`/api/company-financial-data?company_name=${encodeURIComponent(companyName)}`);
+      if (!response.ok) {
+        throw new Error('회사별 재무정보 로드 실패');
+      }
+      
+      const data = await response.json();
+      setCompanyFinancialData(data);
+    } catch (error) {
+      setCompanyError(error instanceof Error ? error.message : '알 수 없는 오류');
+    } finally {
+      setIsLoadingCompany(false);
+    }
+  };
+
+  // 회사명 입력 시 재무정보 조회
+  const handleCompanySearch = () => {
+    if (companyName.trim()) {
+      loadCompanyFinancialData(companyName);
+    }
+  };
+
+  // 재무정보 저장 함수
   const saveFinancialData = async (data: Partial<FinancialData>) => {
     try {
       const response = await fetch('/api/financial-data', {
@@ -60,689 +132,323 @@ export default function TcfdSrPage() {
         },
         body: JSON.stringify(data),
       });
-
+      
       if (!response.ok) {
-        throw new Error('재무정보 저장에 실패했습니다.');
+        throw new Error('재무정보 저장 실패');
       }
-
+      
       // 저장 후 데이터 다시 로드
       await loadFinancialData();
-      return true;
     } catch (error) {
-      console.error('재무정보 저장 오류:', error);
-      setFinancialError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
-      return false;
+      setFinancialError(error instanceof Error ? error.message : '알 수 없는 오류');
     }
   };
 
-  // 재무지표 분석 표시
+  // 재무 분석 실행
   const handleFinancialAnalysis = () => {
-    if (financialData) {
-      setShowFinancialAnalysis(true);
-    }
+    setShowFinancialAnalysis(true);
   };
 
-  // 재무정보 탭이 활성화될 때 데이터 로드
+  // 컴포넌트 마운트 시 회사 목록 로드
   useEffect(() => {
-    if (activeTab === 2) {
-      loadFinancialData();
+    loadCompanies();
+  }, []);
+
+  // 재무정보 표시 컴포넌트
+  const renderFinancialTable = (data: any[], title: string) => {
+    if (!data || data.length === 0) {
+      return (
+        <div className="text-center py-4 text-gray-500">
+          {title} 데이터가 없습니다
+        </div>
+      );
     }
-  }, [activeTab]);
+
+    const columns = Object.keys(data[0] || {});
+
+    return (
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-3 text-blue-600">{title}</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+            <thead className="bg-gray-50">
+              <tr>
+                {columns.map((column) => (
+                  <th key={column} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                    {column}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {data.map((row, index) => (
+                <tr key={index} className="hover:bg-gray-50">
+                  {columns.map((column) => (
+                    <td key={column} className="px-4 py-3 text-sm text-gray-900 border-b">
+                      {typeof row[column] === 'number' 
+                        ? row[column].toLocaleString() 
+                        : String(row[column] || '-')}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 네비게이션 */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link href="/" className="text-gray-600 hover:text-gray-900">
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </Link>
-              <h1 className="ml-4 text-xl font-semibold text-gray-900">TCFD 기준 SR 작성</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/login" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
-                LOGIN
-              </Link>
-              <Link href="/signup" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
-                SIGNUP
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* 메인 컨텐츠 */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 헤더 섹션 */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 mb-8 text-white">
-          <h1 className="text-3xl font-bold mb-4">TCFD 기준 지속가능보고서 작성</h1>
-          <p className="text-blue-100 text-lg">
-            AI와 함께 기후 관련 재무정보공개 태스크포스(TCFD) 기준으로 SR을 작성해보세요
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* 헤더 */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            TCFD 기준으로 SR 작성
+          </h1>
+          <p className="text-gray-600">
+            기후 관련 재무 공시를 위한 지속가능보고서 작성 도구
           </p>
         </div>
 
         {/* 탭 네비게이션 */}
-        <div className="bg-white rounded-xl shadow-sm border mb-8 overflow-x-auto">
-          <div className="flex min-w-max">
-            {[
-              { number: 1, name: '회사정보' },
-              { number: 2, name: '재무정보' },
-              { number: 3, name: 'TCFD 프레임워크' },
-              { number: 4, name: '기후시나리오' },
-              { number: 5, name: 'AI보고서 초안' }
-            ].map((tab) => (
-              <button
-                key={tab.number}
-                onClick={() => setActiveTab(tab.number)}
-                className={`px-6 py-4 text-center font-medium transition-colors rounded-t-xl whitespace-nowrap ${
-                  activeTab === tab.number
-                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {tab.name}
-              </button>
-            ))}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+              {[
+                { id: 1, name: '회사정보', icon: '🏢' },
+                { id: 2, name: '재무정보', icon: '💰' },
+                { id: 3, name: 'TCFD 프레임워크', icon: '📊' },
+                { id: 4, name: '기후시나리오', icon: '🌍' },
+                { id: 5, name: 'AI보고서 초안', icon: '🤖' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap
+                    ${activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }
+                  `}
+                >
+                  <span className="mr-2">{tab.icon}</span>
+                  {tab.name}
+                </button>
+              ))}
+            </nav>
           </div>
         </div>
 
         {/* 탭 컨텐츠 */}
-        <div className="bg-white rounded-xl shadow-sm border p-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          {/* 탭 1: 회사정보 */}
           {activeTab === 1 && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">회사정보</h3>
-                <p className="text-gray-600 mb-6">
-                  TCFD 기준으로 SR을 작성하기 위한 기본 회사 정보를 입력하세요.
-                </p>
-              </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">🏢 회사정보</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">회사명 *</label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="회사명을 입력하세요"
-                  />
+              {/* 회사 검색 */}
+              <div className="mb-6">
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      회사명 검색
+                    </label>
+                    <input
+                      type="text"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder="회사명을 입력하세요 (예: 삼성전자, 현대자동차)"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      onKeyPress={(e) => e.key === 'Enter' && handleCompanySearch()}
+                    />
+                  </div>
+                  <button
+                    onClick={handleCompanySearch}
+                    disabled={!companyName.trim() || isLoadingCompany}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoadingCompany ? '검색 중...' : '검색'}
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">업종 *</label>
-                  <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">업종을 선택하세요</option>
-                    <option value="manufacturing">제조업</option>
-                    <option value="finance">금융업</option>
-                    <option value="energy">에너지업</option>
-                    <option value="technology">기술업</option>
-                    <option value="retail">소매업</option>
-                    <option value="other">기타</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">설립연도</label>
-                  <input
-                    type="number"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="예: 1990"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">직원 수</label>
-                  <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">직원 수를 선택하세요</option>
-                    <option value="1-50">1-50명</option>
-                    <option value="51-200">51-200명</option>
-                    <option value="201-1000">201-1000명</option>
-                    <option value="1001-5000">1001-5000명</option>
-                    <option value="5000+">5000명 이상</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">대표자명</label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="대표자명을 입력하세요"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">주소</label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="회사 주소를 입력하세요"
-                  />
-                </div>
+                
+                {/* 사용 가능한 회사 목록 */}
+                {availableCompanies.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-600 mb-2">사용 가능한 회사:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {availableCompanies.map((company) => (
+                        <button
+                          key={company.id}
+                          onClick={() => {
+                            setCompanyName(company.name);
+                            loadCompanyFinancialData(company.name);
+                          }}
+                          className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200"
+                        >
+                          {company.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="pt-4">
-                <button 
-                  onClick={() => setActiveTab(2)}
-                  className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                >
-                  다음 단계 →
-                </button>
-              </div>
+              {/* 회사별 재무정보 표시 */}
+              {companyFinancialData && (
+                <div className="mt-6">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                      📊 {companyFinancialData.company_name} 재무정보
+                    </h3>
+                    <p className="text-blue-700">
+                      총 {companyFinancialData.total_records}개 레코드, 
+                      {companyFinancialData.tables.join(', ')} 테이블
+                    </p>
+                  </div>
+
+                  {/* 6개 테이블 데이터 표시 */}
+                  {renderFinancialTable(companyFinancialData.data.employee, '직원 정보')}
+                  {renderFinancialTable(companyFinancialData.data.profit_loss, '손익계산')}
+                  {renderFinancialTable(companyFinancialData.data.executive, '임원 정보')}
+                  {renderFinancialTable(companyFinancialData.data.financial_status, '재무상태')}
+                  {renderFinancialTable(companyFinancialData.data.corp, '기업 정보')}
+                  {renderFinancialTable(companyFinancialData.data.all_corp, '전체기업 정보')}
+                </div>
+              )}
+
+              {/* 에러 메시지 */}
+              {companyError && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-red-700">{companyError}</p>
+                </div>
+              )}
             </div>
           )}
 
+          {/* 탭 2: 재무정보 */}
           {activeTab === 2 && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">재무정보</h3>
-                <p className="text-gray-600 mb-6">
-                  기후 관련 위험과 기회가 재무에 미치는 영향을 분석하기 위한 재무 정보를 입력하세요.
-                </p>
-              </div>
-
-              {/* Railway DB 연동 상태 표시 */}
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-3 h-3 rounded-full ${isLoadingFinancial ? 'bg-yellow-500 animate-pulse' : financialData ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                    <span className="text-sm text-blue-700">
-                      {isLoadingFinancial ? '데이터 로딩 중...' : financialData ? 'TCFD Service 연결됨' : '서비스 연결 대기 중'}
-                    </span>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={loadFinancialData}
-                      disabled={isLoadingFinancial}
-                      className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      새로고침
-                    </button>
-                    {financialData && (
-                      <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
-                        {financialData.fiscal_year}년 데이터
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* 오류 메시지 */}
-              {financialError && (
-                <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                  <div className="flex items-center space-x-2">
-                    <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-red-700 text-sm">{financialError}</span>
-                  </div>
-                </div>
-              )}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">💰 재무정보</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">매출액 (백만원) *</label>
-                  <input
-                    type="number"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="연간 매출액을 입력하세요"
-                    value={financialData?.revenue || ''}
-                    onChange={(e) => setFinancialData(prev => prev ? {...prev, revenue: Number(e.target.value)} : null)}
-                  />
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-3">재무정보 입력</h3>
+                  <button
+                    onClick={loadFinancialData}
+                    disabled={isLoadingFinancial}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {isLoadingFinancial ? '로딩 중...' : '재무정보 불러오기'}
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">자산총액 (백만원) *</label>
-                  <input
-                    type="number"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="자산총액을 입력하세요"
-                    value={financialData?.total_assets || ''}
-                    onChange={(e) => setFinancialData(prev => prev ? {...prev, total_assets: Number(e.target.value)} : null)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">부채총액 (백만원) *</label>
-                  <input
-                    type="number"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="부채총액을 입력하세요"
-                    value={financialData?.total_liabilities || ''}
-                    onChange={(e) => setFinancialData(prev => prev ? {...prev, total_liabilities: Number(e.target.value)} : null)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">자본총액 (백만원) *</label>
-                  <input
-                    type="number"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="자본총액을 입력하세요"
-                    value={financialData?.total_equity || ''}
-                    onChange={(e) => setFinancialData(prev => prev ? {...prev, total_equity: Number(e.target.value)} : null)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">영업이익 (백만원)</label>
-                  <input
-                    type="number"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="영업이익을 입력하세요"
-                    value={financialData?.operating_income || ''}
-                    onChange={(e) => setFinancialData(prev => prev ? {...prev, operating_income: Number(e.target.value)} : null)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">당기순이익 (백만원)</label>
-                  <input
-                    type="number"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="당기순이익을 입력하세요"
-                    value={financialData?.net_income || ''}
-                    onChange={(e) => setFinancialData(prev => prev ? {...prev, net_income: Number(e.target.value)} : null)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">회계연도</label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="예: 2024"
-                    value={financialData?.fiscal_year || ''}
-                    onChange={(e) => setFinancialData(prev => prev ? {...prev, fiscal_year: e.target.value} : null)}
-                  />
+                
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-3">재무분석</h3>
+                  <button
+                    onClick={handleFinancialAnalysis}
+                    className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                  >
+                    재무분석 실행
+                  </button>
                 </div>
               </div>
 
-              {/* 재무정보 저장/업데이트 버튼 */}
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
-                    TCFD Service를 통해 Railway DB에 재무정보를 저장하거나 업데이트할 수 있습니다.
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => financialData && saveFinancialData(financialData)}
-                      disabled={!financialData || isLoadingFinancial}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {financialData ? '업데이트' : '저장'}
-                    </button>
-                    <button
-                      onClick={() => setFinancialData(null)}
-                      className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                    >
-                      초기화
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* 재무지표 분석 섹션 */}
-              {financialData && (
-                <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg border border-purple-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-lg font-semibold text-purple-900">재무지표 분석</h4>
-                    <button
-                      onClick={handleFinancialAnalysis}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                    >
-                      {showFinancialAnalysis ? '분석 숨기기' : '재무지표 분석'}
-                    </button>
-                  </div>
-                  
-                  {showFinancialAnalysis && (
-                    <div className="space-y-4">
-                      {/* 기본 재무지표 */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white p-3 rounded-lg border border-purple-200">
-                          <div className="text-xs text-purple-600 font-medium">부채비율</div>
-                          <div className="text-lg font-bold text-purple-900">
-                            {((financialData.total_liabilities / financialData.total_equity) * 100).toFixed(1)}%
-                          </div>
-                        </div>
-                        <div className="bg-white p-3 rounded-lg border border-purple-200">
-                          <div className="text-xs text-purple-600 font-medium">자기자본비율</div>
-                          <div className="text-lg font-bold text-purple-900">
-                            {((financialData.total_equity / financialData.total_assets) * 100).toFixed(1)}%
-                          </div>
-                        </div>
-                        {financialData.operating_income && (
-                          <div className="bg-white p-3 rounded-lg border border-purple-200">
-                            <div className="text-xs text-purple-600 font-medium">영업이익률</div>
-                            <div className="text-lg font-bold text-purple-900">
-                              {((financialData.operating_income / financialData.revenue) * 100).toFixed(1)}%
-                            </div>
-                          </div>
-                        )}
-                        {financialData.net_income && (
-                          <div className="bg-white p-3 rounded-lg border border-purple-200">
-                            <div className="text-xs text-purple-600 font-medium">순이익률</div>
-                            <div className="text-lg font-bold text-purple-900">
-                              {((financialData.net_income / financialData.revenue) * 100).toFixed(1)}%
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* TCFD 관점에서의 재무 위험 */}
-                      <div className="bg-white p-4 rounded-lg border border-purple-200">
-                        <h5 className="font-semibold text-purple-900 mb-3">TCFD 관점에서의 재무 위험</h5>
-                        <div className="space-y-2 text-sm text-gray-700">
-                          <div className="flex items-start space-x-2">
-                            <div className="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></div>
-                            <span>기후 변화로 인한 매출 감소 위험: {financialData.revenue > 100000 ? '높음' : '보통'}</span>
-                          </div>
-                          <div className="flex items-start space-x-2">
-                            <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></div>
-                            <span>자산 가치 하락 위험: {financialData.total_assets > 500000 ? '높음' : '보통'}</span>
-                          </div>
-                          <div className="flex items-start space-x-2">
-                            <div className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
-                            <span>재무 안정성: {financialData.total_equity / financialData.total_assets > 0.5 ? '양호' : '주의 필요'}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+              {financialError && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-red-700">{financialError}</p>
                 </div>
               )}
 
-              <div className="pt-4 flex justify-between">
-                <button 
-                  onClick={() => setActiveTab(1)}
-                  className="bg-gray-500 text-white px-8 py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium"
-                >
-                  ← 이전 단계
-                </button>
-                <button 
-                  onClick={() => setActiveTab(3)}
-                  className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                >
-                  다음 단계 →
-                </button>
-              </div>
+              {showFinancialAnalysis && (
+                <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-md">
+                  <h3 className="text-lg font-semibold text-green-900 mb-2">재무분석 결과</h3>
+                  <p className="text-green-700">
+                    재무분석이 완료되었습니다. 상세 결과는 TCFD 프레임워크 탭에서 확인할 수 있습니다.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
+          {/* 탭 3: TCFD 프레임워크 */}
           {activeTab === 3 && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">TCFD 프레임워크</h3>
-                <p className="text-gray-600 mb-6">
-                  TCFD의 4개 핵심 영역에 대한 정보를 입력하세요.
-                </p>
-              </div>
-              
-              <div className="space-y-6">
-                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                  <h4 className="font-semibold text-blue-900 mb-3 text-lg">거버넌스 (Governance)</h4>
-                  <p className="text-blue-700 mb-4">기후 관련 위험과 기회에 대한 감독 역할과 책임</p>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-blue-800 mb-2">감사위원회 역할</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="감사위원회의 기후 관련 위험 감독 역할을 설명하세요"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-blue-800 mb-2">경영진 책임</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="경영진의 기후 관련 위험 관리 책임을 설명하세요"
-                      />
-                    </div>
-                  </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">📊 TCFD 프레임워크</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-2">거버넌스</h3>
+                  <p className="text-blue-700">기후 관련 위험과 기회에 대한 감독 및 책임</p>
                 </div>
-
-                <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-                  <h4 className="font-semibold text-green-900 mb-3 text-lg">전략 (Strategy)</h4>
-                  <p className="text-green-700 mb-4">기후 관련 위험과 기회가 비즈니스에 미치는 영향</p>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-green-800 mb-2">기후 시나리오 분석</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="기후 시나리오 분석 결과를 설명하세요"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-green-800 mb-2">비즈니스 영향</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="기후 변화가 비즈니스에 미치는 영향을 설명하세요"
-                      />
-                    </div>
-                  </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-2">전략</h3>
+                  <p className="text-green-700">기후 관련 위험과 기회가 비즈니스 모델에 미치는 영향</p>
                 </div>
-
-                <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
-                  <h4 className="font-semibold text-purple-900 mb-3 text-lg">위험 관리 (Risk Management)</h4>
-                  <p className="text-purple-700 mb-4">기후 관련 위험 식별, 평가 및 관리</p>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-purple-800 mb-2">위험 식별</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="식별된 기후 관련 위험을 설명하세요"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-purple-800 mb-2">위험 평가</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="위험 평가 방법과 결과를 설명하세요"
-                      />
-                    </div>
-                  </div>
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-2">위험관리</h3>
+                  <p className="text-yellow-700">기후 관련 위험 식별, 평가 및 관리</p>
                 </div>
-
-                <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
-                  <h4 className="font-semibold text-orange-900 mb-3 text-lg">지표 및 목표 (Metrics & Targets)</h4>
-                  <p className="text-orange-700 mb-4">기후 관련 위험과 기회를 평가하기 위한 지표</p>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-orange-800 mb-2">주요 지표</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="사용하는 주요 기후 관련 지표를 설명하세요"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-orange-800 mb-2">목표 설정</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="설정한 기후 관련 목표를 설명하세요"
-                      />
-                    </div>
-                  </div>
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-2">지표 및 목표</h3>
+                  <p className="text-purple-700">기후 관련 위험과 기회를 평가하고 관리하기 위한 지표 및 목표</p>
                 </div>
-              </div>
-
-              <div className="pt-4 flex justify-between">
-                <button 
-                  onClick={() => setActiveTab(2)}
-                  className="bg-gray-500 text-white px-8 py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium"
-                >
-                  ← 이전 단계
-                </button>
-                <button 
-                  onClick={() => setActiveTab(4)}
-                  className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                >
-                  다음 단계 →
-                </button>
               </div>
             </div>
           )}
 
+          {/* 탭 4: 기후시나리오 */}
           {activeTab === 4 && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">기후시나리오</h3>
-                <p className="text-gray-600 mb-6">
-                  다양한 기후 시나리오에 따른 위험과 기회를 분석하세요.
-                </p>
-              </div>
-              
-              <div className="space-y-6">
-                <div className="bg-red-50 p-6 rounded-lg border border-red-200">
-                  <h4 className="font-semibold text-red-900 mb-3 text-lg">2°C 시나리오</h4>
-                  <p className="text-red-700 mb-4">지구 평균 기온 상승을 2°C 이하로 제한하는 시나리오</p>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-red-800 mb-2">위험 요소</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="2°C 시나리오에서 예상되는 위험 요소를 설명하세요"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-red-800 mb-2">기회 요소</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="2°C 시나리오에서 예상되는 기회 요소를 설명하세요"
-                      />
-                    </div>
-                  </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">🌍 기후시나리오</h2>
+              <div className="space-y-4">
+                <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                  <h3 className="text-lg font-semibold text-red-900 mb-2">RCP 8.5 (고탄소 시나리오)</h3>
+                  <p className="text-red-700">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
                 </div>
-
-                <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
-                  <h4 className="font-semibold text-yellow-900 mb-3 text-lg">4°C 시나리오</h4>
-                  <p className="text-yellow-700 mb-4">현재 정책이 지속될 경우 예상되는 시나리오</p>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-yellow-800 mb-2">위험 요소</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="4°C 시나리오에서 예상되는 위험 요소를 설명하세요"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-yellow-800 mb-2">기회 요소</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="4°C 시나리오에서 예상되는 기회 요소를 설명하세요"
-                      />
-                    </div>
-                  </div>
+                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                  <h3 className="text-lg font-semibold text-orange-900 mb-2">RCP 6.0 (중간 시나리오)</h3>
+                  <p className="text-orange-700">2100년까지 3.0°C 온도 상승, 적극적인 기후 정책</p>
                 </div>
-
-                <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
-                  <h4 className="font-semibold text-indigo-900 mb-3 text-lg">물리적 위험</h4>
-                  <p className="text-indigo-700 mb-4">기후 변화로 인한 직접적인 물리적 위험</p>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-indigo-800 mb-2">급격한 기후 변화</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="급격한 기후 변화로 인한 위험을 설명하세요"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-indigo-800 mb-2">점진적 기후 변화</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="점진적 기후 변화로 인한 위험을 설명하세요"
-                      />
-                    </div>
-                  </div>
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <h3 className="text-lg font-semibold text-green-900 mb-2">RCP 4.5 (저탄소 시나리오)</h3>
+                  <p className="text-green-700">2100년까지 2.4°C 온도 상승, 강력한 기후 정책</p>
                 </div>
-
-                <div className="bg-teal-50 p-6 rounded-lg border border-teal-200">
-                  <h4 className="font-semibold text-teal-900 mb-3 text-lg">전환 위험</h4>
-                  <p className="text-teal-700 mb-4">저탄소 경제로의 전환 과정에서 발생하는 위험</p>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-teal-800 mb-2">정책 위험</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-teal-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="정책 변화로 인한 위험을 설명하세요"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-teal-800 mb-2">기술 위험</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-teal-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="기술 변화로 인한 위험을 설명하세요"
-                      />
-                    </div>
-                  </div>
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-2">RCP 2.6 (극저탄소 시나리오)</h3>
+                  <p className="text-blue-700">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
                 </div>
-              </div>
-
-              <div className="pt-4 flex justify-between">
-                <button 
-                  onClick={() => setActiveTab(3)}
-                  className="bg-gray-500 text-white px-8 py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium"
-                >
-                  ← 이전 단계
-                </button>
-                <button 
-                  onClick={() => setActiveTab(5)}
-                  className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                >
-                  다음 단계 →
-                </button>
               </div>
             </div>
           )}
 
+          {/* 탭 5: AI보고서 초안 */}
           {activeTab === 5 && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">AI보고서 초안</h3>
-                <p className="text-gray-600 mb-6">
-                  AI가 입력된 정보를 바탕으로 TCFD 기준 SR 초안을 생성합니다.
-                </p>
-              </div>
-              
-              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-gray-600">AI 분석 준비 완료</span>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">🤖 AI보고서 초안</h2>
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg border border-purple-200">
+                <h3 className="text-lg font-semibold text-purple-900 mb-4">AI 기반 TCFD 보고서 생성</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center">
+                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
+                    <span className="text-purple-700">회사 정보 및 재무 데이터 분석</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    <span className="text-blue-700">기후 위험 평가 및 시나리오 분석</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                    <span className="text-green-700">TCFD 프레임워크 기반 보고서 생성</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></span>
+                    <span className="text-yellow-700">지속가능성 지표 및 권장사항 제시</span>
+                  </div>
                 </div>
-                <textarea
-                  className="w-full h-64 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="AI가 생성한 TCFD 기준 SR 초안이 여기에 표시됩니다..."
-                  readOnly
-                />
-              </div>
-
-              <div className="flex space-x-4 pt-4">
-                <button className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                  AI 분석 시작
-                </button>
-                <button className="bg-gray-500 text-white px-8 py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium">
-                  초기화
-                </button>
-                <button className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium">
-                  SR 다운로드
-                </button>
-                <button className="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium">
-                  PDF 변환
-                </button>
-              </div>
-
-              <div className="pt-4">
-                <button 
-                  onClick={() => setActiveTab(4)}
-                  className="bg-gray-500 text-white px-8 py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium"
-                >
-                  ← 이전 단계
+                <button className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                  AI 보고서 생성 시작
                 </button>
               </div>
             </div>
