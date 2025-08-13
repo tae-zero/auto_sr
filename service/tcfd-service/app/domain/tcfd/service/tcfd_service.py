@@ -29,6 +29,51 @@ class TCFDService:
         self.report_service = TCFDReportService()
         self.risk_assessment_service = RiskAssessmentService()
     
+    async def get_company_financial_data(self, company_name: str) -> Dict[str, Any]:
+        """특정 회사의 재무정보 조회"""
+        try:
+            result = await self.repository.get_company_financial_data(company_name)
+            return {
+                "success": True,
+                "company_name": company_name,
+                "data": result,
+                "message": f"{company_name}의 재무정보 조회 완료"
+            }
+            
+        except Exception as e:
+            logger.error(f"회사별 재무정보 조회 실패: {str(e)}")
+            raise Exception(f"재무정보 조회 실패: {str(e)}")
+    
+    async def get_company_financial_summary(self, company_name: str) -> Dict[str, Any]:
+        """특정 회사의 재무요약 정보 조회"""
+        try:
+            result = await self.repository.get_company_financial_summary(company_name)
+            return {
+                "success": True,
+                "company_name": company_name,
+                "summary": result,
+                "message": f"{company_name}의 재무요약 조회 완료"
+            }
+            
+        except Exception as e:
+            logger.error(f"회사별 재무요약 조회 실패: {str(e)}")
+            raise Exception(f"재무요약 조회 실패: {str(e)}")
+    
+    async def get_all_companies(self) -> Dict[str, Any]:
+        """등록된 모든 회사 목록 조회"""
+        try:
+            result = await self.repository.get_all_companies()
+            return {
+                "success": True,
+                "companies": result,
+                "total_count": len(result),
+                "message": "회사 목록 조회 완료"
+            }
+            
+        except Exception as e:
+            logger.error(f"회사 목록 조회 실패: {str(e)}")
+            raise Exception(f"회사 목록 조회 실패: {str(e)}")
+    
     async def analyze_report(self, file: UploadFile, company_info: Dict[str, Any]) -> Dict[str, Any]:
         """TCFD 보고서 AI 분석"""
         try:

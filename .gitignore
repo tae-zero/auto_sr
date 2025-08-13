@@ -42,3 +42,6 @@ next-env.d.ts
 
 __pycache__/
 *.pyc
+
+# TCFD Report Service (GitHub에 올리지 않음)
+/service/tcfdreport-service/

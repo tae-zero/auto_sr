@@ -4,7 +4,7 @@ TCFD Service TCFD 컨트롤러
 - 요청/응답 처리 및 검증
 - AI 분석, 위험 평가, 보고서 생성
 """
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Query
 from typing import Dict, Any, Optional
 import logging
 import json
@@ -35,6 +35,42 @@ async def health_check():
             "Schema Layer - TCFD 스키마"
         ]
     }
+
+@router.get("/financial-data/company/{company_name}")
+async def get_company_financial_data(company_name: str):
+    """특정 회사의 재무정보 조회"""
+    try:
+        tcfd_service = TCFDService()
+        result = await tcfd_service.get_company_financial_data(company_name)
+        return result
+        
+    except Exception as e:
+        logger.error(f"회사별 재무정보 조회 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/financial-data/company/{company_name}/summary")
+async def get_company_financial_summary(company_name: str):
+    """특정 회사의 재무요약 정보 조회"""
+    try:
+        tcfd_service = TCFDService()
+        result = await tcfd_service.get_company_financial_summary(company_name)
+        return result
+        
+    except Exception as e:
+        logger.error(f"회사별 재무요약 조회 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/companies")
+async def get_all_companies():
+    """등록된 모든 회사 목록 조회"""
+    try:
+        tcfd_service = TCFDService()
+        result = await tcfd_service.get_all_companies()
+        return result
+        
+    except Exception as e:
+        logger.error(f"회사 목록 조회 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/analyze-report", response_model=TCFDAnalysisResponse)
 async def analyze_tcfd_report(

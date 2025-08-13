@@ -140,7 +140,7 @@ services:
       retries: 3
       start_period: 40s
 
-  # TCFD Service (FastAPI + LangChain)
+  # TCFD Service (FastAPI + 재무정보 처리)
   tcfd-service:
     build:
       context: ./service/tcfd-service
@@ -150,10 +150,39 @@ services:
       - "8005:8005"
     volumes:
       - ./service/tcfd-service:/app
-      - tcfd_chroma_data:/app/chroma_db
     environment:
       - SERVICE_HOST=0.0.0.0
       - SERVICE_PORT=8005
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      # Railway PostgreSQL 연결 (Public Network URL)
+      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
+    restart: always
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # TCFD Report Service (FastAPI + LangChain + AI 보고서 생성)
+  tcfd-report-service:
+    build:
+      context: ./service/tcfdreport-service
+      dockerfile: Dockerfile
+    container_name: tcfd-report-service
+    ports:
+      - "8007:8007"
+    volumes:
+      - ./service/tcfdreport-service:/app
+      - tcfd_chroma_data:/app/chroma_db
+    environment:
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=8007
       - LOG_LEVEL=INFO
       - PYTHONUNBUFFERED=1
       # AI 및 LangChain 설정
@@ -171,7 +200,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
       interval: 30s
       timeout: 10s
       retries: 3

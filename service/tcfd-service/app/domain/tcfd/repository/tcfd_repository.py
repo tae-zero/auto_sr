@@ -31,6 +31,232 @@ class TCFDRepository:
             self.pool = await asyncpg.create_pool(**self.db_config)
         return await self.pool.acquire()
     
+    async def get_company_financial_data(self, company_name: str) -> Dict[str, Any]:
+        """특정 회사의 재무정보 조회 (6개 테이블 통합)"""
+        try:
+            conn = await self.get_connection()
+            
+            # 1단계: companyname으로 회사 ID 찾기 (어느 테이블에서든)
+            company_id = None
+            
+            # 각 테이블에서 companyname으로 검색하여 id 찾기
+            tables_to_search = ['employee', 'profit_loss', 'executive', 'financial_status', 'corp', 'all_corp']
+            
+            for table in tables_to_search:
+                try:
+                    # companyname 컬럼이 있는지 확인하고 검색
+                    check_query = f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table}' AND column_name = 'companyname'"
+                    has_companyname = await conn.fetch(check_query)
+                    
+                    if has_companyname:
+                        search_query = f"SELECT id, companyname FROM {table} WHERE companyname ILIKE $1 LIMIT 1"
+                        result = await conn.fetch(search_query, f"%{company_name}%")
+                        
+                        if result:
+                            company_id = result[0]['id']
+                            found_table = table
+                            break
+                except Exception as e:
+                    logger.warning(f"테이블 {table}에서 companyname 검색 실패: {str(e)}")
+                    continue
+            
+            if not company_id:
+                await self.pool.release(conn)
+                return {
+                    "company_name": company_name,
+                    "message": "해당 회사를 찾을 수 없습니다",
+                    "data": {}
+                }
+            
+            # 2단계: 찾은 company_id로 6개 테이블에서 모든 데이터 조회
+            data = {}
+            
+            # 각 테이블에서 company_id와 일치하는 데이터 조회
+            for table in tables_to_search:
+                try:
+                    # company_id 컬럼이 있는지 확인
+                    check_query = f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table}' AND column_name = 'company_id'"
+                    has_company_id = await conn.fetch(check_query)
+                    
+                    if has_company_id:
+                        # company_id 컬럼이 있는 경우
+                        query = f"SELECT * FROM {table} WHERE company_id = $1"
+                        table_data = await conn.fetch(query, company_id)
+                    else:
+                        # company_id 컬럼이 없는 경우 (id 컬럼을 직접 사용)
+                        query = f"SELECT * FROM {table} WHERE id = $1"
+                        table_data = await conn.fetch(query, company_id)
+                    
+                    data[table] = [dict(row) for row in table_data]
+                    
+                except Exception as e:
+                    logger.warning(f"테이블 {table} 데이터 조회 실패: {str(e)}")
+                    data[table] = []
+            
+            await self.pool.release(conn)
+            
+            return {
+                "company_name": company_name,
+                "company_id": company_id,
+                "found_in_table": found_table,
+                "total_records": sum(len(v) for v in data.values()),
+                "tables": list(data.keys()),
+                "data": data
+            }
+            
+        except Exception as e:
+            logger.error(f"회사별 재무정보 조회 실패: {str(e)}")
+            raise Exception(f"회사별 재무정보 조회 실패: {str(e)}")
+    
+    async def get_company_financial_summary(self, company_name: str) -> Dict[str, Any]:
+        """특정 회사의 재무요약 정보 조회"""
+        try:
+            conn = await self.get_connection()
+            
+            # 1단계: companyname으로 회사 ID 찾기
+            company_id = None
+            found_table = None
+            
+            tables_to_search = ['employee', 'profit_loss', 'executive', 'financial_status', 'corp', 'all_corp']
+            
+            for table in tables_to_search:
+                try:
+                    check_query = f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table}' AND column_name = 'companyname'"
+                    has_companyname = await conn.fetch(check_query)
+                    
+                    if has_companyname:
+                        search_query = f"SELECT id, companyname FROM {table} WHERE companyname ILIKE $1 LIMIT 1"
+                        result = await conn.fetch(search_query, f"%{company_name}%")
+                        
+                        if result:
+                            company_id = result[0]['id']
+                            found_table = table
+                            break
+                except Exception as e:
+                    continue
+            
+            if not company_id:
+                await self.pool.release(conn)
+                return {
+                    "company_name": company_name,
+                    "message": "해당 회사를 찾을 수 없습니다",
+                    "summary": {}
+                }
+            
+            # 2단계: 요약 정보 생성
+            summary = {
+                "company_info": {
+                    "id": company_id,
+                    "name": company_name,
+                    "found_in_table": found_table
+                },
+                "financial_metrics": {},
+                "employee_count": 0,
+                "executive_count": 0
+            }
+            
+            # 각 테이블에서 company_id로 데이터 개수 및 요약 조회
+            for table in tables_to_search:
+                try:
+                    check_query = f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table}' AND column_name = 'company_id'"
+                    has_company_id = await conn.fetch(check_query)
+                    
+                    if has_company_id:
+                        # company_id 컬럼이 있는 경우
+                        count_query = f"SELECT COUNT(*) as count FROM {table} WHERE company_id = $1"
+                        count = await conn.fetchval(count_query, company_id)
+                        
+                        # 최신 데이터 조회 (date 컬럼이 있는 경우)
+                        try:
+                            latest_query = f"SELECT * FROM {table} WHERE company_id = $1 ORDER BY date DESC LIMIT 1"
+                            latest_data = await conn.fetch(latest_query, company_id)
+                            if latest_data:
+                                summary["financial_metrics"][f"latest_{table}"] = dict(latest_data[0])
+                        except:
+                            # date 컬럼이 없는 경우 첫 번째 데이터
+                            first_query = f"SELECT * FROM {table} WHERE company_id = $1 LIMIT 1"
+                            first_data = await conn.fetch(first_query, company_id)
+                            if first_data:
+                                summary["financial_metrics"][f"sample_{table}"] = dict(first_data[0])
+                        
+                        # 특별한 테이블 처리
+                        if table == 'employee':
+                            summary["employee_count"] = count
+                        elif table == 'executive':
+                            summary["executive_count"] = count
+                            
+                    else:
+                        # company_id 컬럼이 없는 경우 (id 컬럼을 직접 사용)
+                        count_query = f"SELECT COUNT(*) as count FROM {table} WHERE id = $1"
+                        count = await conn.fetchval(count_query, company_id)
+                        
+                        if table == 'employee':
+                            summary["employee_count"] = count
+                        elif table == 'executive':
+                            summary["executive_count"] = count
+                            
+                except Exception as e:
+                    logger.warning(f"테이블 {table} 요약 조회 실패: {str(e)}")
+            
+            await self.pool.release(conn)
+            
+            return {
+                "company_name": company_name,
+                "company_id": company_id,
+                "found_in_table": found_table,
+                "summary": summary
+            }
+            
+        except Exception as e:
+            logger.error(f"회사별 재무요약 조회 실패: {str(e)}")
+            raise Exception(f"회사별 재무요약 조회 실패: {str(e)}")
+    
+    async def get_all_companies(self) -> List[Dict[str, Any]]:
+        """등록된 모든 회사 목록 조회 (companyname 기준)"""
+        try:
+            conn = await self.get_connection()
+            
+            # 모든 테이블에서 companyname이 있는 테이블 찾기
+            companies = []
+            tables_to_search = ['employee', 'profit_loss', 'executive', 'financial_status', 'corp', 'all_corp']
+            
+            for table in tables_to_search:
+                try:
+                    # companyname 컬럼이 있는지 확인
+                    check_query = f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table}' AND column_name = 'companyname'"
+                    has_companyname = await conn.fetch(check_query)
+                    
+                    if has_companyname:
+                        # companyname 컬럼이 있는 테이블에서 회사 목록 조회
+                        query = f"SELECT DISTINCT id, companyname FROM {table} WHERE companyname IS NOT NULL AND companyname != '' ORDER BY companyname"
+                        table_companies = await conn.fetch(query)
+                        
+                        for row in table_companies:
+                            company_info = {
+                                'id': row['id'],
+                                'name': row['companyname'],
+                                'source_table': table
+                            }
+                            
+                            # 중복 제거 (같은 회사명이 여러 테이블에 있을 수 있음)
+                            if not any(c['name'] == company_info['name'] for c in companies):
+                                companies.append(company_info)
+                                
+                except Exception as e:
+                    logger.warning(f"테이블 {table}에서 회사 목록 조회 실패: {str(e)}")
+                    continue
+            
+            await self.pool.release(conn)
+            
+            # 회사명으로 정렬
+            companies.sort(key=lambda x: x['name'])
+            
+            return companies
+            
+        except Exception as e:
+            logger.error(f"회사 목록 조회 실패: {str(e)}")
+            raise Exception(f"회사 목록 조회 실패: {str(e)}")
+    
     async def get_all_financial_data(self) -> Dict[str, Any]:
         """6개 테이블의 모든 재무 데이터 조회"""
         try:
@@ -180,7 +406,6 @@ class TCFDRepository:
             await conn.execute(
                 query,
                 str(entity.company_info),
-                str(entity.financial_data),
                 str(entity.risk_assessment),
                 str(entity.report_result),
                 entity.status,
