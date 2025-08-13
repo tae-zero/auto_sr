@@ -18,12 +18,21 @@ interface LoginData {
 
 interface ChatMessage {
   message: string;
-  chat_history?: any[];
+  chat_history?: ChatMessage[];
 }
 
 interface DocumentUpload {
   file: File;
   description: string;
+}
+
+interface AuthResponse {
+  success: boolean;
+  message: string;
+  email?: string;
+  user_id?: string;
+  name?: string;
+  company_id?: string;
 }
 
 // API 기본 설정
@@ -43,12 +52,12 @@ export const apiClient = axios.create({
 // Auth Service API
 export const authAPI = {
   // Gateway를 통한 인증
-  signup: (data: SignupData) => apiClient.post('/auth/signup', data),
-  login: (data: LoginData) => apiClient.post('/auth/login', data),
+  signup: (data: SignupData): Promise<{ data: AuthResponse }> => apiClient.post('/auth/signup', data),
+  login: (data: LoginData): Promise<{ data: AuthResponse }> => apiClient.post('/auth/login', data),
   
   // 직접 auth-service 연결 (백업용)
-  signupDirect: (data: SignupData) => axios.post(`${AUTH_URL}/signup`, data),
-  loginDirect: (data: LoginData) => axios.post(`${AUTH_URL}/login`, data),
+  signupDirect: (data: SignupData): Promise<{ data: AuthResponse }> => axios.post(`${AUTH_URL}/signup`, data),
+  loginDirect: (data: LoginData): Promise<{ data: AuthResponse }> => axios.post(`${AUTH_URL}/login`, data),
 };
 
 // Chatbot Service API
@@ -57,7 +66,7 @@ export const chatbotAPI = {
   healthCheck: () => axios.get(`${CHATBOT_URL}/health`),
   
   // 챗봇 대화
-  chat: (message: string, chatHistory: any[] = []) => {
+  chat: (message: string, chatHistory: ChatMessage[] = []) => {
     const formData = new FormData();
     formData.append('message', message);
     formData.append('chat_history', JSON.stringify(chatHistory));
@@ -76,7 +85,7 @@ export const aiApi = {
   healthCheck: () => apiClient.get('/api/v1/ai/health'),
   
   // AI 챗봇 대화
-  chat: (message: string, chatHistory: any[] = []) => {
+  chat: (message: string, chatHistory: ChatMessage[] = []) => {
     const formData = new FormData();
     formData.append('message', message);
     formData.append('chat_history', JSON.stringify(chatHistory));

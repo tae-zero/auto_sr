@@ -43,15 +43,16 @@ export default function LoginPage() {
     // Gateway를 통해 auth-service로 요청 (환경변수 사용)
     const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
     axios.post(`${gatewayUrl}/auth/login`, formData)
-      .then(response => {
+      .then((response: { data: { success: boolean; message: string; name?: string; email?: string; company_id?: string } }) => {
         console.log('Login response:', response.data);
         
-                 // 성공 메시지 표시
-         if (response.data.success) {
-           alert(`✅ ${response.data.message}\n\n이름: ${response.data.name}\n이메일: ${response.data.email}\n회사 ID: ${response.data.company_id}`);
-           // 로그인 성공 후 메인페이지로 이동
-           router.push('/');
-         } else {
+        // 성공 메시지 표시
+        if (response.data.success) {
+          const { name = 'N/A', email = 'N/A', company_id = 'N/A' } = response.data;
+          alert(`✅ ${response.data.message}\n\n이름: ${name}\n이메일: ${email}\n회사 ID: ${company_id}`);
+          // 로그인 성공 후 메인페이지로 이동
+          router.push('/');
+        } else {
           alert(`❌ ${response.data.message}`);
         }
       })

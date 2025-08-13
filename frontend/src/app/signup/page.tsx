@@ -50,12 +50,13 @@ export default function SignupPage() {
     // Gateway를 통해 auth-service로 요청 (환경변수 사용)
     const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
     axios.post(`${gatewayUrl}/auth/signup`, formData)
-      .then(response => {
+      .then((response: { data: { success: boolean; message: string; email?: string; user_id?: string } }) => {
         console.log('Signup successful:', response.data);
         
         // 성공 메시지 표시
         if (response.data.success) {
-          alert(`✅ ${response.data.message}\n\n이메일: ${response.data.email}\n사용자 ID: ${response.data.user_id}`);
+          const { email = 'N/A', user_id = 'N/A' } = response.data;
+          alert(`✅ ${response.data.message}\n\n이메일: ${email}\n사용자 ID: ${user_id}`);
           // 로그인 페이지로 자동 이동
           router.push('/login');
         } else {
