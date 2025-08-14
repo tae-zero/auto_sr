@@ -34,7 +34,7 @@ class FinancialDataRequest(BaseModel):
     
     @validator('table_name')
     def validate_table_name(cls, v):
-        valid_tables = ['employee', 'profit_loss', 'executives', 'financial_status', 'all_corporations']
+        valid_tables = ['employee', 'profit', 'executive', 'financial', 'corporation']
         if v not in valid_tables:
             raise ValueError(f'지원하지 않는 테이블입니다. 지원 테이블: {", ".join(valid_tables)}')
         return v

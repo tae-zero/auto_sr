@@ -66,7 +66,7 @@ class TCFDRepository:
             conn = await self.get_connection()
             
             # 각 테이블에서 companyname으로 직접 데이터 조회
-            tables_to_search = ['employee', 'profit_loss', 'executives', 'financial_status', 'all_corporations']
+            tables_to_search = ['employee', 'profit', 'executive', 'financial', 'corporation']
             data = {}
             total_records = 0
             found_tables = []
@@ -91,9 +91,38 @@ class TCFDRepository:
                             data[table] = []
                             logger.info(f"❌ 테이블 {table}: 데이터 없음")
                     else:
-                        # companyname 컬럼이 없는 경우: 빈 배열
-                        data[table] = []
-                        logger.warning(f"⚠️ 테이블 {table}: companyname 컬럼 없음")
+                        # companyname 컬럼이 없는 경우: 다른 방법으로 검색 시도
+                        if table == 'financial':
+                            # financial_status 테이블: company_id 컬럼으로 검색
+                            try:
+                                # 먼저 다른 테이블에서 companyname으로 id 찾기
+                                id_query = "SELECT id FROM employee WHERE companyname ILIKE $1 LIMIT 1"
+                                company_id_result = await conn.fetch(id_query, f"%{company_name}%")
+                                
+                                if company_id_result:
+                                    company_id = company_id_result[0]['id']
+                                    # company_id로 financial_status 검색
+                                    query = f"SELECT * FROM {table} WHERE company_id = $1"
+                                    table_data = await conn.fetch(query, company_id)
+                                    
+                                    if table_data:
+                                        data[table] = [dict(row) for row in table_data]
+                                        total_records += len(table_data)
+                                        found_tables.append(table)
+                                        logger.info(f"✅ 테이블 {table}: company_id {company_id}로 {len(table_data)}개 레코드 발견")
+                                    else:
+                                        data[table] = []
+                                        logger.info(f"❌ 테이블 {table}: company_id {company_id}로 데이터 없음")
+                                else:
+                                    data[table] = []
+                                    logger.info(f"❌ 테이블 {table}: companyname으로 id를 찾을 수 없음")
+                            except Exception as e:
+                                logger.warning(f"테이블 {table} company_id 검색 실패: {str(e)}")
+                                data[table] = []
+                        else:
+                            # 다른 테이블: 빈 배열
+                            data[table] = []
+                            logger.warning(f"⚠️ 테이블 {table}: companyname 컬럼 없음")
                     
                 except Exception as e:
                     logger.warning(f"테이블 {table} 데이터 조회 실패: {str(e)}")
@@ -132,7 +161,7 @@ class TCFDRepository:
             company_id = None
             found_table = None
             
-            tables_to_search = ['employee', 'profit_loss', 'executives', 'financial_status', 'all_corporations']
+            tables_to_search = ['employee', 'profit', 'executive', 'financial', 'corporation']
             
             for table in tables_to_search:
                 try:
@@ -197,7 +226,7 @@ class TCFDRepository:
                         # 특별한 테이블 처리
                         if table == 'employee':
                             summary["employee_count"] = count
-                        elif table == 'executives':
+                        elif table == 'executive':
                             summary["executive_count"] = count
                             
                     else:
@@ -207,7 +236,7 @@ class TCFDRepository:
                         
                         if table == 'employee':
                             summary["employee_count"] = count
-                        elif table == 'executives':
+                        elif table == 'executive':
                             summary["executive_count"] = count
                             
                 except Exception as e:
@@ -233,7 +262,7 @@ class TCFDRepository:
             
             # 모든 테이블에서 companyname이 있는 테이블 찾기
             companies = []
-            tables_to_search = ['employee', 'profit_loss', 'executives', 'financial_status', 'all_corporations']
+            tables_to_search = ['employee', 'profit', 'executive', 'financial', 'corporation']
             
             for table in tables_to_search:
                 try:
@@ -286,24 +315,24 @@ class TCFDRepository:
             data['employee'] = [dict(row) for row in employee_data]
             
             # 2. 손익계산 테이블
-            profit_loss_query = "SELECT * FROM profit_loss LIMIT 100"
-            profit_loss_data = await conn.fetch(profit_loss_query)
-            data['profit_loss'] = [dict(row) for row in profit_loss_data]
+            profit_query = "SELECT * FROM profit LIMIT 100"
+            profit_data = await conn.fetch(profit_query)
+            data['profit'] = [dict(row) for row in profit_data]
             
             # 3. 임원 테이블
-            executives_query = "SELECT * FROM executives LIMIT 100"
-            executives_data = await conn.fetch(executives_query)
-            data['executives'] = [dict(row) for row in executives_data]
+            executive_query = "SELECT * FROM executive LIMIT 100"
+            executive_data = await conn.fetch(executive_query)
+            data['executive'] = [dict(row) for row in executive_data]
             
             # 4. 재무상태 테이블
-            financial_status_query = "SELECT * FROM financial_status LIMIT 100"
-            financial_status_data = await conn.fetch(financial_status_query)
-            data['financial_status'] = [dict(row) for row in financial_status_data]
+            financial_query = "SELECT * FROM financial LIMIT 100"
+            financial_data = await conn.fetch(financial_query)
+            data['financial'] = [dict(row) for row in financial_data]
             
             # 5. 전체기업 테이블
-            all_corporations_query = "SELECT * FROM all_corporations LIMIT 100"
-            all_corporations_data = await conn.fetch(all_corporations_query)
-            data['all_corporations'] = [dict(row) for row in all_corporations_data]
+            corporation_query = "SELECT * FROM corporation LIMIT 100"
+            corporation_data = await conn.fetch(corporation_query)
+            data['corporation'] = [dict(row) for row in corporation_data]
             
             await self.pool.release(conn)
             

@@ -39,10 +39,10 @@ interface CompanyFinancialData {
   tables?: string[];
   data: {
     employee: TableRecord[];
-    profit_loss: TableRecord[];
-    executives: TableRecord[];
-    financial_status: TableRecord[];
-    all_corporations: TableRecord[];
+    profit: TableRecord[];
+    executive: TableRecord[];
+    financial: TableRecord[];
+    corporation: TableRecord[];
   };
   message: string;
 }
@@ -99,10 +99,10 @@ export default function TcfdSrPage() {
        console.log('  - tables:', data.tables);
        console.log('  - data keys:', Object.keys(data.data || {}));
        console.log('  - employee data length:', data.data?.employee?.length);
-       console.log('  - profit_loss data length:', data.data?.profit_loss?.length);
-       console.log('  - executives data length:', data.data?.executives?.length);
-       console.log('  - financial_status data length:', data.data?.financial_status?.length);
-       console.log('  - all_corporations data length:', data.data?.all_corporations?.length);
+       console.log('  - profit data length:', data.data?.profit?.length);
+       console.log('  - executive data length:', data.data?.executive?.length);
+       console.log('  - financial data length:', data.data?.financial?.length);
+       console.log('  - corporation data length:', data.data?.corporation?.length);
        
        // 재무정보 로드 완료 시 자동으로 재무정보 탭으로 이동
        setActiveTab(2);
@@ -274,10 +274,10 @@ export default function TcfdSrPage() {
 
                   {/* 5개 테이블 데이터 표시 */}
                   {renderFinancialTable(companyFinancialData.data?.employee, '직원 정보')}
-                  {renderFinancialTable(companyFinancialData.data?.profit_loss, '손익계산')}
-                  {renderFinancialTable(companyFinancialData.data?.executives, '임원 정보')}
-                  {renderFinancialTable(companyFinancialData.data?.financial_status, '재무상태')}
-                  {renderFinancialTable(companyFinancialData.data?.all_corporations, '전체기업 정보')}
+                  {renderFinancialTable(companyFinancialData.data?.profit, '손익계산')}
+                  {renderFinancialTable(companyFinancialData.data?.executive, '임원 정보')}
+                  {renderFinancialTable(companyFinancialData.data?.financial, '재무상태')}
+                  {renderFinancialTable(companyFinancialData.data?.corporation, '전체기업 정보')}
                 </div>
               )}
 
@@ -331,10 +331,10 @@ export default function TcfdSrPage() {
 
                   {/* 5개 테이블 데이터 표시 */}
                   {renderFinancialTable(companyFinancialData.data?.employee, '직원 정보')}
-                  {renderFinancialTable(companyFinancialData.data?.profit_loss, '손익계산')}
-                  {renderFinancialTable(companyFinancialData.data?.executives, '임원 정보')}
-                  {renderFinancialTable(companyFinancialData.data?.financial_status, '재무상태')}
-                  {renderFinancialTable(companyFinancialData.data?.all_corporations, '전체기업 정보')}
+                  {renderFinancialTable(companyFinancialData.data?.profit, '손익계산')}
+                  {renderFinancialTable(companyFinancialData.data?.executive, '임원 정보')}
+                  {renderFinancialTable(companyFinancialData.data?.financial, '재무상태')}
+                  {renderFinancialTable(companyFinancialData.data?.corporation, '전체기업 정보')}
                 </div>
               )}
             </div>
