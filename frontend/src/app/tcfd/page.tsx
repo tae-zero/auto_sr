@@ -2,26 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-// 재무정보 타입 정의 (Frontend용)
-interface FinancialData {
-  revenue: number;
-  total_assets: number;
-  total_liabilities: number;
-  total_equity: number;
-  operating_income?: number;
-  net_income?: number;
-  fiscal_year: string;
-  company_id: string;
-}
 
-// 회사 정보 타입
-interface CompanyInfo {
-  id: string;
-  name: string;
-  industry: string;
-  size: string;
-  location: string;
-}
 
 // 테이블 데이터 타입 정의
 interface TableRecord {
@@ -55,6 +36,9 @@ export default function TcfdSrPage() {
   const [companyFinancialData, setCompanyFinancialData] = useState<CompanyFinancialData | null>(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(false);
   const [companyError, setCompanyError] = useState<string | null>(null);
+  
+  // 더보기 상태 관리
+  const [showAllStates, setShowAllStates] = useState<{ [key: string]: boolean }>({});
 
   // 회사 목록 로드 (사용하지 않음)
   const loadCompanies = async () => {
@@ -147,7 +131,7 @@ export default function TcfdSrPage() {
 
     // 재무상태, 전체기업 정보, 직원정보, 임원정보는 세로형태로 표시
     if (title === '재무상태' || title === '전체기업 정보' || title === '직원 정보' || title === '임원 정보') {
-      const [showAll, setShowAll] = useState(false);
+      const showAll = showAllStates[title] || false;
       const displayData = showAll ? data : data.slice(0, 6);
       const hasMore = data.length > 6;
 
@@ -197,7 +181,7 @@ export default function TcfdSrPage() {
           {hasMore && (
             <div className="mt-4 text-center">
               <button
-                onClick={() => setShowAll(!showAll)}
+                onClick={() => setShowAllStates(prev => ({ ...prev, [title]: !showAll }))}
                 className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
               >
                 {showAll ? '접기' : `더보기 (${data.length - 6}개 더)`}

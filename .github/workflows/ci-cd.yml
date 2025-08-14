@@ -47,8 +47,17 @@ jobs:
       working-directory: ./frontend
       run: pnpm run build
       
+    - name: Check Vercel Secrets
+      id: check-secrets
+      run: |
+        if [ -n "${{ secrets.VERCEL_TOKEN }}" ] && [ -n "${{ secrets.VERCEL_ORG_ID }}" ] && [ -n "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
+          echo "secrets_available=true" >> $GITHUB_OUTPUT
+        else
+          echo "secrets_available=false" >> $GITHUB_OUTPUT
+        fi
+      
     - name: Deploy to Vercel
-      if: github.ref == 'refs/heads/main' && secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != ''
+      if: github.ref == 'refs/heads/main' && steps.check-secrets.outputs.secrets_available == 'true'
       uses: amondnet/vercel-action@v25
       with:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -59,7 +68,7 @@ jobs:
       continue-on-error: true
       
     - name: Vercel Deployment Info
-      if: github.ref == 'refs/heads/main' && (secrets.VERCEL_TOKEN == '' || secrets.VERCEL_ORG_ID == '' || secrets.VERCEL_PROJECT_ID == '')
+      if: github.ref == 'refs/heads/main' && steps.check-secrets.outputs.secrets_available == 'false'
       run: |
         echo "🚀 Vercel 배포 정보:"
         echo "Vercel 시크릿이 설정되지 않아 배포를 건너뜁니다."
