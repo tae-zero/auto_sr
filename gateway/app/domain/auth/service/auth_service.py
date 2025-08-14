@@ -19,10 +19,12 @@ logger = logging.getLogger(__name__)
 class AuthService:
     def __init__(self):
         self.repository = AuthRepository()
-        # 환경변수에서 Auth Service URL 가져오기
-        self.auth_service_url = os.getenv("AUTH_SERVICE_URL")
+        # 환경변수에서 Auth Service URL 가져오기 (Railway 키도 확인)
+        self.auth_service_url = os.getenv("AUTH_SERVICE_URL") or os.getenv("RAILWAY_AUTH_SERVICE_URL")
         if not self.auth_service_url:
-            logger.warning("AUTH_SERVICE_URL이 설정되지 않음 - ServiceDiscovery 사용")
+            logger.warning("AUTH_SERVICE_URL 또는 RAILWAY_AUTH_SERVICE_URL이 설정되지 않음 - ServiceDiscovery 사용")
+        else:
+            logger.info(f"✅ Auth Service URL 설정됨: {self.auth_service_url}")
         self.http_client = httpx.AsyncClient(timeout=30.0)
     
     async def process_signup(self, request: AuthRequest) -> Dict[str, Any]:
