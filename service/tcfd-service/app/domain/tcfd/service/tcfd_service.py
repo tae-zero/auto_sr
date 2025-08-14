@@ -29,12 +29,8 @@ class TCFDService:
         """특정 회사의 재무정보 조회"""
         try:
             result = await self.repository.get_company_financial_data(company_name)
-            return {
-                "success": True,
-                "company_name": company_name,
-                "data": result,
-                "message": f"{company_name}의 재무정보 조회 완료"
-            }
+            # Repository에서 이미 success 필드를 포함하여 반환하므로 그대로 전달
+            return result
             
         except Exception as e:
             logger.error(f"회사별 재무정보 조회 실패: {str(e)}")
