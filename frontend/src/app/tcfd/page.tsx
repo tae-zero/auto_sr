@@ -147,30 +147,63 @@ export default function TcfdSrPage() {
 
     // 재무상태, 전체기업 정보, 직원정보, 임원정보는 세로형태로 표시
     if (title === '재무상태' || title === '전체기업 정보' || title === '직원 정보' || title === '임원 정보') {
+      const [showAll, setShowAll] = useState(false);
+      const displayData = showAll ? data : data.slice(0, 6);
+      const hasMore = data.length > 6;
+
       return (
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3 text-blue-600">{title}</h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {data.map((row, index) => (
-              <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-3 text-sm">레코드 {index + 1}</h4>
-                <div className="space-y-2">
-                  {columns.map((column) => (
-                    <div key={column} className="flex justify-between">
-                      <span className="text-xs font-medium text-gray-600 capitalize">
-                        {column.replace(/_/g, ' ')}:
-                      </span>
-                      <span className="text-sm text-gray-900 text-right break-words max-w-[200px]">
-                        {typeof row[column] === 'number' 
-                          ? row[column].toLocaleString() 
-                          : String(row[column] || '-')}
-                      </span>
-                    </div>
-                  ))}
+            {displayData.map((row, index) => {
+              // 레코드 이름을 의미있게 생성
+              let recordName = `레코드 ${index + 1}`;
+              
+              if (title === '재무상태' && row.companyname) {
+                recordName = String(row.companyname);
+              } else if (title === '전체기업 정보' && row.companyname) {
+                recordName = String(row.companyname);
+              } else if (title === '직원 정보' && row.name) {
+                recordName = String(row.name);
+              } else if (title === '임원 정보' && row.name) {
+                recordName = String(row.name);
+              } else if (row.id) {
+                recordName = `ID: ${String(row.id)}`;
+              }
+
+              return (
+                <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-3 text-sm">{recordName}</h4>
+                  <div className="space-y-2">
+                    {columns.map((column) => (
+                      <div key={column} className="flex justify-between">
+                        <span className="text-xs font-medium text-gray-600 capitalize">
+                          {column.replace(/_/g, ' ')}:
+                        </span>
+                        <span className="text-sm text-gray-900 text-right break-words max-w-[200px]">
+                          {typeof row[column] === 'number' 
+                            ? row[column].toLocaleString() 
+                            : String(row[column] || '-')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
+          
+          {/* 더보기 버튼 */}
+          {hasMore && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                {showAll ? '접기' : `더보기 (${data.length - 6}개 더)`}
+              </button>
+            </div>
+          )}
         </div>
       );
     }
