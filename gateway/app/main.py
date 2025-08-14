@@ -140,6 +140,14 @@ async def lifespan(app: FastAPI):
             load_balancer_type="round_robin"
         )
         logger.info(f"✅ Railway Auth Service 등록: {auth_service_url}")
+    elif auth_service_url:
+        # auth_service_url이 있으면 Railway Auth Service 등록
+        app.state.service_discovery.register_service(
+            service_name="auth-service",
+            instances=[{"host": auth_service_url, "port": 443, "weight": 1}],
+            load_balancer_type="round_robin"
+        )
+        logger.info(f"✅ Auth Service 등록 (URL 기반): {auth_service_url}")
     else:
         logger.warning("⚠️ Auth Service가 등록되지 않음")
     
