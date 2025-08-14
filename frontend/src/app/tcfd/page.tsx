@@ -145,8 +145,8 @@ export default function TcfdSrPage() {
 
     const columns = Object.keys(data[0] || {});
 
-    // 재무상태와 전체기업 정보는 세로형태로 표시
-    if (title === '재무상태' || title === '전체기업 정보') {
+    // 재무상태, 전체기업 정보, 직원정보, 임원정보는 세로형태로 표시
+    if (title === '재무상태' || title === '전체기업 정보' || title === '직원 정보' || title === '임원 정보') {
       return (
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3 text-blue-600">{title}</h3>
@@ -175,7 +175,7 @@ export default function TcfdSrPage() {
       );
     }
 
-    // 기존 테이블 형태 (직원 정보, 손익계산, 임원 정보)
+    // 손익계산만 기존 테이블 형태로 표시
     return (
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-3 text-blue-600">{title}</h3>
@@ -360,12 +360,12 @@ export default function TcfdSrPage() {
                      </p>
                   </div>
 
-                  {/* 5개 테이블 데이터 표시 */}
-                  {renderFinancialTable(companyFinancialData.data?.employee, '직원 정보')}
+                  {/* 5개 테이블 데이터 표시 - 순서 변경 */}
+                  {renderFinancialTable(companyFinancialData.data?.corporation, '전체기업 정보')}
+                  {renderFinancialTable(companyFinancialData.data?.financial, '재무상태')}
                   {renderFinancialTable(companyFinancialData.data?.profit, '손익계산')}
                   {renderFinancialTable(companyFinancialData.data?.executive, '임원 정보')}
-                  {renderFinancialTable(companyFinancialData.data?.financial, '재무상태')}
-                  {renderFinancialTable(companyFinancialData.data?.corporation, '전체기업 정보')}
+                  {renderFinancialTable(companyFinancialData.data?.employee, '직원 정보')}
                 </div>
               )}
             </div>
