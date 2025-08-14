@@ -27,12 +27,7 @@ export default function ContactPage() {
             <p className="text-blue-600 font-medium text-lg break-all">
               jty000308@naver.com
             </p>
-            <a 
-              href="mailto:jty000308@naver.com" 
-              className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              메일 보내기
-            </a>
+            
           </div>
 
           {/* 전화번호 */}
@@ -44,12 +39,7 @@ export default function ContactPage() {
             <p className="text-green-600 font-medium text-lg">
               010-3880-8322
             </p>
-            <a 
-              href="tel:010-3880-8322" 
-              className="inline-block mt-4 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              전화 걸기
-            </a>
+            
           </div>
 
           {/* 주소 */}
@@ -61,36 +51,39 @@ export default function ContactPage() {
             <p className="text-purple-600 font-medium text-lg">
               서울특별시
             </p>
-            <button 
-              className="inline-block mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-              onClick={() => alert('서울특별시에 위치하고 있습니다!')}
-            >
-              위치 확인
-            </button>
+            
           </div>
         </div>
 
         {/* 추가 정보 */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">💼 프로필</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">이름</h3>
-              <p className="text-gray-600">정태영</p>
-            </div>
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">직업</h3>
-              <p className="text-gray-600">개발자</p>
-            </div>
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">관심 분야</h3>
-              <p className="text-gray-600">TCFD, ESG, 지속가능성</p>
-            </div>
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">좌우명</h3>
-              <p className="text-gray-600">&ldquo;안되면 되게하라&rdquo;</p>
-            </div>
-          </div>
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+             <div className="text-center">
+               <h3 className="text-lg font-semibold text-gray-800 mb-2">이름</h3>
+               <p className="text-gray-600">정태영</p>
+             </div>
+             <div className="text-center">
+               <h3 className="text-lg font-semibold text-gray-800 mb-2">직업</h3>
+               <p className="text-gray-600">개발자</p>
+             </div>
+             <div className="text-center">
+               <h3 className="text-lg font-semibold text-gray-800 mb-2">관심 분야</h3>
+               <p className="text-gray-600">TCFD, ESG, 지속가능성</p>
+             </div>
+             <div className="text-center">
+               <h3 className="text-lg font-semibold text-gray-800 mb-2">학력</h3>
+               <p className="text-gray-600">대학교 졸업</p>
+             </div>
+             <div className="text-center">
+               <h3 className="text-lg font-semibold text-gray-800 mb-2">거주지</h3>
+               <p className="text-gray-600">서울특별시</p>
+             </div>
+             <div className="text-center">
+               <h3 className="text-lg font-semibold text-gray-800 mb-2">좌우명</h3>
+               <p className="text-gray-600">&ldquo;안되면 되게하라&rdquo;</p>
+             </div>
+           </div>
         </div>
 
         {/* 돌아가기 버튼 */}
