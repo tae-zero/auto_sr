@@ -145,6 +145,37 @@ export default function TcfdSrPage() {
 
     const columns = Object.keys(data[0] || {});
 
+    // 재무상태와 전체기업 정보는 세로형태로 표시
+    if (title === '재무상태' || title === '전체기업 정보') {
+      return (
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-3 text-blue-600">{title}</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            {data.map((row, index) => (
+              <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 mb-3 text-sm">레코드 {index + 1}</h4>
+                <div className="space-y-2">
+                  {columns.map((column) => (
+                    <div key={column} className="flex justify-between">
+                      <span className="text-xs font-medium text-gray-600 capitalize">
+                        {column.replace(/_/g, ' ')}:
+                      </span>
+                      <span className="text-sm text-gray-900 text-right break-words max-w-[200px]">
+                        {typeof row[column] === 'number' 
+                          ? row[column].toLocaleString() 
+                          : String(row[column] || '-')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 기존 테이블 형태 (직원 정보, 손익계산, 임원 정보)
     return (
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-3 text-blue-600">{title}</h3>
