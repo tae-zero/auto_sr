@@ -72,9 +72,22 @@ async def lifespan(app: FastAPI):
         logger.warning(f"⚠️ Auth Service 연결 테스트 중 오류 (서비스는 계속 실행): {str(e)}")
     
     # 하이브리드 모드: TCFD Service는 Railway, 나머지는 로컬 Docker
-    use_railway_tcfd = os.getenv("USE_RAILWAY_TCFD", "false").lower() == "true"
-    use_local_auth = os.getenv("USE_LOCAL_AUTH", "true").lower() == "true"
-    use_local_chatbot = os.getenv("USE_LOCAL_CHATBOT", "true").lower() == "true"
+    # 환경변수가 None인 경우 기본값 사용
+    use_railway_tcfd_raw = os.getenv("USE_RAILWAY_TCFD")
+    use_local_auth_raw = os.getenv("USE_LOCAL_AUTH")
+    use_local_chatbot_raw = os.getenv("USE_LOCAL_CHATBOT")
+    
+    # 환경변수가 설정되지 않은 경우 기본값 사용
+    use_railway_tcfd = (use_railway_tcfd_raw or "true").lower() == "true"
+    use_local_auth = (use_local_auth_raw or "true").lower() == "true"
+    use_local_chatbot = (use_local_chatbot_raw or "true").lower() == "true"
+    
+    # 환경변수 디버깅
+    logger.info(f"🔍 환경변수 디버깅:")
+    logger.info(f"  - USE_RAILWAY_TCFD 원본값: {os.getenv('USE_RAILWAY_TCFD')}")
+    logger.info(f"  - USE_LOCAL_AUTH 원본값: {os.getenv('USE_LOCAL_AUTH')}")
+    logger.info(f"  - USE_LOCAL_CHATBOT 원본값: {os.getenv('USE_LOCAL_CHATBOT')}")
+    logger.info(f"  - RAILWAY_TCFD_SERVICE_URL: {os.getenv('RAILWAY_TCFD_SERVICE_URL')}")
     
     logger.info(f"🔧 하이브리드 모드 설정:")
     logger.info(f"  - TCFD Service (Railway): {use_railway_tcfd}")
@@ -111,6 +124,7 @@ async def lifespan(app: FastAPI):
         )
         logger.info("✅ 로컬 Chatbot Service 등록 완료")
     
+    # Auth Service 등록 (로컬 또는 Railway, 중복 방지)
     if use_local_auth:
         app.state.service_discovery.register_service(
             service_name="auth-service",
@@ -118,15 +132,16 @@ async def lifespan(app: FastAPI):
             load_balancer_type="round_robin"
         )
         logger.info("✅ 로컬 Auth Service 등록 완료")
-    
-        # Railway 환경에서 Auth Service도 사용하려면 여기에 추가
-    if os.getenv("RAILWAY_ENVIRONMENT") == "true" and auth_service_url:
+    elif os.getenv("RAILWAY_ENVIRONMENT") == "true" and auth_service_url:
+        # Railway 환경에서만 Auth Service 등록
         app.state.service_discovery.register_service(
             service_name="auth-service",
             instances=[{"host": auth_service_url, "port": 443, "weight": 1}],
             load_balancer_type="round_robin"
         )
         logger.info(f"✅ Railway Auth Service 등록: {auth_service_url}")
+    else:
+        logger.warning("⚠️ Auth Service가 등록되지 않음")
     
     yield
     logger.info("🛑 Gateway API 서비스 종료")
