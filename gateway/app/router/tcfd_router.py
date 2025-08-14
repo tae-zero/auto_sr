@@ -27,13 +27,18 @@ async def get_companies(request: Request):
         
         # TCFD Service로 요청 전달
         host = tcfd_service.host
+        logger.info(f"🔍 원본 TCFD Service host: {host}")
+        logger.info(f"🔍 RAILWAY_ENVIRONMENT: {os.getenv('RAILWAY_ENVIRONMENT')}")
+        
         # URL이 이미 완전한 형태인지 확인
         if not host.startswith(('http://', 'https://')):
             # Docker 환경에서는 http:// 사용, Railway에서는 https:// 사용
             if os.getenv("RAILWAY_ENVIRONMENT") == "true":
                 host = f"https://{host}"
+                logger.info(f"🔧 Railway 환경: https:// 추가됨")
             else:
                 host = f"http://{host}"
+                logger.info(f"🔧 Docker 환경: http:// 추가됨")
         
         logger.info(f"🌐 TCFD Service URL: {host}")
         logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfd/companies")
@@ -77,13 +82,18 @@ async def get_company_financial_data(request: Request, company_name: str):
         
         # TCFD Service로 요청 전달
         host = tcfd_service.host
+        logger.info(f"🔍 원본 TCFD Service host: {host}")
+        logger.info(f"🔍 RAILWAY_ENVIRONMENT: {os.getenv('RAILWAY_ENVIRONMENT')}")
+        
         # URL이 이미 완전한 형태인지 확인
         if not host.startswith(('http://', 'https://')):
             # Docker 환경에서는 http:// 사용, Railway에서는 https:// 사용
             if os.getenv("RAILWAY_ENVIRONMENT") == "true":
                 host = f"https://{host}"
+                logger.info(f"🔧 Railway 환경: https:// 추가됨")
             else:
                 host = f"http://{host}"
+                logger.info(f"🔧 Docker 환경: http:// 추가됨")
         
         logger.info(f"🌐 TCFD Service URL: {host}")
         logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfd/company-financial-data")

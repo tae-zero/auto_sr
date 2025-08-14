@@ -71,69 +71,62 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"⚠️ Auth Service 연결 테스트 중 오류 (서비스는 계속 실행): {str(e)}")
     
-    # 기본 서비스 등록
-    if os.getenv("RAILWAY_ENVIRONMENT") == "true":
-        # Railway 환경: 환경변수로 설정된 URL 사용
-        chatbot_service_url = os.getenv("RAILWAY_CHATBOT_SERVICE_URL")
+    # 하이브리드 모드: TCFD Service는 Railway, 나머지는 로컬 Docker
+    use_railway_tcfd = os.getenv("USE_RAILWAY_TCFD", "false").lower() == "true"
+    use_local_auth = os.getenv("USE_LOCAL_AUTH", "true").lower() == "true"
+    use_local_chatbot = os.getenv("USE_LOCAL_CHATBOT", "true").lower() == "true"
+    
+    logger.info(f"🔧 하이브리드 모드 설정:")
+    logger.info(f"  - TCFD Service (Railway): {use_railway_tcfd}")
+    logger.info(f"  - Auth Service (Local): {use_local_auth}")
+    logger.info(f"  - Chatbot Service (Local): {use_local_chatbot}")
+    
+    # TCFD Service 등록 (Railway 또는 로컬)
+    if use_railway_tcfd:
         tcfd_service_url = os.getenv("RAILWAY_TCFD_SERVICE_URL")
-        
-        if chatbot_service_url:
-            app.state.service_discovery.register_service(
-                service_name="chatbot-service",
-                instances=[{"host": chatbot_service_url, "port": 443, "weight": 1}],
-                load_balancer_type="round_robin"
-            )
-            logger.info(f"✅ Railway Chatbot Service 등록: {chatbot_service_url}")
-        
         if tcfd_service_url:
-            logger.info(f"🔍 RAILWAY_TCFD_SERVICE_URL 로딩됨: {tcfd_service_url}")
+            logger.info(f"🔍 Railway TCFD Service 등록: {tcfd_service_url}")
             app.state.service_discovery.register_service(
                 service_name="tcfd-service",
                 instances=[{"host": tcfd_service_url, "port": 443, "weight": 1}],
                 load_balancer_type="round_robin"
             )
-            logger.info(f"✅ Railway TCFD Service 등록 완료: {tcfd_service_url}")
+            logger.info(f"✅ Railway TCFD Service 등록 완료")
         else:
-            logger.warning(f"⚠️ RAILWAY_TCFD_SERVICE_URL이 설정되지 않음: {tcfd_service_url}")
-            
-            # Railway 환경에서 TCFD Service URL이 없으면 기본값 사용
-            default_tcfd_url = "https://tcfd-service-production.up.railway.app"
-            logger.info(f"🔧 기본 TCFD Service URL 사용: {default_tcfd_url}")
-            
-            app.state.service_discovery.register_service(
-                service_name="tcfd-service",
-                instances=[{"host": default_tcfd_url, "port": 443, "weight": 1}],
-                load_balancer_type="round_robin"
-            )
-            logger.info(f"✅ 기본 TCFD Service 등록 완료: {default_tcfd_url}")
-        
-        # Auth Service는 이미 설정됨
-        if auth_service_url:
-            app.state.service_discovery.register_service(
-                service_name="auth-service",
-                instances=[{"host": auth_service_url, "port": 443, "weight": 1}],
-                load_balancer_type="round_robin"
-            )
-            logger.info(f"✅ Railway Auth Service 등록: {auth_service_url}")
+            logger.warning("⚠️ RAILWAY_TCFD_SERVICE_URL이 설정되지 않음")
     else:
-        # 로컬 Docker 환경: 컨테이너 이름 사용
-        app.state.service_discovery.register_service(
-            service_name="chatbot-service",
-            instances=[{"host": "chatbot-service", "port": 8006, "weight": 1}],
-            load_balancer_type="round_robin"
-        )
-        
-        app.state.service_discovery.register_service(
-            service_name="auth-service",
-            instances=[{"host": "auth-service", "port": 8008, "weight": 1}],
-            load_balancer_type="round_robin"
-        )
-        
+        logger.info("🔧 로컬 TCFD Service 등록")
         app.state.service_discovery.register_service(
             service_name="tcfd-service",
             instances=[{"host": "tcfd-service", "port": 8005, "weight": 1}],
             load_balancer_type="round_robin"
         )
+    
+    # 로컬 서비스 등록 (하이브리드 모드)
+    if use_local_chatbot:
+        app.state.service_discovery.register_service(
+            service_name="chatbot-service",
+            instances=[{"host": "chatbot-service", "port": 8001, "weight": 1}],
+            load_balancer_type="round_robin"
+        )
+        logger.info("✅ 로컬 Chatbot Service 등록 완료")
+    
+    if use_local_auth:
+        app.state.service_discovery.register_service(
+            service_name="auth-service",
+            instances=[{"host": "auth-service", "port": 8008, "weight": 1}],
+            load_balancer_type="round_robin"
+        )
+        logger.info("✅ 로컬 Auth Service 등록 완료")
+    
+        # Railway 환경에서 Auth Service도 사용하려면 여기에 추가
+    if os.getenv("RAILWAY_ENVIRONMENT") == "true" and auth_service_url:
+        app.state.service_discovery.register_service(
+            service_name="auth-service",
+            instances=[{"host": auth_service_url, "port": 443, "weight": 1}],
+            load_balancer_type="round_robin"
+        )
+        logger.info(f"✅ Railway Auth Service 등록: {auth_service_url}")
     
     yield
     logger.info("🛑 Gateway API 서비스 종료")
