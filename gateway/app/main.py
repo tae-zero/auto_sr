@@ -82,9 +82,10 @@ async def lifespan(app: FastAPI):
     use_local_auth_temp = use_local_auth_raw or "true"
     use_local_chatbot_temp = use_local_auth_raw or "true"
     
-    use_railway_tcfd = str(use_railway_tcfd_temp).lower() == "true"
-    use_local_auth = str(use_local_auth_temp).lower() == "true"
-    use_local_chatbot = str(use_local_chatbot_temp).lower() == "true"
+    # 따옴표 제거 후 비교
+    use_railway_tcfd = str(use_railway_tcfd_temp).strip('"').lower() == "true"
+    use_local_auth = str(use_local_auth_temp).strip('"').lower() == "true"
+    use_local_chatbot = str(use_local_chatbot_temp).strip('"').lower() == "true"
     
     # 환경변수 디버깅
     logger.info(f"🔍 환경변수 디버깅:")
@@ -107,8 +108,8 @@ async def lifespan(app: FastAPI):
     
     # 최종 결과 디버깅
     logger.info(f"🔍 최종 결과:")
-    logger.info(f"  - str(use_railway_tcfd_temp).lower(): {str(use_railway_tcfd_temp).lower()}")
-    logger.info(f"  - str(use_railway_tcfd_temp).lower() == 'true': {str(use_railway_tcfd_temp).lower() == 'true'}")
+    logger.info(f"  - str(use_railway_tcfd_temp).strip('\"').lower(): {str(use_railway_tcfd_temp).strip('"').lower()}")
+    logger.info(f"  - str(use_railway_tcfd_temp).strip('\"').lower() == 'true': {str(use_railway_tcfd_temp).strip('"').lower() == 'true'}")
     
     logger.info(f"🔧 하이브리드 모드 설정:")
     logger.info(f"  - TCFD Service (Railway): {use_railway_tcfd}")
