@@ -222,21 +222,29 @@ export default function Home() {
                 <p className="text-gray-600 text-sm leading-relaxed mb-6">
                   {item.description}
                 </p>
-                <div className="text-center">
-                  {item.title === "TCFD 기준으로 SR작성해볼까?" ? (
-                    <Link href="/tcfd">
-                      <button 
-                        className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
-                      >
-                        MORE
-                      </button>
-                    </Link>
-                  ) : (
-                    <button className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
-                      MORE
-                    </button>
-                  )}
-                </div>
+                                 <div className="text-center">
+                   {item.title === "TCFD 기준으로 SR작성해볼까?" ? (
+                     <Link href="/tcfd">
+                       <button 
+                         className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                       >
+                         MORE
+                       </button>
+                     </Link>
+                   ) : item.title === "who am i?" ? (
+                     <Link href="/contact">
+                       <button 
+                         className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                       >
+                         MORE
+                       </button>
+                     </Link>
+                   ) : (
+                     <button className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
+                       MORE
+                     </button>
+                   )}
+                 </div>
               </div>
             ))}
           </div>
