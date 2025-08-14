@@ -49,42 +49,60 @@ export default function ContactPage() {
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">주소</h3>
             <p className="text-purple-600 font-medium text-lg">
-              서울특별시
+              서울특별시 중랑구 면목동
             </p>
             
           </div>
         </div>
 
-        {/* 추가 정보 */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">💼 프로필</h2>
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                 {/* 프로필 정보 */}
+         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+           <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">💼 프로필</h2>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
              <div className="text-center">
                <h3 className="text-lg font-semibold text-gray-800 mb-2">이름</h3>
                <p className="text-gray-600">정태영</p>
+               <p className="text-gray-600">Jeong Tae-young</p>
+               
              </div>
              <div className="text-center">
                <h3 className="text-lg font-semibold text-gray-800 mb-2">직업</h3>
-               <p className="text-gray-600">개발자</p>
+               <p className="text-gray-600">개발자, 데이터 분석가, 기후 전문가</p>
              </div>
              <div className="text-center">
                <h3 className="text-lg font-semibold text-gray-800 mb-2">관심 분야</h3>
-               <p className="text-gray-600">TCFD, ESG, 지속가능성</p>
-             </div>
-             <div className="text-center">
-               <h3 className="text-lg font-semibold text-gray-800 mb-2">학력</h3>
-               <p className="text-gray-600">대학교 졸업</p>
-             </div>
-             <div className="text-center">
-               <h3 className="text-lg font-semibold text-gray-800 mb-2">거주지</h3>
-               <p className="text-gray-600">서울특별시</p>
+               <p className="text-gray-600">ESG, 기상, 기후변화, AI</p>
              </div>
              <div className="text-center">
                <h3 className="text-lg font-semibold text-gray-800 mb-2">좌우명</h3>
                <p className="text-gray-600">&ldquo;안되면 되게하라&rdquo;</p>
+               <p className="text-gray-600">&ldquo;하고자 하는 일에 후회하지 않도록 최선을 다하자&rdquo;</p>
              </div>
            </div>
-        </div>
+         </div>
+
+         {/* 학력 정보 */}
+         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+           <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">🎓 학력</h2>
+           <div className="text-center">
+             <h3 className="text-lg font-semibold text-gray-800 mb-2"></h3>
+             <p className="text-gray-600 text-lg">2008~2012 해남동초등학교 </p>
+             <p className="text-gray-600 text-lg">2013~2015 해남제일중학교 </p>
+             <p className="text-gray-600 text-lg">2016~2018 해남고등학교 </p>
+             <p className="text-gray-600 text-lg">2019~ 건국대학교 지리학과 학부생 </p>
+           </div>
+         </div>
+
+         {/* 거주지 정보 */}
+         <div className="bg-white rounded-xl shadow-lg p-8 mb-12">
+           <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">🏠 출생</h2>
+           <div className="text-center">
+             <h3 className="text-lg font-semibold text-gray-800 mb-2"></h3>
+             <p className="text-gray-600 text-lg">2000.03.08 전라남도 해남군 출생</p>
+             <p className="text-gray-600 text-lg">2022.02~2025.06 서울특별시 광진구 화양동 거주</p>
+             <p className="text-gray-600 text-lg">2022.02~2025.06 서울특별시 중랑구 면목동 거주</p>
+           </div>
+         </div>
 
         {/* 돌아가기 버튼 */}
         <div className="text-center">

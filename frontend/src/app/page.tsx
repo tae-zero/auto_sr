@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [stars, setStars] = useState<Array<{left: string, top: string, delay: string, duration: string}>>([]);
 
   const portfolioItems = [
     {
@@ -62,6 +63,17 @@ export default function Home() {
       description: "사진찍는거 좋아하는데 내 필름으로 들어올래?"
     }
   ];
+
+  // 별들 생성 (클라이언트에서만 실행)
+  useEffect(() => {
+    const newStars = Array.from({ length: 50 }, () => ({
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 3}s`,
+      duration: `${2 + Math.random() * 2}s`
+    }));
+    setStars(newStars);
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -125,15 +137,15 @@ export default function Home() {
         
         {/* 별들 */}
         <div className="absolute inset-0">
-          {[...Array(50)].map((_, i) => (
+          {stars.map((star, i) => (
             <div
               key={i}
               className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 2}s`
+                left: star.left,
+                top: star.top,
+                animationDelay: star.delay,
+                animationDuration: star.duration
               }}
             ></div>
           ))}
@@ -183,19 +195,7 @@ export default function Home() {
           안되면 되게하라<br />
             하고자 하는 일에 후회하지 않도록 최선을 다하자
           </h1>
-          <p className="text-xl md:text-2xl text-gray-200 max-w-2xl mx-auto mb-8">
-            Click here to add your own text and edit me.
-          </p>
-          
-          {/* CTA 버튼들 - 기존 URL들 보존 */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login" className="bg-white text-teal-900 hover:bg-gray-100 px-8 py-4 rounded-lg text-lg font-semibold transition-colors duration-200">
-              로그인하기
-            </Link>
-            <Link href="/signup" className="border-2 border-white text-white hover:bg-white hover:text-teal-900 px-8 py-4 rounded-lg text-lg font-semibold transition-colors duration-200">
-              회원가입
-            </Link>
-          </div>
+
         </div>
       </section>
 
@@ -251,85 +251,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 추가 섹션 - 기존 기능들 소개 */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Available Services
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              현재 사용 가능한 서비스들을 확인해보세요.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* 로그인 서비스 */}
-            <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">로그인</h3>
-                <p className="text-gray-600 text-sm mb-4">사용자 인증 서비스</p>
-                <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium text-sm">
-                  바로가기 →
-                </Link>
-              </div>
-            </div>
-
-            {/* 회원가입 서비스 */}
-            <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">회원가입</h3>
-                <p className="text-gray-600 text-sm mb-4">새 계정 생성</p>
-                <Link href="/signup" className="text-green-600 hover:text-green-700 font-medium text-sm">
-                  바로가기 →
-                </Link>
-              </div>
-            </div>
-
-            {/* API 서비스 */}
-            <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">API Gateway</h3>
-                <p className="text-gray-600 text-sm mb-4">마이크로서비스 통합</p>
-                <a href="http://localhost:8080/docs" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-700 font-medium text-sm">
-                  API 문서 →
-                </a>
-              </div>
-            </div>
-
-            {/* 헬스 체크 */}
-            <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">시스템 상태</h3>
-                <p className="text-gray-600 text-sm mb-4">서비스 헬스 체크</p>
-                <a href="http://localhost:8080/health" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-700 font-medium text-sm">
-                  상태 확인 →
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      
 
       {/* 푸터 */}
       <footer className="bg-gray-900 text-white py-12">
