@@ -39,6 +39,9 @@ export default function TcfdSrPage() {
   
   // 더보기 상태 관리
   const [showAllStates, setShowAllStates] = useState<{ [key: string]: boolean }>({});
+  
+  // 연락처 모달 상태
+  const [showContactModal, setShowContactModal] = useState(false);
 
   // 회사 목록 로드 (사용하지 않음)
   const loadCompanies = async () => {
@@ -106,6 +109,11 @@ export default function TcfdSrPage() {
   };
 
   // 재무 분석 실행 함수는 더 이상 사용하지 않음
+
+  // 연락처 모달 열기
+  const handleContactClick = () => {
+    setShowContactModal(true);
+  };
 
   // 컴포넌트 마운트 시 회사 목록 로드
   useEffect(() => {
@@ -418,20 +426,26 @@ export default function TcfdSrPage() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">🌍 기후시나리오</h2>
               <div className="space-y-4">
-                <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                  <h3 className="text-lg font-semibold text-red-900 mb-2">RCP 8.5 (고탄소 시나리오)</h3>
-                  <p className="text-red-700 mb-4">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
-                  <button className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm">
-                    상세보기
-                  </button>
-                </div>
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-2">RCP 2.6 (극저탄소 시나리오)</h3>
-                  <p className="text-blue-700 mb-4">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">
-                    상세보기
-                  </button>
-                </div>
+                                 <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                   <h3 className="text-lg font-semibold text-red-900 mb-2">RCP 8.5 (고탄소 시나리오)</h3>
+                   <p className="text-red-700 mb-4">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
+                   <button 
+                     onClick={handleContactClick}
+                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
+                   >
+                     상세보기
+                   </button>
+                 </div>
+                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                   <h3 className="text-lg font-semibold text-blue-900 mb-2">RCP 2.6 (극저탄소 시나리오)</h3>
+                   <p className="text-blue-700 mb-4">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
+                   <button 
+                     onClick={handleContactClick}
+                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                   >
+                     상세보기
+                   </button>
+                 </div>
               </div>
             </div>
           )}
@@ -465,9 +479,40 @@ export default function TcfdSrPage() {
                 </button>
               </div>
             </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+                     )}
+         </div>
+       </div>
+       
+       {/* 연락처 모달 */}
+       {showContactModal && (
+         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+           <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+             <div className="text-center">
+               <h3 className="text-2xl font-bold text-gray-900 mb-6">📞 연락처 정보</h3>
+               <div className="space-y-4 text-left">
+                 <div className="flex items-center">
+                   <span className="text-blue-600 mr-3">📧</span>
+                   <span className="text-gray-700">jty000308@naver.com</span>
+                 </div>
+                 <div className="flex items-center">
+                   <span className="text-green-600 mr-3">📱</span>
+                   <span className="text-gray-700">010-3880-8322</span>
+                 </div>
+                 <div className="flex items-center">
+                   <span className="text-purple-600 mr-3">📍</span>
+                   <span className="text-gray-700">서울특별시</span>
+                 </div>
+               </div>
+               <button
+                 onClick={() => setShowContactModal(false)}
+                 className="mt-6 px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+               >
+                 닫기
+               </button>
+             </div>
+           </div>
+         </div>
+       )}
+     </div>
+   );
+ }
