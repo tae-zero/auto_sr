@@ -48,7 +48,7 @@ jobs:
       run: pnpm run build
       
     - name: Deploy to Vercel
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main' && secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != ''
       uses: amondnet/vercel-action@v25
       with:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -56,6 +56,18 @@ jobs:
         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
         working-directory: ./frontend
         vercel-args: '--prod'
+      continue-on-error: true
+      
+    - name: Vercel Deployment Info
+      if: github.ref == 'refs/heads/main' && (secrets.VERCEL_TOKEN == '' || secrets.VERCEL_ORG_ID == '' || secrets.VERCEL_PROJECT_ID == '')
+      run: |
+        echo "🚀 Vercel 배포 정보:"
+        echo "Vercel 시크릿이 설정되지 않아 배포를 건너뜁니다."
+        echo "GitHub 저장소 설정에서 다음 시크릿을 추가하세요:"
+        echo "1. VERCEL_TOKEN: Vercel API 토큰"
+        echo "2. VERCEL_ORG_ID: Vercel 조직 ID"
+        echo "3. VERCEL_PROJECT_ID: Vercel 프로젝트 ID"
+        echo "시크릿 설정 후 다음 배포에서 자동으로 Vercel에 배포됩니다."
 
   # Backend Services CI/CD
   backend:
