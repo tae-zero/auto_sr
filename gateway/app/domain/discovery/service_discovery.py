@@ -134,6 +134,18 @@ class ServiceDiscovery:
         
         return instance
     
+    def get_service_instances(self, service_name: str) -> List[ServiceInstance]:
+        """서비스의 모든 인스턴스 반환 (디버깅용)"""
+        if service_name not in self.registry:
+            logger.warning(f"Service {service_name} not found in registry")
+            return []
+        
+        service = self.registry[service_name]
+        instances = service["instances"]
+        
+        logger.debug(f"Returning {len(instances)} instances for service {service_name}")
+        return instances
+    
     def release_instance(self, service_name: str, instance: ServiceInstance) -> None:
         if instance:
             instance.connection_count = max(0, instance.connection_count - 1)
