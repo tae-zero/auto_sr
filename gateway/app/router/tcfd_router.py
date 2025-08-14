@@ -18,8 +18,12 @@ async def get_companies(request: Request):
         service_discovery: ServiceDiscovery = request.app.state.service_discovery
         logger.info(f"📡 Service Discovery 상태: {service_discovery}")
         
+        # 등록된 모든 TCFD Service 인스턴스 확인
+        all_tcfd_instances = service_discovery.get_service_instances("tcfd-service")
+        logger.info(f"🔍 등록된 모든 TCFD Service 인스턴스: {all_tcfd_instances}")
+        
         tcfd_service = service_discovery.get_service_instance("tcfd-service")
-        logger.info(f"🎯 TCFD Service 인스턴스: {tcfd_service}")
+        logger.info(f"🎯 선택된 TCFD Service 인스턴스: {tcfd_service}")
         
         if not tcfd_service:
             logger.error("❌ TCFD Service를 찾을 수 없습니다")
@@ -27,8 +31,11 @@ async def get_companies(request: Request):
         
         # TCFD Service로 요청 전달
         host = tcfd_service.host
+        port = tcfd_service.port
         logger.info(f"🔍 원본 TCFD Service host: {host}")
+        logger.info(f"🔍 TCFD Service port: {port}")
         logger.info(f"🔍 RAILWAY_ENVIRONMENT: {os.getenv('RAILWAY_ENVIRONMENT')}")
+        logger.info(f"🔍 USE_RAILWAY_TCFD: {os.getenv('USE_RAILWAY_TCFD')}")
         
         # URL이 이미 완전한 형태인지 확인
         if not host.startswith(('http://', 'https://')):
@@ -73,8 +80,12 @@ async def get_company_financial_data(request: Request, company_name: str):
         service_discovery: ServiceDiscovery = request.app.state.service_discovery
         logger.info(f"📡 Service Discovery 상태: {service_discovery}")
         
+        # 등록된 모든 TCFD Service 인스턴스 확인
+        all_tcfd_instances = service_discovery.get_service_instances("tcfd-service")
+        logger.info(f"🔍 등록된 모든 TCFD Service 인스턴스: {all_tcfd_instances}")
+        
         tcfd_service = service_discovery.get_service_instance("tcfd-service")
-        logger.info(f"🎯 TCFD Service 인스턴스: {tcfd_service}")
+        logger.info(f"🎯 선택된 TCFD Service 인스턴스: {tcfd_service}")
         
         if not tcfd_service:
             logger.error("❌ TCFD Service를 찾을 수 없습니다")
@@ -82,8 +93,11 @@ async def get_company_financial_data(request: Request, company_name: str):
         
         # TCFD Service로 요청 전달
         host = tcfd_service.host
+        port = tcfd_service.port
         logger.info(f"🔍 원본 TCFD Service host: {host}")
+        logger.info(f"🔍 TCFD Service port: {port}")
         logger.info(f"🔍 RAILWAY_ENVIRONMENT: {os.getenv('RAILWAY_ENVIRONMENT')}")
+        logger.info(f"🔍 USE_RAILWAY_TCFD: {os.getenv('USE_RAILWAY_TCFD')}")
         
         # URL이 이미 완전한 형태인지 확인
         if not host.startswith(('http://', 'https://')):
