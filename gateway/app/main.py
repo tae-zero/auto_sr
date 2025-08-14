@@ -107,11 +107,11 @@ async def lifespan(app: FastAPI):
     logger.info(f"  - use_local_chatbot_temp: {use_local_chatbot_temp}")
     
     # 최종 결과 디버깅
-    logger.info(f"🔍 최종 결과:")
-    logger.info(f"  - use_railway_tcfd_temp: {use_railway_tcfd_temp}")
-    logger.info(f"  - use_railway_tcfd_temp.strip('\"'): {use_railway_tcfd_temp.strip('\"')}")
-    logger.info(f"  - use_railway_tcfd_temp.strip('\"').lower(): {use_railway_tcfd_temp.strip('\"').lower()}")
-    logger.info(f"  - use_railway_tcfd_temp.strip('\"').lower() == 'true': {use_railway_tcfd_temp.strip('\"').lower() == 'true'}")
+    logger.info("🔍 최종 결과:")
+    logger.info("  - use_railway_tcfd_temp: {}".format(use_railway_tcfd_temp))
+    logger.info("  - use_railway_tcfd_temp.strip('\"'): {}".format(use_railway_tcfd_temp.strip('"')))
+    logger.info("  - use_railway_tcfd_temp.strip('\"').lower(): {}".format(use_railway_tcfd_temp.strip('"').lower()))
+    logger.info("  - use_railway_tcfd_temp.strip('\"').lower() == 'true': {}".format(use_railway_tcfd_temp.strip('"').lower() == 'true'))
     
     logger.info(f"🔧 하이브리드 모드 설정:")
     logger.info(f"  - TCFD Service (Railway): {use_railway_tcfd}")
