@@ -420,19 +420,17 @@ export default function TcfdSrPage() {
               <div className="space-y-4">
                 <div className="bg-red-50 p-4 rounded-lg border border-red-200">
                   <h3 className="text-lg font-semibold text-red-900 mb-2">RCP 8.5 (고탄소 시나리오)</h3>
-                  <p className="text-red-700">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
-                </div>
-                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                  <h3 className="text-lg font-semibold text-orange-900 mb-2">RCP 6.0 (중간 시나리오)</h3>
-                  <p className="text-orange-700">2100년까지 3.0°C 온도 상승, 적극적인 기후 정책</p>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <h3 className="text-lg font-semibold text-green-900 mb-2">RCP 4.5 (저탄소 시나리오)</h3>
-                  <p className="text-green-700">2100년까지 2.4°C 온도 상승, 강력한 기후 정책</p>
+                  <p className="text-red-700 mb-4">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
+                  <button className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm">
+                    상세보기
+                  </button>
                 </div>
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                   <h3 className="text-lg font-semibold text-blue-900 mb-2">RCP 2.6 (극저탄소 시나리오)</h3>
-                  <p className="text-blue-700">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
+                  <p className="text-blue-700 mb-4">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">
+                    상세보기
+                  </button>
                 </div>
               </div>
             </div>
