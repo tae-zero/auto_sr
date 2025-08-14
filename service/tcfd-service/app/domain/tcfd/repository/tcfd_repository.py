@@ -110,7 +110,7 @@ class TCFDRepository:
                     if has_company_id:
                         # company_id 컬럼이 있는 경우
                         query = f"SELECT * FROM {table} WHERE company_id = $1"
-                        table_data = await conn.fetch(query, company_id)
+                        table_data = await conn.fetch(query, str(company_id))  # 문자열로 변환
                     else:
                         # company_id 컬럼이 없는 경우 (id 컬럼을 직접 사용)
                         query = f"SELECT * FROM {table} WHERE id = $1"
@@ -193,18 +193,18 @@ class TCFDRepository:
                     if has_company_id:
                         # company_id 컬럼이 있는 경우
                         count_query = f"SELECT COUNT(*) as count FROM {table} WHERE company_id = $1"
-                        count = await conn.fetchval(count_query, company_id)
+                        count = await conn.fetchval(count_query, str(company_id))  # 문자열로 변환
                         
                         # 최신 데이터 조회 (date 컬럼이 있는 경우)
                         try:
                             latest_query = f"SELECT * FROM {table} WHERE company_id = $1 ORDER BY date DESC LIMIT 1"
-                            latest_data = await conn.fetch(latest_query, company_id)
+                            latest_data = await conn.fetch(latest_query, str(company_id))  # 문자열로 변환
                             if latest_data:
                                 summary["financial_metrics"][f"latest_{table}"] = dict(latest_data[0])
                         except:
                             # date 컬럼이 없는 경우 첫 번째 데이터
                             first_query = f"SELECT * FROM {table} WHERE company_id = $1 LIMIT 1"
-                            first_data = await conn.fetch(first_query, company_id)
+                            first_data = await conn.fetch(first_query, str(company_id))  # 문자열로 변환
                             if first_data:
                                 summary["financial_metrics"][f"sample_{table}"] = dict(first_data[0])
                         

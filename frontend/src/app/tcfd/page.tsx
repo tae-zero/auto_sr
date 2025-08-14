@@ -133,7 +133,7 @@ export default function TcfdSrPage() {
   }, []);
 
   // 재무정보 표시 컴포넌트
-  const renderFinancialTable = (data: TableRecord[], title: string) => {
+  const renderFinancialTable = (data: TableRecord[] | undefined, title: string) => {
     if (!data || data.length === 0) {
       return (
         <div className="text-center py-4 text-gray-500">
@@ -283,16 +283,16 @@ export default function TcfdSrPage() {
                     </h3>
                     <p className="text-blue-700">
                       총 {companyFinancialData.total_records}개 레코드, 
-                      {companyFinancialData.tables.join(', ')} 테이블
+                      {companyFinancialData.tables?.join(', ') || '데이터 없음'} 테이블
                     </p>
                   </div>
 
                   {/* 5개 테이블 데이터 표시 */}
-                  {renderFinancialTable(companyFinancialData.data.employee, '직원 정보')}
-                  {renderFinancialTable(companyFinancialData.data.profit_loss, '손익계산')}
-                  {renderFinancialTable(companyFinancialData.data.executives, '임원 정보')}
-                  {renderFinancialTable(companyFinancialData.data.financial_status, '재무상태')}
-                  {renderFinancialTable(companyFinancialData.data.all_corporations, '전체기업 정보')}
+                  {renderFinancialTable(companyFinancialData.data?.employee, '직원 정보')}
+                  {renderFinancialTable(companyFinancialData.data?.profit_loss, '손익계산')}
+                  {renderFinancialTable(companyFinancialData.data?.executives, '임원 정보')}
+                  {renderFinancialTable(companyFinancialData.data?.financial_status, '재무상태')}
+                  {renderFinancialTable(companyFinancialData.data?.all_corporations, '전체기업 정보')}
                 </div>
               )}
 
