@@ -29,12 +29,14 @@ interface TableRecord {
   [key: string]: string | number | boolean;
 }
 
-// 6개 테이블 데이터 타입
+// 5개 테이블 데이터 타입 (TCFD Service 응답 구조와 일치)
 interface CompanyFinancialData {
+  success: boolean;
   company_name: string;
-  company_id: string;
-  total_records: number;
-  tables: string[];
+  company_id?: string;
+  found_in_table?: string;
+  total_records?: number;
+  tables?: string[];
   data: {
     employee: TableRecord[];
     profit_loss: TableRecord[];
@@ -42,6 +44,7 @@ interface CompanyFinancialData {
     financial_status: TableRecord[];
     all_corporations: TableRecord[];
   };
+  message: string;
 }
 
 export default function TcfdSrPage() {
@@ -87,9 +90,22 @@ export default function TcfdSrPage() {
         throw new Error(data.error || '재무정보를 불러올 수 없습니다');
       }
       
-      setCompanyFinancialData(data);
-      // 재무정보 로드 완료 시 자동으로 재무정보 탭으로 이동
-      setActiveTab(2);
+             setCompanyFinancialData(data);
+       console.log('✅ 데이터 설정 완료:', data);
+       console.log('✅ 데이터 구조 확인:');
+       console.log('  - success:', data.success);
+       console.log('  - company_name:', data.company_name);
+       console.log('  - total_records:', data.total_records);
+       console.log('  - tables:', data.tables);
+       console.log('  - data keys:', Object.keys(data.data || {}));
+       console.log('  - employee data length:', data.data?.employee?.length);
+       console.log('  - profit_loss data length:', data.data?.profit_loss?.length);
+       console.log('  - executives data length:', data.data?.executives?.length);
+       console.log('  - financial_status data length:', data.data?.financial_status?.length);
+       console.log('  - all_corporations data length:', data.data?.all_corporations?.length);
+       
+       // 재무정보 로드 완료 시 자동으로 재무정보 탭으로 이동
+       setActiveTab(2);
     } catch (error) {
       console.error('❌ 오류 발생:', error);
       setCompanyError(error instanceof Error ? error.message : '알 수 없는 오류');
@@ -114,13 +130,18 @@ export default function TcfdSrPage() {
 
   // 재무정보 표시 컴포넌트
   const renderFinancialTable = (data: TableRecord[] | undefined, title: string) => {
+    console.log(`🔍 ${title} 렌더링:`, data);
+    
     if (!data || data.length === 0) {
+      console.log(`❌ ${title}: 데이터 없음`);
       return (
         <div className="text-center py-4 text-gray-500">
           {title} 데이터가 없습니다
         </div>
       );
     }
+    
+    console.log(`✅ ${title}: ${data.length}개 레코드`);
 
     const columns = Object.keys(data[0] || {});
 
@@ -242,10 +263,13 @@ export default function TcfdSrPage() {
                     <h3 className="text-lg font-semibold text-blue-900 mb-2">
                       📊 {companyFinancialData.company_name} 재무정보
                     </h3>
-                    <p className="text-blue-700">
-                      총 {companyFinancialData.total_records}개 레코드, 
-                      {companyFinancialData.tables?.join(', ') || '데이터 없음'} 테이블
-                    </p>
+                                         <p className="text-blue-700">
+                       {companyFinancialData.total_records ? `총 ${companyFinancialData.total_records}개 레코드` : ''}
+                       {companyFinancialData.tables && companyFinancialData.tables.length > 0 
+                         ? `, ${companyFinancialData.tables.join(', ')} 테이블`
+                         : companyFinancialData.found_in_table ? `, ${companyFinancialData.found_in_table} 테이블에서 발견` : ''
+                       }
+                     </p>
                   </div>
 
                   {/* 5개 테이블 데이터 표시 */}
@@ -296,10 +320,13 @@ export default function TcfdSrPage() {
                     <h3 className="text-lg font-semibold text-green-900 mb-2">
                       📊 {companyFinancialData.company_name} 재무정보
                     </h3>
-                    <p className="text-green-700">
-                      총 {companyFinancialData.total_records}개 레코드, 
-                      {companyFinancialData.tables?.join(', ') || '데이터 없음'} 테이블
-                    </p>
+                                         <p className="text-green-700">
+                       {companyFinancialData.total_records ? `총 ${companyFinancialData.total_records}개 레코드` : ''}
+                       {companyFinancialData.tables && companyFinancialData.tables.length > 0 
+                         ? `, ${companyFinancialData.tables.join(', ')} 테이블`
+                         : companyFinancialData.found_in_table ? `, ${companyFinancialData.found_in_table} 테이블에서 발견` : ''
+                       }
+                     </p>
                   </div>
 
                   {/* 5개 테이블 데이터 표시 */}
