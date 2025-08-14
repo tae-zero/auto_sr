@@ -19,8 +19,10 @@ logger = logging.getLogger(__name__)
 class AuthService:
     def __init__(self):
         self.repository = AuthRepository()
-        # 도커 환경에서는 auth-service 컨테이너 이름 사용
-        self.auth_service_url = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8008")
+        # 환경변수에서 Auth Service URL 가져오기
+        self.auth_service_url = os.getenv("AUTH_SERVICE_URL")
+        if not self.auth_service_url:
+            logger.warning("AUTH_SERVICE_URL이 설정되지 않음 - ServiceDiscovery 사용")
         self.http_client = httpx.AsyncClient(timeout=30.0)
     
     async def process_signup(self, request: AuthRequest) -> Dict[str, Any]:
@@ -244,9 +246,28 @@ class AuthService:
             if headers:
                 default_headers.update(headers)
             
+            # Auth Service URL 결정 (환경변수 또는 ServiceDiscovery)
+            if self.auth_service_url:
+                # 환경변수에서 URL 사용
+                target_url = self.auth_service_url
+            else:
+                # ServiceDiscovery에서 Auth Service 인스턴스 가져오기
+                from app.domain.discovery.service_discovery import ServiceDiscovery
+                service_discovery = ServiceDiscovery()
+                auth_instance = service_discovery.get_service_instance("auth-service")
+                
+                if not auth_instance:
+                    raise Exception("Auth Service를 찾을 수 없습니다")
+                
+                # Railway 환경에서는 https 사용
+                if os.getenv("RAILWAY_ENVIRONMENT") == "production":
+                    target_url = f"https://{auth_instance.host}"
+                else:
+                    target_url = f"http://{auth_instance.host}:{auth_instance.port}"
+            
             # auth-service는 /api/v1/auth 경로를 사용하므로 이를 반영
             full_endpoint = f"/api/v1/auth{endpoint}"
-            full_url = f"{self.auth_service_url}{full_endpoint}"
+            full_url = f"{target_url}{full_endpoint}"
             
             logger.info(f"Auth Service로 요청 전달: {full_url}")
             logger.info(f"요청 데이터: {data}")
