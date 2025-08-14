@@ -20,14 +20,10 @@ logger = logging.getLogger(__name__)
 class TCFDService:
     def __init__(self):
         self.repository = TCFDRepository()
-        # 기존 서비스들 초기화
-        from app.domain.tcfd.analysis_service import TCFDAnalysisService
-        from app.domain.tcfd.report_service import TCFDReportService
-        from app.domain.tcfd.risk_assessment_service import RiskAssessmentService
-        
-        self.analysis_service = TCFDAnalysisService()
-        self.report_service = TCFDReportService()
-        self.risk_assessment_service = RiskAssessmentService()
+        # AI 서비스들은 비활성화 (사용하지 않음)
+        # self.analysis_service = None
+        # self.report_service = None
+        # self.risk_assessment_service = None
     
     async def get_company_financial_data(self, company_name: str) -> Dict[str, Any]:
         """특정 회사의 재무정보 조회"""
@@ -75,66 +71,24 @@ class TCFDService:
             raise Exception(f"회사 목록 조회 실패: {str(e)}")
     
     async def analyze_report(self, file: UploadFile, company_info: Dict[str, Any]) -> Dict[str, Any]:
-        """TCFD 보고서 AI 분석"""
-        try:
-            # 파일 검증
-            if not file.filename or not file.filename.endswith(('.pdf', '.docx', '.txt')):
-                raise HTTPException(status_code=400, detail="지원하지 않는 파일 형식입니다")
-            
-            # AI 분석 서비스 호출
-            result = await self.analysis_service.analyze_report(file, company_info)
-            
-            # 분석 결과 저장
-            analysis_entity = TCFDEntity(
-                company_info=company_info,
-                analysis_result=result,
-                status="completed"
-            )
-            await self.repository.save_analysis_result(analysis_entity)
-            
-            return {
-                "success": True,
-                "data": result,
-                "message": "TCFD 보고서 분석 완료"
-            }
-            
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"TCFD 보고서 분석 실패: {str(e)}")
-            raise Exception(f"분석 처리 실패: {str(e)}")
+        """TCFD 보고서 AI 분석 (비활성화)"""
+        return {
+            "success": False,
+            "message": "AI 분석 기능은 현재 비활성화되어 있습니다",
+            "data": None
+        }
     
     async def assess_climate_risk(
         self, 
         company_request: CompanyInfoRequest, 
         financial_request: FinancialDataRequest
     ) -> Dict[str, Any]:
-        """TCFD 위험 평가"""
-        try:
-            # 위험 평가 서비스 호출
-            result = await self.risk_assessment_service.assess_climate_risk(
-                company_info=company_request.dict(),
-                financial_data=financial_request.dict()
-            )
-            
-            # 위험 평가 결과 저장
-            risk_entity = ClimateRiskEntity(
-                company_info=company_request.dict(),
-                financial_data=financial_request.dict(),
-                risk_assessment=result,
-                status="completed"
-            )
-            await self.repository.save_risk_assessment(risk_entity)
-            
-            return {
-                "success": True,
-                "data": result,
-                "message": "TCFD 위험 평가 완료"
-            }
-            
-        except Exception as e:
-            logger.error(f"TCFD 위험 평가 실패: {str(e)}")
-            raise Exception(f"위험 평가 처리 실패: {str(e)}")
+        """TCFD 위험 평가 (비활성화)"""
+        return {
+            "success": False,
+            "message": "AI 위험 평가 기능은 현재 비활성화되어 있습니다",
+            "data": None
+        }
     
     async def generate_report(
         self, 
@@ -142,34 +96,12 @@ class TCFDService:
         financial_request: FinancialDataRequest,
         risk_request: RiskAssessmentRequest
     ) -> Dict[str, Any]:
-        """TCFD 보고서 생성"""
-        try:
-            # 보고서 생성 서비스 호출
-            result = await self.report_service.generate_report(
-                company_info=company_request.dict(),
-                financial_data=financial_request.dict(),
-                risk_assessment=risk_request.dict()
-            )
-            
-            # 보고서 결과 저장
-            report_entity = TCFDEntity(
-                company_info=company_request.dict(),
-                financial_data=financial_request.dict(),
-                risk_assessment=risk_request.dict(),
-                report_result=result,
-                status="completed"
-            )
-            await self.repository.save_report_result(report_entity)
-            
-            return {
-                "success": True,
-                "data": result,
-                "message": "TCFD 보고서 생성 완료"
-            }
-            
-        except Exception as e:
-            logger.error(f"TCFD 보고서 생성 실패: {str(e)}")
-            raise Exception(f"보고서 생성 처리 실패: {str(e)}")
+        """TCFD 보고서 생성 (비활성화)"""
+        return {
+            "success": False,
+            "message": "AI 보고서 생성 기능은 현재 비활성화되어 있습니다",
+            "data": None
+        }
     
     async def get_financial_data(self) -> Dict[str, Any]:
         """재무 데이터 조회"""
