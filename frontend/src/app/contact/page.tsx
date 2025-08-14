@@ -100,7 +100,7 @@ export default function ContactPage() {
              <h3 className="text-lg font-semibold text-gray-800 mb-2"></h3>
              <p className="text-gray-600 text-lg">2000.03.08 전라남도 해남군 출생</p>
              <p className="text-gray-600 text-lg">2022.02~2025.06 서울특별시 광진구 화양동 거주</p>
-             <p className="text-gray-600 text-lg">2022.02~2025.06 서울특별시 중랑구 면목동 거주</p>
+             <p className="text-gray-600 text-lg">2025.07~ 서울특별시 중랑구 면목동 거주</p>
            </div>
          </div>
 
