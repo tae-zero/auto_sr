@@ -46,35 +46,16 @@ interface CompanyFinancialData {
 
 export default function TcfdSrPage() {
   const [activeTab, setActiveTab] = useState(1);
-  const [isLoadingFinancial, setIsLoadingFinancial] = useState(false);
-  const [financialError, setFinancialError] = useState<string | null>(null);
-  const [showFinancialAnalysis, setShowFinancialAnalysis] = useState(false);
   
-  // 새로운 상태들
+  // 회사 검색 관련 상태
   const [companyName, setCompanyName] = useState(''); // 빈 문자열로 초기화
   const [companyFinancialData, setCompanyFinancialData] = useState<CompanyFinancialData | null>(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(false);
   const [companyError, setCompanyError] = useState<string | null>(null);
-  const [availableCompanies, setAvailableCompanies] = useState<CompanyInfo[]>([]);
 
-  // 회사 목록 로드
+  // 회사 목록 로드 (사용하지 않음)
   const loadCompanies = async () => {
-    try {
-      const response = await fetch('/api/companies');
-      if (!response.ok) {
-        throw new Error(`회사 목록 로드 실패: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      if (data.success === false) {
-        throw new Error(data.error || '회사 목록을 불러올 수 없습니다');
-      }
-      
-      setAvailableCompanies(data.companies || []);
-    } catch (error) {
-      console.error('회사 목록 로드 실패:', error);
-      setCompanyError(error instanceof Error ? error.message : '알 수 없는 오류');
-    }
+    // 회사 목록은 더 이상 로드하지 않음
   };
 
   // 회사별 재무정보 로드
@@ -107,6 +88,8 @@ export default function TcfdSrPage() {
       }
       
       setCompanyFinancialData(data);
+      // 재무정보 로드 완료 시 자동으로 재무정보 탭으로 이동
+      setActiveTab(2);
     } catch (error) {
       console.error('❌ 오류 발생:', error);
       setCompanyError(error instanceof Error ? error.message : '알 수 없는 오류');
@@ -122,10 +105,7 @@ export default function TcfdSrPage() {
     }
   };
 
-  // 재무 분석 실행
-  const handleFinancialAnalysis = () => {
-    setShowFinancialAnalysis(true);
-  };
+  // 재무 분석 실행 함수는 더 이상 사용하지 않음
 
   // 컴포넌트 마운트 시 회사 목록 로드
   useEffect(() => {
@@ -252,26 +232,7 @@ export default function TcfdSrPage() {
                   </button>
                 </div>
                 
-                {/* 사용 가능한 회사 목록 */}
-                {availableCompanies.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-sm text-gray-600 mb-2">사용 가능한 회사:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {availableCompanies.map((company) => (
-                        <button
-                          key={company.id}
-                          onClick={() => {
-                            setCompanyName(company.name);
-                            loadCompanyFinancialData(company.name);
-                          }}
-                          className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200"
-                        >
-                          {company.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* 사용 가능한 회사 목록은 제거됨 */}
               </div>
 
               {/* 회사별 재무정보 표시 */}
@@ -310,41 +271,43 @@ export default function TcfdSrPage() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">💰 재무정보</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-3">재무정보 입력</h3>
-                  <button
-                    // onClick={loadFinancialData} // This line was removed as per the edit hint
-                    disabled={isLoadingFinancial}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {isLoadingFinancial ? '로딩 중...' : '재무정보 불러오기'}
-                  </button>
-                </div>
-                
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-3">재무분석</h3>
-                  <button
-                    onClick={handleFinancialAnalysis}
-                    className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                  >
-                    재무분석 실행
-                  </button>
-                </div>
-              </div>
-
-              {financialError && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-red-700">{financialError}</p>
+              {/* 회사 검색 결과가 없을 때 안내 메시지 */}
+              {!companyFinancialData && (
+                <div className="text-center py-12">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-2">회사 검색이 필요합니다</h3>
+                    <p className="text-blue-700 mb-4">
+                      회사정보 탭에서 회사명을 검색하면 해당 회사의 재무정보가 여기에 표시됩니다.
+                    </p>
+                    <button
+                      onClick={() => setActiveTab(1)}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                      회사정보 탭으로 이동
+                    </button>
+                  </div>
                 </div>
               )}
 
-              {showFinancialAnalysis && (
-                <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-md">
-                  <h3 className="text-lg font-semibold text-green-900 mb-2">재무분석 결과</h3>
-                  <p className="text-green-700">
-                    재무분석이 완료되었습니다. 상세 결과는 TCFD 프레임워크 탭에서 확인할 수 있습니다.
-                  </p>
+              {/* 회사별 재무정보 표시 */}
+              {companyFinancialData && (
+                <div>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                    <h3 className="text-lg font-semibold text-green-900 mb-2">
+                      📊 {companyFinancialData.company_name} 재무정보
+                    </h3>
+                    <p className="text-green-700">
+                      총 {companyFinancialData.total_records}개 레코드, 
+                      {companyFinancialData.tables?.join(', ') || '데이터 없음'} 테이블
+                    </p>
+                  </div>
+
+                  {/* 5개 테이블 데이터 표시 */}
+                  {renderFinancialTable(companyFinancialData.data?.employee, '직원 정보')}
+                  {renderFinancialTable(companyFinancialData.data?.profit_loss, '손익계산')}
+                  {renderFinancialTable(companyFinancialData.data?.executives, '임원 정보')}
+                  {renderFinancialTable(companyFinancialData.data?.financial_status, '재무상태')}
+                  {renderFinancialTable(companyFinancialData.data?.all_corporations, '전체기업 정보')}
                 </div>
               )}
             </div>

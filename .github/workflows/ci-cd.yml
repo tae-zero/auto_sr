@@ -80,13 +80,13 @@ jobs:
           ${{ runner.os }}-pip-${{ matrix.service }}-
           
     - name: Install dependencies
-      working-directory: ./${{ matrix.service == 'gateway' && 'gateway' || 'service/' + matrix.service }}
+      working-directory: ${{ matrix.service == 'gateway' && 'gateway' || format('service/{0}', matrix.service) }}
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
     - name: Run tests (if available)
-      working-directory: ./${{ matrix.service == 'gateway' && 'gateway' || 'service/' + matrix.service }}
+      working-directory: ${{ matrix.service == 'gateway' && 'gateway' || format('service/{0}', matrix.service) }}
       run: |
         if [ -f "pytest.ini" ] || [ -d "tests" ]; then
           pip install pytest
@@ -109,7 +109,7 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
-        context: ./${{ matrix.service == 'gateway' && 'gateway' || 'service/' + matrix.service }}
+        context: ${{ matrix.service == 'gateway' && 'gateway' || format('service/{0}', matrix.service) }}
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}:${{ github.sha }}
         cache-from: type=gha
@@ -124,7 +124,7 @@ jobs:
         echo "Railway에서 다음 단계를 수행하세요:"
         echo "1. Railway Dashboard에서 새 프로젝트 생성"
         echo "2. GitHub 저장소 연결"
-        echo "3. 서비스 경로: ${{ matrix.service == 'gateway' && 'gateway' || 'service/' + matrix.service }}"
+        echo "3. 서비스 경로: ${{ matrix.service == 'gateway' && 'gateway' || format('service/{0}', matrix.service) }}"
         echo "4. 환경변수 설정: RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN }}"
 
   # Integration Tests
