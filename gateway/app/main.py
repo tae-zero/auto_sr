@@ -19,7 +19,7 @@ from app.common.utility.constant.settings import Settings
 from app.common.utility.factory.response_factory import ResponseFactory
 # Gateway는 DB에 직접 접근하지 않음 (MSA 원칙)
 
-if os.getenv("RAILWAY_ENVIRONMENT") != "true":
+if os.getenv("RAILWAY_ENVIRONMENT") != "production":
     load_dotenv()
 
 logging.basicConfig(
@@ -72,15 +72,19 @@ async def lifespan(app: FastAPI):
         logger.warning(f"⚠️ Auth Service 연결 테스트 중 오류 (서비스는 계속 실행): {str(e)}")
     
     # 하이브리드 모드: TCFD Service는 Railway, 나머지는 로컬 Docker
-    # 환경변수가 None인 경우 기본값 사용
+    # 환경변수 처리 (문자열 "true"/"false" 또는 None)
     use_railway_tcfd_raw = os.getenv("USE_RAILWAY_TCFD")
     use_local_auth_raw = os.getenv("USE_LOCAL_AUTH")
     use_local_chatbot_raw = os.getenv("USE_LOCAL_CHATBOT")
     
     # 환경변수가 설정되지 않은 경우 기본값 사용
-    use_railway_tcfd = (use_railway_tcfd_raw or "true").lower() == "true"
-    use_local_auth = (use_local_auth_raw or "true").lower() == "true"
-    use_local_chatbot = (use_local_chatbot_raw or "true").lower() == "true"
+    use_railway_tcfd_temp = use_railway_tcfd_raw or "true"
+    use_local_auth_temp = use_local_auth_raw or "true"
+    use_local_chatbot_temp = use_local_auth_raw or "true"
+    
+    use_railway_tcfd = str(use_railway_tcfd_temp).lower() == "true"
+    use_local_auth = str(use_local_auth_temp).lower() == "true"
+    use_local_chatbot = str(use_local_chatbot_temp).lower() == "true"
     
     # 환경변수 디버깅
     logger.info(f"🔍 환경변수 디버깅:")
@@ -88,6 +92,23 @@ async def lifespan(app: FastAPI):
     logger.info(f"  - USE_LOCAL_AUTH 원본값: {os.getenv('USE_LOCAL_AUTH')}")
     logger.info(f"  - USE_LOCAL_CHATBOT 원본값: {os.getenv('USE_LOCAL_CHATBOT')}")
     logger.info(f"  - RAILWAY_TCFD_SERVICE_URL: {os.getenv('RAILWAY_TCFD_SERVICE_URL')}")
+    
+    # 처리된 값 디버깅
+    logger.info(f"🔍 처리된 값:")
+    logger.info(f"  - use_railway_tcfd_raw: {use_railway_tcfd_raw}")
+    logger.info(f"  - use_local_auth_raw: {use_local_auth_raw}")
+    logger.info(f"  - use_local_chatbot_raw: {use_local_chatbot_raw}")
+    
+    # 중간 처리 값 디버깅
+    logger.info(f"🔍 중간 처리 값:")
+    logger.info(f"  - use_railway_tcfd_temp: {use_railway_tcfd_temp}")
+    logger.info(f"  - use_local_auth_temp: {use_local_auth_temp}")
+    logger.info(f"  - use_local_chatbot_temp: {use_local_chatbot_temp}")
+    
+    # 최종 결과 디버깅
+    logger.info(f"🔍 최종 결과:")
+    logger.info(f"  - str(use_railway_tcfd_temp).lower(): {str(use_railway_tcfd_temp).lower()}")
+    logger.info(f"  - str(use_railway_tcfd_temp).lower() == 'true': {str(use_railway_tcfd_temp).lower() == 'true'}")
     
     logger.info(f"🔧 하이브리드 모드 설정:")
     logger.info(f"  - TCFD Service (Railway): {use_railway_tcfd}")
@@ -132,7 +153,7 @@ async def lifespan(app: FastAPI):
             load_balancer_type="round_robin"
         )
         logger.info("✅ 로컬 Auth Service 등록 완료")
-    elif os.getenv("RAILWAY_ENVIRONMENT") == "true" and auth_service_url:
+    elif os.getenv("RAILWAY_ENVIRONMENT") == "production" and auth_service_url:
         # Railway 환경에서만 Auth Service 등록
         app.state.service_discovery.register_service(
             service_name="auth-service",
