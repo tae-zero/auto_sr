@@ -52,7 +52,7 @@ export default function TcfdSrPage() {
   const [showFinancialAnalysis, setShowFinancialAnalysis] = useState(false);
   
   // 새로운 상태들
-  const [companyName, setCompanyName] = useState('');
+  const [companyName, setCompanyName] = useState(''); // 빈 문자열로 초기화
   const [companyFinancialData, setCompanyFinancialData] = useState<CompanyFinancialData | null>(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(false);
   const [companyError, setCompanyError] = useState<string | null>(null);
@@ -85,19 +85,31 @@ export default function TcfdSrPage() {
     setIsLoadingCompany(true);
     setCompanyError(null);
     
+    // 디버깅 로그 추가
+    console.log('🔍 회사명:', companyName);
+    console.log('🔍 인코딩된 회사명:', encodeURIComponent(companyName));
+    
     try {
-      const response = await fetch(`/api/company-financial-data?company_name=${encodeURIComponent(companyName)}`);
+      const url = `/api/company-financial-data?company_name=${encodeURIComponent(companyName)}`;
+      console.log('🔍 요청 URL:', url);
+      
+      const response = await fetch(url);
+      console.log('🔍 응답 상태:', response.status);
+      
       if (!response.ok) {
         throw new Error(`회사별 재무정보 로드 실패: ${response.status}`);
       }
       
       const data = await response.json();
+      console.log('🔍 응답 데이터:', data);
+      
       if (data.success === false) {
         throw new Error(data.error || '재무정보를 불러올 수 없습니다');
       }
       
       setCompanyFinancialData(data);
     } catch (error) {
+      console.error('❌ 오류 발생:', error);
       setCompanyError(error instanceof Error ? error.message : '알 수 없는 오류');
     } finally {
       setIsLoadingCompany(false);
@@ -227,7 +239,7 @@ export default function TcfdSrPage() {
                       type="text"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="회사명을 입력하세요 (예: 삼성전자, 현대자동차)"
+                      placeholder="회사명을 입력하세요 (예: 한온시스템, 현대모비스, 만도)"
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500 bg-white"
                       onKeyPress={(e) => e.key === 'Enter' && handleCompanySearch()}
                     />
