@@ -106,7 +106,7 @@ class TCFDService:
     async def get_financial_data(self) -> Dict[str, Any]:
         """재무 데이터 조회"""
         try:
-            # 6개 테이블의 재무 데이터 조회
+            # 5개 테이블의 재무 데이터 조회
             result = await self.repository.get_all_financial_data()
             return {
                 "success": True,

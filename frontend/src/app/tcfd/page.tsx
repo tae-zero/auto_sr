@@ -38,10 +38,9 @@ interface CompanyFinancialData {
   data: {
     employee: TableRecord[];
     profit_loss: TableRecord[];
-    executive: TableRecord[];
+    executives: TableRecord[];
     financial_status: TableRecord[];
-    corp: TableRecord[];
-    all_corp: TableRecord[];
+    all_corporations: TableRecord[];
   };
 }
 
@@ -288,13 +287,12 @@ export default function TcfdSrPage() {
                     </p>
                   </div>
 
-                  {/* 6개 테이블 데이터 표시 */}
+                  {/* 5개 테이블 데이터 표시 */}
                   {renderFinancialTable(companyFinancialData.data.employee, '직원 정보')}
                   {renderFinancialTable(companyFinancialData.data.profit_loss, '손익계산')}
-                  {renderFinancialTable(companyFinancialData.data.executive, '임원 정보')}
+                  {renderFinancialTable(companyFinancialData.data.executives, '임원 정보')}
                   {renderFinancialTable(companyFinancialData.data.financial_status, '재무상태')}
-                  {renderFinancialTable(companyFinancialData.data.corp, '기업 정보')}
-                  {renderFinancialTable(companyFinancialData.data.all_corp, '전체기업 정보')}
+                  {renderFinancialTable(companyFinancialData.data.all_corporations, '전체기업 정보')}
                 </div>
               )}
 

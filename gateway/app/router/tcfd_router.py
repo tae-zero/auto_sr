@@ -50,7 +50,7 @@ async def get_companies(request: Request):
         logger.info(f"🌐 TCFD Service URL: {host}")
         logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfd/companies")
         
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.get(f"{host}/api/v1/tcfd/companies")
             logger.info(f"📥 TCFD Service 응답 상태: {response.status_code}")
             logger.info(f"📥 TCFD Service 응답 헤더: {dict(response.headers)}")
@@ -113,7 +113,7 @@ async def get_company_financial_data(request: Request, company_name: str):
         logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfd/company-financial-data")
         logger.info(f"📤 요청 파라미터: company_name={company_name}")
         
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.get(
                 f"{host}/api/v1/tcfd/company-financial-data",
                 params={"company_name": company_name}

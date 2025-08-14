@@ -1,7 +1,7 @@
 """
 TCFD Service TCFD 리포지토리
 - TCFD 데이터 접근 및 관리
-- 6개 테이블 (직원, 손익계산, 임원, 재무상태, 기업, 전체기업) 통합 관리
+- 5개 테이블 (직원, 손익계산, 임원, 재무상태, 전체기업) 통합 관리
 - AI 분석 결과, 위험 평가, 보고서 저장
 """
 from typing import Dict, Any, Optional, List
@@ -61,7 +61,7 @@ class TCFDRepository:
         return await self.pool.acquire()
     
     async def get_company_financial_data(self, company_name: str) -> Dict[str, Any]:
-        """특정 회사의 재무정보 조회 (6개 테이블 통합)"""
+        """특정 회사의 재무정보 조회 (5개 테이블 통합)"""
         try:
             conn = await self.get_connection()
             
@@ -69,7 +69,7 @@ class TCFDRepository:
             company_id = None
             
             # 각 테이블에서 companyname으로 검색하여 id 찾기
-            tables_to_search = ['employee', 'profit_loss', 'executive', 'financial_status', 'corp', 'all_corp']
+            tables_to_search = ['employee', 'profit_loss', 'executives', 'financial_status', 'all_corporations']
             
             for table in tables_to_search:
                 try:
@@ -97,7 +97,7 @@ class TCFDRepository:
                     "data": {}
                 }
             
-            # 2단계: 찾은 company_id로 6개 테이블에서 모든 데이터 조회
+            # 2단계: 찾은 company_id로 5개 테이블에서 모든 데이터 조회
             data = {}
             
             # 각 테이블에서 company_id와 일치하는 데이터 조회
@@ -146,7 +146,7 @@ class TCFDRepository:
             company_id = None
             found_table = None
             
-            tables_to_search = ['employee', 'profit_loss', 'executive', 'financial_status', 'corp', 'all_corp']
+            tables_to_search = ['employee', 'profit_loss', 'executives', 'financial_status', 'all_corporations']
             
             for table in tables_to_search:
                 try:
@@ -211,7 +211,7 @@ class TCFDRepository:
                         # 특별한 테이블 처리
                         if table == 'employee':
                             summary["employee_count"] = count
-                        elif table == 'executive':
+                        elif table == 'executives':
                             summary["executive_count"] = count
                             
                     else:
@@ -221,7 +221,7 @@ class TCFDRepository:
                         
                         if table == 'employee':
                             summary["employee_count"] = count
-                        elif table == 'executive':
+                        elif table == 'executives':
                             summary["executive_count"] = count
                             
                 except Exception as e:
@@ -247,7 +247,7 @@ class TCFDRepository:
             
             # 모든 테이블에서 companyname이 있는 테이블 찾기
             companies = []
-            tables_to_search = ['employee', 'profit_loss', 'executive', 'financial_status', 'corp', 'all_corp']
+            tables_to_search = ['employee', 'profit_loss', 'executives', 'financial_status', 'all_corporations']
             
             for table in tables_to_search:
                 try:
@@ -287,11 +287,11 @@ class TCFDRepository:
             raise Exception(f"회사 목록 조회 실패: {str(e)}")
     
     async def get_all_financial_data(self) -> Dict[str, Any]:
-        """6개 테이블의 모든 재무 데이터 조회"""
+        """5개 테이블의 모든 재무 데이터 조회"""
         try:
             conn = await self.get_connection()
             
-            # 6개 테이블 데이터 조회
+            # 5개 테이블 데이터 조회
             data = {}
             
             # 1. 직원 테이블
@@ -305,24 +305,19 @@ class TCFDRepository:
             data['profit_loss'] = [dict(row) for row in profit_loss_data]
             
             # 3. 임원 테이블
-            executive_query = "SELECT * FROM executive LIMIT 100"
-            executive_data = await conn.fetch(executive_query)
-            data['executive'] = [dict(row) for row in executive_data]
+            executives_query = "SELECT * FROM executives LIMIT 100"
+            executives_data = await conn.fetch(executives_query)
+            data['executives'] = [dict(row) for row in executives_data]
             
             # 4. 재무상태 테이블
             financial_status_query = "SELECT * FROM financial_status LIMIT 100"
             financial_status_data = await conn.fetch(financial_status_query)
             data['financial_status'] = [dict(row) for row in financial_status_data]
             
-            # 5. 기업 테이블
-            corp_query = "SELECT * FROM corp LIMIT 100"
-            corp_data = await conn.fetch(corp_query)
-            data['corp'] = [dict(row) for row in corp_data]
-            
-            # 6. 전체기업 테이블
-            all_corp_query = "SELECT * FROM all_corp LIMIT 100"
-            all_corp_data = await conn.fetch(all_corp_query)
-            data['all_corp'] = [dict(row) for row in all_corp_data]
+            # 5. 전체기업 테이블
+            all_corporations_query = "SELECT * FROM all_corporations LIMIT 100"
+            all_corporations_data = await conn.fetch(all_corporations_query)
+            data['all_corporations'] = [dict(row) for row in all_corporations_data]
             
             await self.pool.release(conn)
             
@@ -350,14 +345,12 @@ class TCFDRepository:
                 result = await self._insert_employee(conn, data)
             elif table_name == 'profit_loss':
                 result = await self._insert_profit_loss(conn, data)
-            elif table_name == 'executive':
-                result = await self._insert_executive(conn, data)
+            elif table_name == 'executives':
+                result = await self._insert_executives(conn, data)
             elif table_name == 'financial_status':
                 result = await self._insert_financial_status(conn, data)
-            elif table_name == 'corp':
-                result = await self._insert_corp(conn, data)
-            elif table_name == 'all_corp':
-                result = await self._insert_all_corp(conn, data)
+            elif table_name == 'all_corporations':
+                result = await self._insert_all_corporations(conn, data)
             else:
                 raise Exception(f"지원하지 않는 테이블: {table_name}")
             
@@ -471,61 +464,74 @@ class TCFDRepository:
     async def _insert_employee(self, conn, data: Dict[str, Any]) -> Dict[str, Any]:
         """직원 데이터 삽입"""
         query = """
-            INSERT INTO employee (id, name, position, department, salary, hire_date)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO employee (id, corp_code, companyname, sexdstn, fo_bbm, rgllbr_co, rgllbr_abacpt_labrr_co, cnttk_co, cnttk_abacpt_labrr_co, sm, avrg_)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         """
         await conn.execute(
             query,
             data.get('id'),
-            data.get('name'),
-            data.get('position'),
-            data.get('department'),
-            data.get('salary'),
-            data.get('hire_date')
+            data.get('corp_code'),
+            data.get('companyname'),
+            data.get('sexdstn'),
+            data.get('fo_bbm'),
+            data.get('rgllbr_co'),
+            data.get('rgllbr_abacpt_labrr_co'),
+            data.get('cnttk_co'),
+            data.get('cnttk_abacpt_labrr_co'),
+            data.get('sm'),
+            data.get('avrg_')
         )
         return {"message": "직원 데이터 생성 완료", "table": "employee"}
     
     async def _insert_profit_loss(self, conn, data: Dict[str, Any]) -> Dict[str, Any]:
         """손익계산 데이터 삽입"""
         query = """
-            INSERT INTO profit_loss (id, revenue, expenses, net_income, period)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO profit_loss (id, companyname, metric_name, fiscal_year_current, fiscal_year_previous, fiscal_year_before_last)
+            VALUES ($1, $2, $3, $4, $5, $6)
         """
         await conn.execute(
             query,
             data.get('id'),
-            data.get('revenue'),
-            data.get('expenses'),
-            data.get('net_income'),
-            data.get('period')
+            data.get('companyname'),
+            data.get('metric_name'),
+            data.get('fiscal_year_current'),
+            data.get('fiscal_year_previous'),
+            data.get('fiscal_year_before_last')
         )
         return {"message": "손익계산 데이터 생성 완료", "table": "profit_loss"}
     
-    async def _insert_executive(self, conn, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _insert_executives(self, conn, data: Dict[str, Any]) -> Dict[str, Any]:
         """임원 데이터 삽입"""
         query = """
-            INSERT INTO executive (id, name, position, compensation, stock_options)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO executives (id, corp_code, companyname, nm, sexdstn, birth_ym, ofcps, rgist_exctv_at, fte_at, chrg_job)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         """
         await conn.execute(
             query,
             data.get('id'),
-            data.get('name'),
-            data.get('position'),
-            data.get('compensation'),
-            data.get('stock_options')
+            data.get('corp_code'),
+            data.get('companyname'),
+            data.get('nm'),
+            data.get('sexdstn'),
+            data.get('birth_ym'),
+            data.get('ofcps'),
+            data.get('rgist_exctv_at'),
+            data.get('fte_at'),
+            data.get('chrg_job')
         )
-        return {"message": "임원 데이터 생성 완료", "table": "executive"}
+        return {"message": "임원 데이터 생성 완료", "table": "executives"}
     
     async def _insert_financial_status(self, conn, data: Dict[str, Any]) -> Dict[str, Any]:
         """재무상태 데이터 삽입"""
+        # financial_status 테이블의 실제 컬럼 구조를 확인할 수 없어서 기본 구조 유지
         query = """
-            INSERT INTO financial_status (id, assets, liabilities, equity, date)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO financial_status (id, companyname, assets, liabilities, equity, date)
+            VALUES ($1, $2, $3, $4, $5, $6)
         """
         await conn.execute(
             query,
             data.get('id'),
+            data.get('companyname'),
             data.get('assets'),
             data.get('liabilities'),
             data.get('equity'),
@@ -533,37 +539,21 @@ class TCFDRepository:
         )
         return {"message": "재무상태 데이터 생성 완료", "table": "financial_status"}
     
-    async def _insert_corp(self, conn, data: Dict[str, Any]) -> Dict[str, Any]:
-        """기업 데이터 삽입"""
-        query = """
-            INSERT INTO corp (id, name, industry, size, location)
-            VALUES ($1, $2, $3, $4, $5)
-        """
-        await conn.execute(
-            query,
-            data.get('id'),
-            data.get('name'),
-            data.get('industry'),
-            data.get('size'),
-            data.get('location')
-        )
-        return {"message": "기업 데이터 생성 완료", "table": "corp"}
-    
-    async def _insert_all_corp(self, conn, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _insert_all_corporations(self, conn, data: Dict[str, Any]) -> Dict[str, Any]:
         """전체기업 데이터 삽입"""
         query = """
-            INSERT INTO all_corp (id, name, sector, market_cap, employees)
+            INSERT INTO all_corporations (id, stock_code, companyname, market, dart_code)
             VALUES ($1, $2, $3, $4, $5)
         """
         await conn.execute(
             query,
             data.get('id'),
-            data.get('name'),
-            data.get('sector'),
-            data.get('market_cap'),
-            data.get('employees')
+            data.get('stock_code'),
+            data.get('companyname'),
+            data.get('market'),
+            data.get('dart_code')
         )
-        return {"message": "전체기업 데이터 생성 완료", "table": "all_corp"}
+        return {"message": "전체기업 데이터 생성 완료", "table": "all_corporations"}
     
     async def close(self):
         """리소스 정리"""
