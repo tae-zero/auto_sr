@@ -88,7 +88,7 @@ export default function ContactPage() {
             </div>
             <div className="text-center">
               <h3 className="text-lg font-semibold text-gray-800 mb-2">좌우명</h3>
-              <p className="text-gray-600">"안되면 되게하라"</p>
+              <p className="text-gray-600">&ldquo;안되면 되게하라&rdquo;</p>
             </div>
           </div>
         </div>
