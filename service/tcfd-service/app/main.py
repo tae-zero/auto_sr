@@ -13,7 +13,7 @@ if os.getenv("RAILWAY_ENVIRONMENT") != "true":
     load_dotenv("service/tcfd-service/.env")
 
 # 로깅 설정
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 @asynccontextmanager

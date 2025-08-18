@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Q
 from typing import Dict, Any, Optional, List
 import logging
 import json
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.common.database.database import get_db
 
 from app.domain.tcfd.service.tcfd_service import TCFDService
@@ -24,23 +24,32 @@ tcfd_service = TCFDService()
 
 # TCFD 표준 정보 조회 엔드포인트 추가
 @router.get("/standards", response_model=TCFDStandardsListResponse, summary="TCFD 표준 정보 전체 조회")
-def get_tcfd_standards(db: Session = Depends(get_db)):
+async def get_tcfd_standards(db: AsyncSession = Depends(get_db)):
     """TCFD 표준 정보 전체를 조회합니다."""
     try:
-        standards = tcfd_service.get_tcfd_standards(db)
+        logger.info("🔍 TCFD 표준 정보 조회 시작")
+        logger.info(f"🔍 데이터베이스 세션: {db}")
+        
+        standards = await tcfd_service.get_tcfd_standards(db)
+        logger.info(f"✅ TCFD 표준 정보 조회 성공: {len(standards)}개 레코드")
+        
         return {
             "success": True,
             "message": "TCFD 표준 정보 조회 성공",
             "data": standards
         }
     except Exception as e:
+        logger.error(f"❌ TCFD 표준 정보 조회 실패: {str(e)}")
+        logger.error(f"❌ 오류 타입: {type(e).__name__}")
+        import traceback
+        logger.error(f"❌ 스택 트레이스: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"TCFD 표준 정보 조회 실패: {str(e)}")
 
 @router.get("/standards/{category}", response_model=TCFDStandardsListResponse, summary="카테고리별 TCFD 표준 정보 조회")
-def get_tcfd_standards_by_category(category: str, db: Session = Depends(get_db)):
+async def get_tcfd_standards_by_category(category: str, db: AsyncSession = Depends(get_db)):
     """특정 카테고리의 TCFD 표준 정보를 조회합니다."""
     try:
-        standards = tcfd_service.get_tcfd_standards_by_category(db, category)
+        standards = await tcfd_service.get_tcfd_standards_by_category(db, category)
         if not standards:
             return {
                 "success": False,

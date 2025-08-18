@@ -1,33 +1,39 @@
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
 
-# .env 파일 로드 (TCFD service 디렉토리 기준)
-load_dotenv("service/tcfd-service/.env")
+# 환경변수 로드
+if os.getenv("RAILWAY_ENVIRONMENT") != "true":
+    load_dotenv("service/tcfd-service/.env")
 
-# 데이터베이스 URL 설정
+# DATABASE_URL을 asyncpg로 변경
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/tcfd_db")
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-# SQLAlchemy 엔진 생성 (연결 풀 설정 추가)
-engine = create_engine(
+# 비동기 엔진 생성
+engine = create_async_engine(
     DATABASE_URL,
-    pool_pre_ping=True,  # 연결 상태 확인
-    pool_recycle=300,     # 5분마다 연결 재생성
-    echo=False            # SQL 로그 비활성화
+    pool_pre_ping=True,
+    pool_recycle=300,
+    echo=False
 )
 
-# 세션 팩토리 생성
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# 비동기 세션 팩토리
+AsyncSessionLocal = async_sessionmaker(
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False
+)
 
-# Base 클래스 생성
+# Base 클래스
 Base = declarative_base()
 
-# 데이터베이스 세션 의존성
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# 비동기 의존성 함수
+async def get_db() -> AsyncSession:
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
