@@ -161,7 +161,7 @@ export const tcfdAPI = {
   getCompanyFinancialSummary: (companyName: string) => apiClient.get(`/api/v1/tcfd/company-financial-summary?company_name=${encodeURIComponent(companyName)}`),
   getAllCompanies: () => apiClient.get('/api/v1/tcfd/companies'),
   getFinancialData: () => apiClient.get('/api/v1/tcfd/financial-data'),
-  createFinancialData: (data: any) => apiClient.post('/api/v1/tcfd/financial-data', data),
+  createFinancialData: (data: Record<string, unknown>) => apiClient.post('/api/v1/tcfd/financial-data', data),
   getClimateScenarios: () => apiClient.get('/api/v1/tcfd/climate-scenarios'),
   // TCFD 표준 정보 조회 추가
   getTcfdStandards: () => apiClient.get('/api/v1/tcfd/standards'),

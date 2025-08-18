@@ -60,9 +60,6 @@ export default function TcfdSrPage() {
   // 더보기 상태 관리
   const [showAllStates, setShowAllStates] = useState<{ [key: string]: boolean }>({});
   
-  // 연락처 모달 상태
-  const [showContactModal, setShowContactModal] = useState(false);
-
   // 상세보기 모달 상태 추가
   const [selectedScenario, setSelectedScenario] = useState<'ssp2.6' | 'ssp8.5' | null>(null);
   const [isClimateModalOpen, setIsClimateModalOpen] = useState(false);
@@ -138,11 +135,6 @@ export default function TcfdSrPage() {
   };
 
   // 재무 분석 실행 함수는 더 이상 사용하지 않음
-
-  // 연락처 모달 열기
-  const handleContactClick = () => {
-    setShowContactModal(true);
-  };
 
   // 상세보기 모달 열기
   const handleClimateDetails = (scenario: 'ssp2.6' | 'ssp8.5') => {
@@ -650,37 +642,6 @@ export default function TcfdSrPage() {
          </div>
        </div>
        
-       {/* 연락처 모달 */}
-       {showContactModal && (
-         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-           <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
-             <div className="text-center">
-               <h3 className="text-2xl font-bold text-gray-900 mb-6">📞 연락처 정보</h3>
-               <div className="space-y-4 text-left">
-                 <div className="flex items-center">
-                   <span className="text-blue-600 mr-3">📧</span>
-                   <span className="text-gray-700">jty000308@naver.com</span>
-                 </div>
-                 <div className="flex items-center">
-                   <span className="text-green-600 mr-3">📱</span>
-                   <span className="text-gray-700">010-3880-8322</span>
-                 </div>
-                 <div className="flex items-center">
-                   <span className="text-purple-600 mr-3">📍</span>
-                   <span className="text-gray-700">서울특별시</span>
-                 </div>
-               </div>
-               <button
-                 onClick={() => setShowContactModal(false)}
-                 className="mt-6 px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-               >
-                 닫기
-               </button>
-             </div>
-           </div>
-         </div>
-       )}
-
        {/* 기후시나리오 상세보기 모달 */}
        {isClimateModalOpen && selectedScenario && (
          <ClimateScenarioModal
