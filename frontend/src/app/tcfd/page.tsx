@@ -99,7 +99,7 @@ export default function TcfdSrPage() {
     console.log('🔍 인코딩된 회사명:', encodeURIComponent(companyName));
     
     try {
-      const url = `/api/company-financial-data?company_name=${encodeURIComponent(companyName)}`;
+      const url = `/api/v1/tcfd/company-financial-data?company_name=${encodeURIComponent(companyName)}`;
       console.log('🔍 요청 URL:', url);
       
       const response = await apiClient.get(url);
@@ -162,7 +162,13 @@ export default function TcfdSrPage() {
   };
 
   // TCFD 상세보기 모달 열기
-  const handleTcfdDetails = (category: string, data: any) => {
+  const handleTcfdDetails = (category: string, data: {
+    title: string;
+    description: string;
+    disclosures: TCFDStandardData[];
+    color: string;
+    bgColor: string;
+  }) => {
     setSelectedTcfdCategory({
       category,
       title: data.title,
