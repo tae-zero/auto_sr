@@ -53,6 +53,8 @@ services:
       # 하이브리드 모드: TCFD Service만 Railway, 나머지는 로컬 Docker
       - RAILWAY_ENVIRONMENT=false
       - RAILWAY_TCFD_SERVICE_URL=https://tcfd-service-production.up.railway.app
+      - RAILWAY_GRI_SERVICE_URL=https://gri-service-production-b925.up.railway.app
+      - RAILWAY_MATERIALITY_SERVICE_URL=https://materiality-service-production-9a40.up.railway.app
       - USE_RAILWAY_TCFD=true
       - USE_LOCAL_AUTH=true
       - USE_LOCAL_CHATBOT=true
@@ -175,6 +177,68 @@ services:
       - app-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # GRI Report Service (FastAPI)
+  gri-report-service:
+    build:
+      context: ./service/grireport-service
+      dockerfile: Dockerfile
+    container_name: gri-report-service
+    ports:
+      - "8008:8006"
+    volumes:
+      - ./service/grireport-service:/app
+    environment:
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=8006
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - INIT_DATABASE=true
+      # Railway PostgreSQL 연결
+      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+    restart: always
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Materiality Service (FastAPI)
+  materiality-service:
+    build:
+      context: ./service/materiality-service
+      dockerfile: Dockerfile
+    container_name: materiality-service
+    ports:
+      - "8007:8007"
+    volumes:
+      - ./service/materiality-service:/app
+    environment:
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=8007
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - INIT_DATABASE=true
+      # Railway PostgreSQL 연결
+      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+    restart: always
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
       interval: 30s
       timeout: 10s
       retries: 3

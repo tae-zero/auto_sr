@@ -101,16 +101,52 @@ export const aiApi = {
     formData.append('file', file);
     formData.append('description', description);
     
-    return apiClient.post('/api/v1/ai/upload-document', formData, {
+    return apiClient.post('/api/v1/ai/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
   },
+};
+
+// GRI Report Service API
+export const griAPI = {
+  // GRI 서비스 상태 확인
+  healthCheck: () => apiClient.get('/api/v1/gri/health'),
   
-  // 벡터 검색
-  search: (query: string, topK: number = 5) => 
-    apiClient.get(`/api/v1/ai/search?query=${encodeURIComponent(query)}&top_k=${topK}`),
+  // GRI 보고서 목록 조회
+  getReports: (token: string) => apiClient.get('/api/v1/gri/reports', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  }),
+  
+  // GRI 보고서 생성
+  createReport: (data: any, token: string) => apiClient.post('/api/v1/gri/reports', data, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  }),
+  
+  // GRI 인증
+  signup: (data: SignupData): Promise<{ data: AuthResponse }> => apiClient.post('/api/v1/gri/auth/signup', data),
+  login: (data: LoginData): Promise<{ data: AuthResponse }> => apiClient.post('/api/v1/gri/auth/login', data),
+};
+
+// Materiality Service API
+export const materialityAPI = {
+  // Materiality 서비스 상태 확인
+  healthCheck: () => apiClient.get('/api/v1/materiality/health'),
+  
+  // Materiality 분석 목록 조회
+  getAnalyses: (token: string) => apiClient.get('/api/v1/materiality/analyses', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  }),
+  
+  // Materiality 분석 생성
+  createAnalysis: (data: any, token: string) => apiClient.post('/api/v1/materiality/analyses', data, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  }),
+  
+  // Materiality 인증
+  signup: (data: SignupData): Promise<{ data: AuthResponse }> => apiClient.post('/api/v1/materiality/auth/signup', data),
+  login: (data: LoginData): Promise<{ data: AuthResponse }> => apiClient.post('/api/v1/materiality/auth/login', data),
 };
 
 // 요청 인터셉터

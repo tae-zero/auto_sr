@@ -17,14 +17,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 애플리케이션 코드 복사
 COPY . .
 
-# Railway 배포용 포트 설정 (service/gri-service)
-EXPOSE 8003
+# Railway 배포용 포트 설정 (service/grireport-service)
+EXPOSE 8004
 
 # 환경 변수 설정
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 ENV SERVICE_HOST=0.0.0.0
-ENV PORT=8003
+ENV PORT=8004
 
 # Railway의 PORT 환경변수를 사용하여 애플리케이션 실행
-CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8003}"]
+CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8004}"]
