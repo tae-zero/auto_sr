@@ -168,13 +168,29 @@ export const tcfdAPI = {
   getTcfdStandardsByCategory: (category: string) => apiClient.get(`/api/v1/tcfd/standards/${category}`),
 };
 
+// TCFD 입력 데이터 타입
+interface TCFDInputData {
+  company_name: string;
+  user_id?: string;
+  governance_g1?: string;
+  governance_g2?: string;
+  strategy_s1?: string;
+  strategy_s2?: string;
+  strategy_s3?: string;
+  risk_management_r1?: string;
+  risk_management_r2?: string;
+  metrics_targets_m1?: string;
+  metrics_targets_m2?: string;
+  metrics_targets_m3?: string;
+}
+
 // TCFD Report Service API (Gateway를 통한 요청)
 export const tcfdReportAPI = {
   healthCheck: () => apiClient.get('/api/v1/tcfdreport/health'),
   getCompanyFinancialData: (companyName: string) => apiClient.get(`/api/v1/tcfdreport/company-financial-data?company_name=${encodeURIComponent(companyName)}`),
   getTcfdStandards: () => apiClient.get('/api/v1/tcfdreport/standards'),
   // TCFD 입력 데이터 관련 API
-  createTcfdInput: (data: any) => apiClient.post('/api/v1/tcfdreport/inputs', data),
+  createTcfdInput: (data: TCFDInputData) => apiClient.post('/api/v1/tcfdreport/inputs', data),
   getTcfdInputs: () => apiClient.get('/api/v1/tcfdreport/inputs'),
 };
 

@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
 # Python 의존성 파일 복사 및 설치 (배포용)
 COPY requirements.prod.txt .
 RUN pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir --timeout 300 -r requirements.prod.txt
+    pip install --no-cache-dir --timeout 600 --retries 3 -r requirements.prod.txt
 
 # 애플리케이션 코드 복사
 COPY . .
