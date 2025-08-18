@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ClimateScenarioModal from '@/components/ClimateScenarioModal';
+import { apiClient } from '@/services/api';
 import axios from 'axios';
 
 // TCFD 표준 데이터 타입 정의
@@ -74,7 +75,7 @@ export default function TcfdSrPage() {
     // 회사 목록은 더 이상 로드하지 않음
   };
 
-  // 회사별 재무정보 로드 (axios 사용)
+  // 회사별 재무정보 로드 (apiClient 사용)
   const loadCompanyFinancialData = async (companyName: string) => {
     if (!companyName.trim()) return;
     
@@ -89,7 +90,7 @@ export default function TcfdSrPage() {
       const url = `/api/company-financial-data?company_name=${encodeURIComponent(companyName)}`;
       console.log('🔍 요청 URL:', url);
       
-      const response = await axios.get(url);
+      const response = await apiClient.get(url);
       console.log('🔍 응답 상태:', response.status);
       console.log('🔍 응답 데이터:', response.data);
       
@@ -148,16 +149,16 @@ export default function TcfdSrPage() {
     setSelectedScenario(null);
   };
 
-  // TCFD 표준 데이터 불러오기 (axios 사용)
+  // TCFD 표준 데이터 불러오기 (apiClient 사용)
   useEffect(() => {
     if (activeTab === 3) { // TCFD 프레임워크 탭일 때만 데이터 로드
       const fetchTcfdStandards = async () => {
         setIsLoadingTcfd(true);
         setTcfdError(null);
         try {
-          // tcfdAPI 대신 직접 axios 사용
-          const response = await axios.get('/api/v1/tcfd/standards');
-          const data: TCFDStandardData[] = response.data;  // ✅ response.data.data 제거
+          // apiClient 사용 (Gateway를 통해 요청)
+          const response = await apiClient.get('/api/v1/tcfd/standards');
+          const data: TCFDStandardData[] = response.data;
 
           // 데이터를 카테고리별로 그룹화하고 TCFD 프레임워크에 맞게 구성
           const frameworkData: TCFDFrameworkData = {
