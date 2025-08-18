@@ -10,7 +10,7 @@ from datetime import datetime
 # TCFD 표준 정보 스키마
 class TCFDStandardResponse(BaseModel):
     """TCFD 표준 정보 응답 스키마"""
-    id: int = Field(..., description="TCFD 표준 ID")
+    # id 필드 제거 (실제 DB에 없음)
     category: str = Field(..., description="카테고리")
     disclosure_id: str = Field(..., description="공개 ID")
     disclosure_summary: str = Field(..., description="공개 요약")

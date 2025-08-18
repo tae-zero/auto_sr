@@ -17,8 +17,8 @@ class User(Base):
 
 class TCFDStandard(Base):
     __tablename__ = "tcfd_standard"
-    id = Column(Integer, primary_key=True, index=True)
-    category = Column(String, index=True)
-    disclosure_id = Column(String)
+    # id 컬럼 제거 (실제 DB에 없음)
+    category = Column(String, primary_key=True, index=True)
+    disclosure_id = Column(String, primary_key=True, index=True)
     disclosure_summary = Column(Text)
     disclosure_detail = Column(Text)

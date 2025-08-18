@@ -7,7 +7,7 @@ import axios from 'axios';
 
 // TCFD 표준 데이터 타입 정의
 interface TCFDStandardData {
-  id: number;
+  // id 필드 제거 (실제 DB에 없음)
   category: string;
   disclosure_id: string;
   disclosure_summary: string;
@@ -529,8 +529,8 @@ export default function TcfdSrPage() {
                         {data.disclosures.length > 0 && (
                           <div className="space-y-3">
                             <h5 className="font-medium text-gray-800 mb-2">공개 요구사항:</h5>
-                            {data.disclosures.map((disclosure) => (
-                              <div key={disclosure.id} className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
+                            {data.disclosures.map((disclosure, index) => (
+                              <div key={`${disclosure.category}-${disclosure.disclosure_id}-${index}`} className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
                                 <h6 className="font-semibold text-gray-800 mb-1">{disclosure.disclosure_id}</h6>
                                 <p className="text-sm text-gray-700 mb-1">{disclosure.disclosure_summary}</p>
                                 <p className="text-xs text-gray-500">{disclosure.disclosure_detail}</p>
