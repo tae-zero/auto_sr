@@ -68,8 +68,17 @@ export default function Home() {
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
         </svg>
       ),
-      title: "gri-materiality",
-      description: "GRI 기준으로 materiality 분석을 해볼까?"
+      title: "GRI",
+      description: "GRI 기준으로 지속가능성 보고서 작성해볼까?"
+    },
+    {
+      icon: (
+        <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+      ),
+      title: "Materiality",
+      description: "Materiality 분석으로 핵심 이슈를 파악해볼까?"
     }
   ];
 
