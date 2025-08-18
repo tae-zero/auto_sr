@@ -248,6 +248,13 @@ export default function Home() {
                          MORE
                        </button>
                      </Link>
+                   ) : item.title === "재무대시보드" ? (
+                     <button 
+                       onClick={() => window.open('https://finance-dashboard-git-main-jeongtaeyeongs-projects.vercel.app', '_blank')}
+                       className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                     >
+                       MORE
+                     </button>
                    ) : (
                      <button className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
                        MORE
@@ -265,7 +272,7 @@ export default function Home() {
       {/* 푸터 */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <h3 className="text-xl font-bold mb-4">정태영의 인생사</h3>
               <p className="text-gray-400">
@@ -277,15 +284,6 @@ export default function Home() {
               <ul className="space-y-2 text-gray-400">
                 <li><Link href="/login" className="hover:text-white">로그인</Link></li>
                 <li><Link href="/signup" className="hover:text-white">회원가입</Link></li>
-                <li><a href="http://localhost:8080/docs" target="_blank" rel="noopener noreferrer" className="hover:text-white">API 문서</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">시스템</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="http://localhost:8080/health" target="_blank" rel="noopener noreferrer" className="hover:text-white">헬스 체크</a></li>
-                <li><a href="http://localhost:8080/" target="_blank" rel="noopener noreferrer" className="hover:text-white">Gateway API</a></li>
-                <li><a href="http://localhost:3000" className="hover:text-white">프론트엔드</a></li>
               </ul>
             </div>
             <div>
