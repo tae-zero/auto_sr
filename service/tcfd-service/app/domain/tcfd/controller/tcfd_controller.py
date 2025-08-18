@@ -24,7 +24,7 @@ tcfd_service = TCFDService()
 
 # TCFD 표준 정보 조회 엔드포인트 추가
 @router.get("/standards", response_model=TCFDStandardsListResponse, summary="TCFD 표준 정보 전체 조회")
-async def get_tcfd_standards(db: Session = Depends(get_db)):
+def get_tcfd_standards(db: Session = Depends(get_db)):
     """TCFD 표준 정보 전체를 조회합니다."""
     try:
         standards = tcfd_service.get_tcfd_standards(db)
@@ -37,7 +37,7 @@ async def get_tcfd_standards(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"TCFD 표준 정보 조회 실패: {str(e)}")
 
 @router.get("/standards/{category}", response_model=TCFDStandardsListResponse, summary="카테고리별 TCFD 표준 정보 조회")
-async def get_tcfd_standards_by_category(category: str, db: Session = Depends(get_db)):
+def get_tcfd_standards_by_category(category: str, db: Session = Depends(get_db)):
     """특정 카테고리의 TCFD 표준 정보를 조회합니다."""
     try:
         standards = tcfd_service.get_tcfd_standards_by_category(db, category)
