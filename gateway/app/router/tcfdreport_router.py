@@ -76,11 +76,11 @@ async def get_company_financial_data(request: Request, company_name: str):
                 host = f"http://{host}"
         
         logger.info(f"🌐 TCFD Report Service URL: {host}")
-        logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfd/company-financial-data")
+        logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfdreport/company-financial-data")
         
         async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.get(
-                f"{host}/api/v1/tcfd/company-financial-data",
+                f"{host}/api/v1/tcfdreport/company-financial-data",
                 params={"company_name": company_name}
             )
             response.raise_for_status()
@@ -121,10 +121,10 @@ async def get_tcfd_standards(request: Request):
                 host = f"http://{host}"
         
         logger.info(f"🌐 TCFD Report Service URL: {host}")
-        logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfd/standards")
+        logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfdreport/standards")
         
         async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.get(f"{host}/api/v1/tcfd/standards")
+            response = await client.get(f"{host}/api/v1/tcfdreport/standards")
             response.raise_for_status()
             response_data = response.json()
             logger.info(f"✅ TCFD Report Service 응답 데이터: {response_data}")
@@ -163,10 +163,10 @@ async def create_tcfd_input(request: Request, data: dict):
                 host = f"http://{host}"
         
         logger.info(f"🌐 TCFD Report Service URL: {host}")
-        logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfd/inputs")
+        logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfdreport/inputs")
         
         async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(f"{host}/api/v1/tcfd/inputs", json=data)
+            response = await client.post(f"{host}/api/v1/tcfdreport/inputs", json=data)
             response.raise_for_status()
             response_data = response.json()
             logger.info(f"✅ TCFD Report Service 응답 데이터: {response_data}")

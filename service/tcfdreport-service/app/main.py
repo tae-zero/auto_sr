@@ -74,6 +74,14 @@ try:
 except ImportError:
     print("⚠️ RAG 라우터 사용 불가: 필요한 패키지가 설치되지 않음")
 
+# TCFD 입력 데이터 라우터 포함
+try:
+    from app.domain.tcfd.controller.tcfd_input_controller import router as tcfd_input_router
+    app.include_router(tcfd_input_router)
+    print("✅ TCFD 입력 데이터 라우터 로드 완료")
+except ImportError as e:
+    print(f"⚠️ TCFD 입력 데이터 라우터 사용 불가: {str(e)}")
+
 # 헬스 체크
 @app.get("/health")
 async def health_check():
@@ -101,5 +109,6 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("SERVICE_PORT", 8004))
+    # Railway에서는 PORT 환경변수 사용, 로컬에서는 8004 사용
+    port = int(os.getenv("PORT", 8004))
     uvicorn.run(app, host="0.0.0.0", port=port)
