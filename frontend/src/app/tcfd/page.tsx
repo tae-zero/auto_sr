@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import ClimateScenarioModal from '@/components/ClimateScenarioModal';
 import { tcfdAPI } from '@/services/api';
+import axios from 'axios';
 
 // TCFD 표준 데이터 타입 정의
 interface TCFDStandardData {
@@ -74,7 +75,7 @@ export default function TcfdSrPage() {
     // 회사 목록은 더 이상 로드하지 않음
   };
 
-  // 회사별 재무정보 로드
+  // 회사별 재무정보 로드 (axios 사용)
   const loadCompanyFinancialData = async (companyName: string) => {
     if (!companyName.trim()) return;
     
@@ -89,39 +90,39 @@ export default function TcfdSrPage() {
       const url = `/api/company-financial-data?company_name=${encodeURIComponent(companyName)}`;
       console.log('🔍 요청 URL:', url);
       
-      const response = await fetch(url);
+      const response = await axios.get(url);
       console.log('🔍 응답 상태:', response.status);
+      console.log('🔍 응답 데이터:', response.data);
       
-      if (!response.ok) {
-        throw new Error(`회사별 재무정보 로드 실패: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('🔍 응답 데이터:', data);
+      const data = response.data;
       
       if (data.success === false) {
         throw new Error(data.error || '재무정보를 불러올 수 없습니다');
       }
       
-             setCompanyFinancialData(data);
-       console.log('✅ 데이터 설정 완료:', data);
-       console.log('✅ 데이터 구조 확인:');
-       console.log('  - success:', data.success);
-       console.log('  - company_name:', data.company_name);
-       console.log('  - total_records:', data.total_records);
-       console.log('  - tables:', data.tables);
-       console.log('  - data keys:', Object.keys(data.data || {}));
-       console.log('  - employee data length:', data.data?.employee?.length);
-       console.log('  - profit data length:', data.data?.profit?.length);
-       console.log('  - executive data length:', data.data?.executive?.length);
-       console.log('  - financial data length:', data.data?.financial?.length);
-       console.log('  - corporation data length:', data.data?.corporation?.length);
-       
-       // 재무정보 로드 완료 시 자동으로 재무정보 탭으로 이동
-       setActiveTab(2);
+      setCompanyFinancialData(data);
+      console.log('✅ 데이터 설정 완료:', data);
+      console.log('✅ 데이터 구조 확인:');
+      console.log('  - success:', data.success);
+      console.log('  - company_name:', data.company_name);
+      console.log('  - total_records:', data.total_records);
+      console.log('  - tables:', data.tables);
+      console.log('  - data keys:', Object.keys(data.data || {}));
+      console.log('  - employee data length:', data.data?.employee?.length);
+      console.log('  - profit data length:', data.data?.profit?.length);
+      console.log('  - executive data length:', data.data?.executive?.length);
+      console.log('  - financial data length:', data.data?.financial?.length);
+      console.log('  - corporation data length:', data.data?.corporation?.length);
+      
+      // 재무정보 로드 완료 시 자동으로 재무정보 탭으로 이동
+      setActiveTab(2);
     } catch (error) {
       console.error('❌ 오류 발생:', error);
-      setCompanyError(error instanceof Error ? error.message : '알 수 없는 오류');
+      if (axios.isAxiosError(error)) {
+        setCompanyError(`재무정보 로드 실패: ${error.response?.status} - ${error.message}`);
+      } else {
+        setCompanyError(error instanceof Error ? error.message : '알 수 없는 오류');
+      }
     } finally {
       setIsLoadingCompany(false);
     }
@@ -148,15 +149,16 @@ export default function TcfdSrPage() {
     setSelectedScenario(null);
   };
 
-  // TCFD 표준 데이터 불러오기
+  // TCFD 표준 데이터 불러오기 (axios 사용)
   useEffect(() => {
     if (activeTab === 3) { // TCFD 프레임워크 탭일 때만 데이터 로드
       const fetchTcfdStandards = async () => {
         setIsLoadingTcfd(true);
         setTcfdError(null);
         try {
-          const response = await tcfdAPI.getTcfdStandards();
-          const data: TCFDStandardData[] = response.data;
+          // tcfdAPI 대신 직접 axios 사용
+          const response = await axios.get('/api/v1/tcfd/standards');
+          const data: TCFDStandardData[] = response.data.data;
 
           // 데이터를 카테고리별로 그룹화하고 TCFD 프레임워크에 맞게 구성
           const frameworkData: TCFDFrameworkData = {
@@ -200,7 +202,11 @@ export default function TcfdSrPage() {
           setTcfdStandards(frameworkData);
         } catch (err) {
           console.error("Failed to fetch TCFD standards:", err);
-          setTcfdError("TCFD 표준 정보를 불러오는 데 실패했습니다.");
+          if (axios.isAxiosError(err)) {
+            setTcfdError(`TCFD 표준 정보 로드 실패: ${err.response?.status} - ${err.message}`);
+          } else {
+            setTcfdError("TCFD 표준 정보를 불러오는 데 실패했습니다.");
+          }
         } finally {
           setIsLoadingTcfd(false);
         }
