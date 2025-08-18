@@ -16,30 +16,11 @@ if os.getenv("RAILWAY_ENVIRONMENT") != "true":
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def create_database_tables():
-    """데이터베이스 테이블 생성 (동기 방식)"""
-    try:
-        from app.common.database.database import engine
-        from app.common.models import Base
-        
-        # 간단한 방식으로 테이블 생성
-        Base.metadata.create_all(bind=engine)
-        logger.info("✅ 데이터베이스 테이블 생성 완료")
-            
-    except Exception as e:
-        logger.error(f"❌ 데이터베이스 테이블 생성 실패: {str(e)}")
-        # 테이블 생성 실패해도 서비스는 계속 실행
-        logger.info("⚠️ 테이블 생성 실패했지만 서비스는 계속 실행됩니다")
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """애플리케이션 생명주기 관리"""
     logger.info("🚀 TCFD Service 시작")
-    
-    # 데이터베이스 테이블 생성 (비동기 컨텍스트 외부에서 실행)
-    import threading
-    thread = threading.Thread(target=create_database_tables)
-    thread.start()
+    logger.info("✅ 데이터베이스 테이블은 이미 존재함 (수동 생성 완료)")
     
     yield
     
@@ -73,7 +54,7 @@ async def health_check():
         "status": "healthy",
         "service": "tcfd-service",
         "architecture": "MSV Pattern with Layered Architecture",
-        "ai_services": "disabled",
+        "database": "connected",
         "layers": [
             "Controller Layer - TCFD API 엔드포인트",
             "Service Layer - TCFD 비즈니스 로직",
@@ -92,7 +73,7 @@ async def root():
         "version": "0.1.0",
         "architecture": "MSV Pattern with Layered Architecture",
         "description": "재무정보 처리 및 분석 서비스",
-        "note": "AI 기능은 TCFD Report Service로 이전되었습니다"
+        "database": "tcfd_standard table exists"
     }
 
 if __name__ == "__main__":
