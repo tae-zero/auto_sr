@@ -734,7 +734,7 @@ export default function TcfdSrPage() {
                               R1: 기후 관련 위험 식별 및 평가 프로세스
                             </label>
                             <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="조직이 기후 관련 위험을 식별, 평가, 관리하는 프로세스를 설명하세요..."
                             />
@@ -748,13 +748,27 @@ export default function TcfdSrPage() {
                               R2: 위험 관리 프로세스 통합
                             </label>
                             <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="조직의 전반적인 위험 관리 프로세스에 기후 관련 위험을 통합하는 방법을 설명하세요..."
                             />
                             <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                               <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
                               <p className="text-xs text-black">&ldquo;기후 관련 위험은 기존 ERM(Enterprise Risk Management) 프레임워크에 통합하여 전사적 위험 관리 체계의 일부로 운영하고 있습니다.&rdquo;</p>
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              R3: 기후 관련 위험을 전사적 위험 관리 프로세스에 통합
+                            </label>
+                            <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                              rows={3}
+                              placeholder="기후 관련 위험을 조직의 전사적 위험 관리 프로세스에 어떻게 통합하고 있는지 설명하세요..."
+                            />
+                            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                              <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
+                              <p className="text-xs text-black">&ldquo;기후 관련 위험은 분기별 전사적 위험 평가에 포함되어 있으며, 위험도와 영향도를 정량적으로 평가하여 리스크 매트릭스에 반영하고 있습니다.&rdquo;</p>
                             </div>
                           </div>
                         </div>
@@ -769,7 +783,7 @@ export default function TcfdSrPage() {
                               M1: 기후 관련 위험 평가 지표
                             </label>
                             <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="조직이 기후 관련 위험과 기회를 평가하는 데 사용하는 지표를 설명하세요..."
                             />
@@ -783,7 +797,7 @@ export default function TcfdSrPage() {
                               M2: 기후 관련 기회 평가 지표
                             </label>
                             <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="기후 관련 위험과 기회를 평가하는 데 사용하는 지표를 설명하세요..."
                             />
@@ -797,7 +811,7 @@ export default function TcfdSrPage() {
                               M3: 기후 관련 목표 설정
                             </label>
                             <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="조직이 기후 관련 위험과 기회를 평가하는 데 사용하는 목표를 설명하세요..."
                             />
