@@ -30,20 +30,10 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"❌ 데이터베이스 테이블 생성 실패: {str(e)}")
     
-    # 데이터베이스 연결 풀 초기화
-    try:
-        from app.domain.tcfd.repository.tcfd_repository import TCFDRepository
-        app.state.repository = TCFDRepository()
-        logger.info("✅ 데이터베이스 연결 풀 초기화 완료")
-    except Exception as e:
-        logger.error(f"❌ 데이터베이스 연결 풀 초기화 실패: {str(e)}")
-    
     yield
     
     # 리소스 정리
     logger.info("🛑 TCFD Service 종료")
-    if hasattr(app.state, 'repository'):
-        await app.state.repository.close()
 
 app = FastAPI(
     title="TCFD Service",

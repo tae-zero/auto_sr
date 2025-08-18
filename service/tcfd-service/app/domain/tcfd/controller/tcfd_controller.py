@@ -22,6 +22,40 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/tcfd", tags=["TCFD"])
 tcfd_service = TCFDService()
 
+# TCFD 표준 정보 조회 엔드포인트 추가
+@router.get("/standards", response_model=TCFDStandardsListResponse, summary="TCFD 표준 정보 전체 조회")
+async def get_tcfd_standards(db: Session = Depends(get_db)):
+    """TCFD 표준 정보 전체를 조회합니다."""
+    try:
+        standards = tcfd_service.get_tcfd_standards(db)
+        return {
+            "success": True,
+            "message": "TCFD 표준 정보 조회 성공",
+            "data": standards
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"TCFD 표준 정보 조회 실패: {str(e)}")
+
+@router.get("/standards/{category}", response_model=TCFDStandardsListResponse, summary="카테고리별 TCFD 표준 정보 조회")
+async def get_tcfd_standards_by_category(category: str, db: Session = Depends(get_db)):
+    """특정 카테고리의 TCFD 표준 정보를 조회합니다."""
+    try:
+        standards = tcfd_service.get_tcfd_standards_by_category(db, category)
+        if not standards:
+            return {
+                "success": False,
+                "message": f"'{category}' 카테고리의 TCFD 표준 정보를 찾을 수 없습니다.",
+                "data": []
+            }
+        
+        return {
+            "success": True,
+            "message": f"'{category}' 카테고리 TCFD 표준 정보 조회 성공",
+            "data": standards
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"카테고리별 TCFD 표준 정보 조회 실패: {str(e)}")
+
 @router.get("/health")
 async def health_check():
     """TCFD Service 상태 확인"""
@@ -189,36 +223,3 @@ async def get_climate_scenarios():
     except Exception as e:
         logger.error(f"기후 시나리오 조회 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-
-@router.get("/standards", response_model=TCFDStandardsListResponse, summary="TCFD 표준 정보 전체 조회")
-async def get_tcfd_standards(db: Session = Depends(get_db)):
-    """TCFD 표준 정보 전체를 조회합니다."""
-    try:
-        standards = tcfd_service.get_tcfd_standards(db)
-        return {
-            "success": True,
-            "message": "TCFD 표준 정보 조회 성공",
-            "data": standards
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"TCFD 표준 정보 조회 실패: {str(e)}")
-
-@router.get("/standards/{category}", response_model=TCFDStandardsListResponse, summary="카테고리별 TCFD 표준 정보 조회")
-async def get_tcfd_standards_by_category(category: str, db: Session = Depends(get_db)):
-    """특정 카테고리의 TCFD 표준 정보를 조회합니다."""
-    try:
-        standards = tcfd_service.get_tcfd_standards_by_category(db, category)
-        if not standards:
-            return {
-                "success": False,
-                "message": f"'{category}' 카테고리의 TCFD 표준 정보를 찾을 수 없습니다.",
-                "data": []
-            }
-        
-        return {
-            "success": True,
-            "message": f"'{category}' 카테고리 TCFD 표준 정보 조회 성공",
-            "data": standards
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"카테고리별 TCFD 표준 정보 조회 실패: {str(e)}")

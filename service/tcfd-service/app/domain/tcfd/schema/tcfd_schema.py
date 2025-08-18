@@ -7,6 +7,24 @@ from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
+# TCFD 표준 정보 스키마
+class TCFDStandardResponse(BaseModel):
+    """TCFD 표준 정보 응답 스키마"""
+    id: int = Field(..., description="TCFD 표준 ID")
+    category: str = Field(..., description="카테고리")
+    disclosure_id: str = Field(..., description="공개 ID")
+    disclosure_summary: str = Field(..., description="공개 요약")
+    disclosure_detail: str = Field(..., description="공개 상세")
+
+    class Config:
+        from_attributes = True
+
+class TCFDStandardsListResponse(BaseModel):
+    """TCFD 표준 정보 목록 응답 스키마"""
+    success: bool = Field(..., description="성공 여부")
+    message: str = Field(..., description="응답 메시지")
+    data: List[TCFDStandardResponse] = Field(..., description="TCFD 표준 정보 목록")
+
 class TCFDReport(BaseModel):
     """TCFD 보고서 스키마"""
     report_id: str = Field(..., description="보고서 ID")
