@@ -8,8 +8,13 @@ import logging
 import os
 from dotenv import load_dotenv
 
-# RAG 서비스 import
-from app.domain.tcfd.rag_service import RAGService
+# RAG 서비스 import (조건부)
+try:
+    from app.domain.tcfd.rag_service import RAGService
+    RAG_AVAILABLE = True
+except ImportError:
+    RAG_AVAILABLE = False
+    print("⚠️ RAG 서비스 사용 불가: chromadb 등 필요한 패키지가 설치되지 않음")
 
 # 환경변수 로드
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
@@ -24,17 +29,20 @@ async def lifespan(app: FastAPI):
     """애플리케이션 생명주기 관리"""
     logger.info("🚀 TCFD Report Service 시작")
     
-    # RAG 서비스 초기화
-    try:
-        app.state.rag_service = RAGService()
-        rag_initialized = await app.state.rag_service.initialize_embeddings()
-        if rag_initialized:
-            logger.info("✅ RAG 서비스 초기화 완료")
-        else:
-            logger.warning("⚠️ RAG 서비스 초기화 실패")
-            
-    except Exception as e:
-        logger.error(f"❌ RAG 서비스 초기화 실패: {str(e)}")
+    # RAG 서비스 초기화 (조건부)
+    if RAG_AVAILABLE:
+        try:
+            app.state.rag_service = RAGService()
+            rag_initialized = await app.state.rag_service.initialize_embeddings()
+            if rag_initialized:
+                logger.info("✅ RAG 서비스 초기화 완료")
+            else:
+                logger.warning("⚠️ RAG 서비스 초기화 실패")
+                
+        except Exception as e:
+            logger.error(f"❌ RAG 서비스 초기화 실패: {str(e)}")
+    else:
+        logger.warning("⚠️ RAG 서비스 사용 불가: 필요한 패키지가 설치되지 않음")
     
     yield
     
@@ -59,10 +67,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# RAG 라우터 포함
-from app.domain.tcfd.controller.rag_controller import router as rag_router
-
-app.include_router(rag_router)
+# RAG 라우터 포함 (조건부)
+try:
+    from app.domain.tcfd.controller.rag_controller import router as rag_router
+    app.include_router(rag_router)
+except ImportError:
+    print("⚠️ RAG 라우터 사용 불가: 필요한 패키지가 설치되지 않음")
 
 # 헬스 체크
 @app.get("/health")
