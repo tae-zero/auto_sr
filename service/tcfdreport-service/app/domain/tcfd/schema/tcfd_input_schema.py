@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from ..entity.tcfd_input_entity import TCFDInputEntity
 
 class TCFDInputCreateSchema(BaseModel):
     """TCFD 입력 데이터 생성 스키마"""
@@ -67,6 +68,28 @@ class TCFDInputResponseSchema(BaseModel):
     
     created_at: datetime = Field(..., description="생성일시")
     updated_at: datetime = Field(..., description="수정일시")
+    
+    @classmethod
+    def from_entity(cls, entity: TCFDInputEntity) -> 'TCFDInputResponseSchema':
+        """Entity에서 Schema 생성"""
+        return cls(
+            id=entity.id,
+            company_name=entity.company_name,
+            user_id=entity.user_id,
+            governance_g1=entity.governance_g1,
+            governance_g2=entity.governance_g2,
+            strategy_s1=entity.strategy_s1,
+            strategy_s2=entity.strategy_s2,
+            strategy_s3=entity.strategy_s3,
+            risk_management_r1=entity.risk_management_r1,
+            risk_management_r2=entity.risk_management_r2,
+            risk_management_r3=entity.risk_management_r3,
+            metrics_targets_m1=entity.metrics_targets_m1,
+            metrics_targets_m2=entity.metrics_targets_m2,
+            metrics_targets_m3=entity.metrics_targets_m3,
+            created_at=entity.created_at,
+            updated_at=entity.updated_at
+        )
     
     class Config:
         from_attributes = True

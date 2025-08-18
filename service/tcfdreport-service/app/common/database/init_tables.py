@@ -13,6 +13,10 @@ async def init_tables(database_url: str):
         # 데이터베이스 연결
         conn = await asyncpg.connect(database_url)
         
+        # 기존 테이블 삭제 (필드명 불일치 문제 해결을 위해)
+        await conn.execute("DROP TABLE IF EXISTS tcfd_inputs CASCADE;")
+        logger.info("✅ 기존 tcfd_inputs 테이블 삭제 완료")
+        
         # TCFD 입력 데이터 테이블 생성
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS tcfd_inputs (
