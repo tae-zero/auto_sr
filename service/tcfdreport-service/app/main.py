@@ -109,6 +109,9 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    # Railway에서는 PORT 환경변수 사용, 로컬에서는 8004 사용
-    port = int(os.getenv("PORT", 8004))
+    # Railway 환경에서는 PORT 환경변수 사용, 로컬에서는 8004 사용
+    if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+        port = int(os.getenv("PORT", 8004))
+    else:
+        port = 8004
     uvicorn.run(app, host="0.0.0.0", port=port)

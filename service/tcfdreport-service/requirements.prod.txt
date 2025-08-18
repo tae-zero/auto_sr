@@ -7,6 +7,7 @@ python-dotenv==1.0.1
 # DB & Async (기본)
 asyncpg==0.29.0
 httpx==0.27.0
+sqlalchemy==2.0.23
 
 # Utility (기본)
 pydantic==2.7.4

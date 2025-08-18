@@ -31,9 +31,9 @@ ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 # SERVICE_PORT는 Railway에서 설정하므로 여기서는 설정하지 않음
 
-# 헬스체크 (동적 포트 사용)
+# 헬스체크 (포트 하드코딩)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8004}/health || exit 1
+    CMD curl -f http://localhost:8004/health || exit 1
 
-# 애플리케이션 실행 (PORT 환경변수 사용)
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "${PORT:-8004}"]
+# 애플리케이션 실행 (포트 하드코딩)
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8004"]

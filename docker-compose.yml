@@ -152,13 +152,13 @@ services:
       dockerfile: Dockerfile
     container_name: tcfd-report-service
     ports:
-      - "8006:8006"
+      - "8004:8004"
     volumes:
       - ./service/tcfdreport-service:/app
       - tcfd_chroma_data:/app/chroma_db
     environment:
       - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8006
+      - SERVICE_PORT=8004
       - LOG_LEVEL=INFO
       - PYTHONUNBUFFERED=1
       # AI 및 LangChain 설정
@@ -176,7 +176,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
       interval: 30s
       timeout: 10s
       retries: 3
