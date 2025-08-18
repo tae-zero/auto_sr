@@ -91,5 +91,5 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("SERVICE_PORT", 8006))
+    port = int(os.getenv("SERVICE_PORT", 8004))
     uvicorn.run(app, host="0.0.0.0", port=port)
