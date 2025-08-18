@@ -156,9 +156,15 @@ export default function TcfdSrPage() {
         setIsLoadingTcfd(true);
         setTcfdError(null);
         try {
-          // apiClient 사용 (Gateway를 통해 요청)
-          const response = await apiClient.get('/api/v1/tcfd/standards');
-          const data: TCFDStandardData[] = response.data;
+                     // apiClient 사용 (Gateway를 통해 요청)
+           const response = await apiClient.get('/api/v1/tcfd/standards');
+           console.log('🔍 TCFD 응답 전체:', response.data);
+           
+           // 응답 구조에 맞게 data 추출
+           const responseData = response.data;
+           const data: TCFDStandardData[] = responseData.data || [];
+           
+           console.log('🔍 TCFD 데이터 배열:', data);
 
           // 데이터를 카테고리별로 그룹화하고 TCFD 프레임워크에 맞게 구성
           const frameworkData: TCFDFrameworkData = {
