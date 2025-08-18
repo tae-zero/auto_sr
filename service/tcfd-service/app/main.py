@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 # 환경변수 로드
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
-    load_dotenv()
+    load_dotenv("service/tcfd-service/.env")
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -20,6 +20,15 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """애플리케이션 생명주기 관리"""
     logger.info("🚀 TCFD Service 시작")
+    
+    # 데이터베이스 테이블 생성
+    try:
+        from app.common.database.database import engine
+        from app.common.models import Base
+        Base.metadata.create_all(bind=engine)
+        logger.info("✅ 데이터베이스 테이블 생성 완료")
+    except Exception as e:
+        logger.error(f"❌ 데이터베이스 테이블 생성 실패: {str(e)}")
     
     # 데이터베이스 연결 풀 초기화
     try:
