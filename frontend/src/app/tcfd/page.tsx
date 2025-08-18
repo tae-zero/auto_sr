@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import ClimateScenarioModal from '@/components/ClimateScenarioModal';
 import TCFDDetailModal from '@/components/TCFDDetailModal';
-import { apiClient } from '@/services/api';
+import { apiClient, tcfdReportAPI } from '@/services/api';
 import axios from 'axios';
 
 // TCFD 표준 데이터 타입 정의
@@ -81,6 +81,22 @@ export default function TcfdSrPage() {
   const [tcfdStandards, setTcfdStandards] = useState<TCFDFrameworkData>({});
   const [isLoadingTcfd, setIsLoadingTcfd] = useState(false);
   const [tcfdError, setTcfdError] = useState<string | null>(null);
+  
+  // TCFD 입력 데이터 상태 관리
+  const [tcfdInputData, setTcfdInputData] = useState({
+    governance_g1: '',
+    governance_g2: '',
+    strategy_s1: '',
+    strategy_s2: '',
+    strategy_s3: '',
+    risk_management_r1: '',
+    risk_management_r2: '',
+    risk_management_r3: '',
+    metrics_targets_m1: '',
+    metrics_targets_m2: '',
+    metrics_targets_m3: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 회사 목록 로드 (사용하지 않음)
   const loadCompanies = async () => {
@@ -159,6 +175,59 @@ export default function TcfdSrPage() {
   const closeClimateModal = () => {
     setIsClimateModalOpen(false);
     setSelectedScenario(null);
+  };
+  
+  // TCFD 입력 데이터 변경 핸들러
+  const handleTcfdInputChange = (field: string, value: string) => {
+    setTcfdInputData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+  
+  // TCFD 데이터 제출 함수
+  const handleTcfdSubmit = async () => {
+    if (!companyFinancialData?.company_name) {
+      alert('회사 정보가 필요합니다. 먼저 회사를 검색해주세요.');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      const submitData = {
+        company_name: companyFinancialData.company_name,
+        user_id: 'user123', // 임시 사용자 ID
+        ...tcfdInputData
+      };
+      
+      console.log('📤 TCFD 데이터 제출:', submitData);
+      
+      const response = await tcfdReportAPI.createTcfdInput(submitData);
+      console.log('✅ TCFD 데이터 저장 성공:', response.data);
+      
+      alert('TCFD 데이터가 성공적으로 저장되었습니다!');
+      
+      // 입력 필드 초기화
+      setTcfdInputData({
+        governance_g1: '',
+        governance_g2: '',
+        strategy_s1: '',
+        strategy_s2: '',
+        strategy_s3: '',
+        risk_management_r1: '',
+        risk_management_r2: '',
+        risk_management_r3: '',
+        metrics_targets_m1: '',
+        metrics_targets_m2: '',
+        metrics_targets_m3: ''
+      });
+      
+    } catch (error) {
+      console.error('❌ TCFD 데이터 저장 실패:', error);
+      alert('TCFD 데이터 저장에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // TCFD 상세보기 모달 열기
@@ -649,11 +718,13 @@ export default function TcfdSrPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               G1: 기후 관련 위험과 기회에 대한 이사회 감독
                             </label>
-                                                         <textarea
-                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-                               rows={3}
-                               placeholder="이사회가 기후 관련 위험과 기회를 어떻게 감독하고 있는지 설명하세요..."
-                             />
+                                                                                     <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                              rows={3}
+                              placeholder="이사회가 기후 관련 위험과 기회를 어떻게 감독하고 있는지 설명하세요..."
+                              value={tcfdInputData.governance_g1}
+                              onChange={(e) => handleTcfdInputChange('governance_g1', e.target.value)}
+                            />
                              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                <p className="text-xs text-blue-700 font-medium mb-1">💡 예시:</p>
                                                                <p className="text-xs text-black">&ldquo;이사회는 기후변화 관련 주요 리스크와 기회를 정기적으로 검토하며, 연 2회 이상 ESG 위원회를 통해 관련 안건을 심의합니다.&rdquo;</p>
@@ -663,11 +734,13 @@ export default function TcfdSrPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               G2: 기후 관련 위험과 기회에 대한 경영진 역할
                             </label>
-                                                         <textarea
-                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-                               rows={3}
-                               placeholder="경영진이 기후 관련 위험과 기회를 어떻게 관리하는지 설명하세요..."
-                             />
+                                                                                     <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                              rows={3}
+                              placeholder="경영진이 기후 관련 위험과 기회를 어떻게 관리하는지 설명하세요..."
+                              value={tcfdInputData.governance_g2}
+                              onChange={(e) => handleTcfdInputChange('governance_g2', e.target.value)}
+                            />
                              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                <p className="text-xs text-blue-700 font-medium mb-1">💡 예시:</p>
                                                                <p className="text-xs text-black">&ldquo;경영진은 탄소중립 목표 달성을 위한 실행계획을 수립하고, 각 사업부에 KPI를 배분하여 이행 상황을 모니터링합니다.&rdquo;</p>
@@ -684,11 +757,13 @@ export default function TcfdSrPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               S1: 기후 관련 위험과 기회의 비즈니스 영향
                             </label>
-                                                         <textarea
-                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-                               rows={3}
-                               placeholder="기후 관련 위험과 기회가 조직의 비즈니스, 전략, 재무 계획에 미치는 영향을 설명하세요..."
-                             />
+                                                                                     <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                              rows={3}
+                              placeholder="기후 관련 위험과 기회가 조직의 비즈니스, 전략, 재무 계획에 미치는 영향을 설명하세요..."
+                              value={tcfdInputData.strategy_s1}
+                              onChange={(e) => handleTcfdInputChange('strategy_s1', e.target.value)}
+                            />
                              <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                                <p className="text-xs text-green-700 font-medium mb-1">💡 예시:</p>
                                                                <p className="text-xs text-black">&ldquo;기후변화로 인한 원자재 가격 변동은 당사 제조원가에 영향을 미칠 수 있으며, 이에 따라 공급망 다변화 전략을 추진하고 있습니다.&rdquo;</p>
@@ -702,6 +777,8 @@ export default function TcfdSrPage() {
                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="조직의 전략, 비즈니스, 재무 계획에 미치는 기후 관련 위험과 기회의 실제 잠재적 영향을 설명하세요..."
+                              value={tcfdInputData.strategy_s2}
+                              onChange={(e) => handleTcfdInputChange('strategy_s2', e.target.value)}
                             />
                             <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                               <p className="text-xs text-green-700 font-medium mb-1">💡 예시:</p>
@@ -716,6 +793,8 @@ export default function TcfdSrPage() {
                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="조직이 사용하는 기후 시나리오 분석 방법과 결과를 설명하세요..."
+                              value={tcfdInputData.strategy_s3}
+                              onChange={(e) => handleTcfdInputChange('strategy_s3', e.target.value)}
                             />
                             <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                               <p className="text-xs text-green-700 font-medium mb-1">💡 예시:</p>
@@ -737,6 +816,8 @@ export default function TcfdSrPage() {
                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="조직이 기후 관련 위험을 식별, 평가, 관리하는 프로세스를 설명하세요..."
+                              value={tcfdInputData.risk_management_r1}
+                              onChange={(e) => handleTcfdInputChange('risk_management_r1', e.target.value)}
                             />
                             <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                               <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
@@ -751,6 +832,8 @@ export default function TcfdSrPage() {
                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="조직의 전반적인 위험 관리 프로세스에 기후 관련 위험을 통합하는 방법을 설명하세요..."
+                              value={tcfdInputData.risk_management_r2}
+                              onChange={(e) => handleTcfdInputChange('risk_management_r2', e.target.value)}
                             />
                             <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                               <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
@@ -765,6 +848,8 @@ export default function TcfdSrPage() {
                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="기후 관련 위험을 조직의 전사적 위험 관리 프로세스에 어떻게 통합하고 있는지 설명하세요..."
+                              value={tcfdInputData.risk_management_r3}
+                              onChange={(e) => handleTcfdInputChange('risk_management_r3', e.target.value)}
                             />
                             <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                               <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
@@ -786,6 +871,8 @@ export default function TcfdSrPage() {
                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="조직이 기후 관련 위험과 기회를 평가하는 데 사용하는 지표를 설명하세요..."
+                              value={tcfdInputData.metrics_targets_m1}
+                              onChange={(e) => handleTcfdInputChange('metrics_targets_m1', e.target.value)}
                             />
                             <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                               <p className="text-xs text-purple-700 font-medium mb-1">💡 예시:</p>
@@ -800,6 +887,8 @@ export default function TcfdSrPage() {
                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="기후 관련 위험과 기회를 평가하는 데 사용하는 지표를 설명하세요..."
+                              value={tcfdInputData.metrics_targets_m2}
+                              onChange={(e) => handleTcfdInputChange('metrics_targets_m2', e.target.value)}
                             />
                             <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                               <p className="text-xs text-purple-700 font-medium mb-1">💡 예시:</p>
@@ -814,6 +903,8 @@ export default function TcfdSrPage() {
                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="조직이 기후 관련 위험과 기회를 평가하는 데 사용하는 목표를 설명하세요..."
+                              value={tcfdInputData.metrics_targets_m3}
+                              onChange={(e) => handleTcfdInputChange('metrics_targets_m3', e.target.value)}
                             />
                             <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                               <p className="text-xs text-purple-700 font-medium mb-1">💡 예시:</p>
@@ -825,8 +916,12 @@ export default function TcfdSrPage() {
 
                       {/* 제출 버튼 */}
                       <div className="flex justify-center mt-8">
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200">
-                          TCFD 분석 시작
+                        <button 
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={handleTcfdSubmit}
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? '저장 중...' : 'TCFD 분석 시작'}
                         </button>
                       </div>
                     </div>
