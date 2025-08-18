@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ClimateScenarioModal from '@/components/ClimateScenarioModal';
+import TCFDDetailModal from '@/components/TCFDDetailModal';
 import { apiClient } from '@/services/api';
 import axios from 'axios';
 
@@ -64,6 +65,17 @@ export default function TcfdSrPage() {
   // 상세보기 모달 상태 추가
   const [selectedScenario, setSelectedScenario] = useState<'ssp2.6' | 'ssp8.5' | null>(null);
   const [isClimateModalOpen, setIsClimateModalOpen] = useState(false);
+  
+  // TCFD 상세보기 모달 상태 추가
+  const [isTcfdDetailModalOpen, setIsTcfdDetailModalOpen] = useState(false);
+  const [selectedTcfdCategory, setSelectedTcfdCategory] = useState<{
+    category: string;
+    title: string;
+    description: string;
+    disclosures: TCFDStandardData[];
+    color: string;
+    bgColor: string;
+  } | null>(null);
 
   // TCFD 표준 데이터 상태 추가
   const [tcfdStandards, setTcfdStandards] = useState<TCFDFrameworkData>({});
@@ -147,6 +159,25 @@ export default function TcfdSrPage() {
   const closeClimateModal = () => {
     setIsClimateModalOpen(false);
     setSelectedScenario(null);
+  };
+
+  // TCFD 상세보기 모달 열기
+  const handleTcfdDetails = (category: string, data: any) => {
+    setSelectedTcfdCategory({
+      category,
+      title: data.title,
+      description: data.description,
+      disclosures: data.disclosures,
+      color: data.color,
+      bgColor: data.bgColor
+    });
+    setIsTcfdDetailModalOpen(true);
+  };
+
+  // TCFD 상세보기 모달 닫기
+  const closeTcfdDetailModal = () => {
+    setIsTcfdDetailModalOpen(false);
+    setSelectedTcfdCategory(null);
   };
 
   // TCFD 표준 데이터 불러오기 (apiClient 사용)
@@ -524,34 +555,45 @@ export default function TcfdSrPage() {
                   </div>
                 )}
 
-                {!isLoadingTcfd && !tcfdError && Object.keys(tcfdStandards).length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {Object.entries(tcfdStandards).map(([category, data]) => (
-                      <div key={category} className={`${data.bgColor} p-6 rounded-lg shadow-md`}>
-                        <h4 className={`text-xl font-semibold mb-3 ${data.color}`}>{data.title}</h4>
-                        <p className={`mb-4 ${data.color}`}>{data.description}</p>
-                        
-                        {/* 해당 카테고리의 공개 정보 표시 */}
-                        {data.disclosures.length > 0 && (
-                          <div className="space-y-3">
-                            <h5 className="font-medium text-gray-800 mb-2">공개 요구사항:</h5>
-                            {data.disclosures.map((disclosure, index) => (
-                              <div key={`${disclosure.category}-${disclosure.disclosure_id}-${index}`} className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
-                                <h6 className="font-semibold text-gray-800 mb-1">{disclosure.disclosure_id}</h6>
-                                <p className="text-sm text-gray-700 mb-1">{disclosure.disclosure_summary}</p>
-                                <p className="text-xs text-gray-500">{disclosure.disclosure_detail}</p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {data.disclosures.length === 0 && (
-                          <p className="text-gray-500 text-sm">해당 카테고리의 공개 정보가 없습니다.</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                                 {!isLoadingTcfd && !tcfdError && Object.keys(tcfdStandards).length > 0 && (
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     {Object.entries(tcfdStandards).map(([category, data]) => (
+                       <div key={category} className={`${data.bgColor} p-6 rounded-lg shadow-md`}>
+                         <h4 className={`text-xl font-semibold mb-3 ${data.color}`}>{data.title}</h4>
+                         <p className={`mb-4 ${data.color}`}>{data.description}</p>
+                         
+                         {/* 해당 카테고리의 공개 정보 미리보기 */}
+                         {data.disclosures.length > 0 && (
+                           <div className="space-y-3">
+                             <h5 className="font-medium text-gray-800 mb-2">공개 요구사항 ({data.disclosures.length}개):</h5>
+                             {/* 첫 번째 항목만 미리보기로 표시 */}
+                             <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
+                               <h6 className="font-semibold text-gray-800 mb-1">{data.disclosures[0].disclosure_id}</h6>
+                               <p className="text-sm text-gray-700 mb-1">{data.disclosures[0].disclosure_summary}</p>
+                               <p className="text-xs text-gray-500">{data.disclosures[0].disclosure_detail}</p>
+                             </div>
+                             
+                             {/* 더 많은 항목이 있을 경우 상세보기 버튼 표시 */}
+                             {data.disclosures.length > 1 && (
+                               <div className="text-center pt-2">
+                                 <button
+                                   onClick={() => handleTcfdDetails(category, data)}
+                                   className={`px-4 py-2 ${data.color.replace('text-', 'bg-').replace('-700', '-600')} text-white rounded-md hover:opacity-90 transition-colors text-sm`}
+                                 >
+                                   상세보기 ({data.disclosures.length}개 전체)
+                                 </button>
+                               </div>
+                             )}
+                           </div>
+                         )}
+                         
+                         {data.disclosures.length === 0 && (
+                           <p className="text-gray-500 text-sm">해당 카테고리의 공개 정보가 없습니다.</p>
+                         )}
+                       </div>
+                     ))}
+                   </div>
+                 )}
 
                 {!isLoadingTcfd && !tcfdError && Object.keys(tcfdStandards).length === 0 && (
                   <div className="text-center py-8">
@@ -654,14 +696,28 @@ export default function TcfdSrPage() {
          </div>
        </div>
        
-       {/* 기후시나리오 상세보기 모달 */}
-       {isClimateModalOpen && selectedScenario && (
-         <ClimateScenarioModal
-           isOpen={isClimateModalOpen}
-           scenario={selectedScenario}
-           onClose={closeClimateModal}
-         />
-       )}
+               {/* 기후시나리오 상세보기 모달 */}
+        {isClimateModalOpen && selectedScenario && (
+          <ClimateScenarioModal
+            isOpen={isClimateModalOpen}
+            scenario={selectedScenario}
+            onClose={closeClimateModal}
+          />
+        )}
+
+        {/* TCFD 상세보기 모달 */}
+        {isTcfdDetailModalOpen && selectedTcfdCategory && (
+          <TCFDDetailModal
+            isOpen={isTcfdDetailModalOpen}
+            onClose={closeTcfdDetailModal}
+            category={selectedTcfdCategory.category}
+            title={selectedTcfdCategory.title}
+            description={selectedTcfdCategory.description}
+            disclosures={selectedTcfdCategory.disclosures}
+            color={selectedTcfdCategory.color}
+            bgColor={selectedTcfdCategory.bgColor}
+          />
+        )}
      </div>
    );
  }
