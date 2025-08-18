@@ -154,7 +154,7 @@ export const materialityAPI = {
   login: (data: LoginData): Promise<{ data: AuthResponse }> => apiClient.post('/api/v1/materiality/auth/login', data),
 };
 
-// TCFD Service API
+// TCFD Service API (Gateway를 통한 요청)
 export const tcfdAPI = {
   healthCheck: () => apiClient.get('/api/v1/tcfd/health'),
   getCompanyFinancialData: (companyName: string) => apiClient.get(`/api/v1/tcfd/company-financial-data?company_name=${encodeURIComponent(companyName)}`),
@@ -166,6 +166,16 @@ export const tcfdAPI = {
   // TCFD 표준 정보 조회 추가
   getTcfdStandards: () => apiClient.get('/api/v1/tcfd/standards'),
   getTcfdStandardsByCategory: (category: string) => apiClient.get(`/api/v1/tcfd/standards/${category}`),
+};
+
+// TCFD Report Service API (Gateway를 통한 요청)
+export const tcfdReportAPI = {
+  healthCheck: () => apiClient.get('/api/v1/tcfdreport/health'),
+  getCompanyFinancialData: (companyName: string) => apiClient.get(`/api/v1/tcfdreport/company-financial-data?company_name=${encodeURIComponent(companyName)}`),
+  getTcfdStandards: () => apiClient.get('/api/v1/tcfdreport/standards'),
+  // TCFD 입력 데이터 관련 API
+  createTcfdInput: (data: any) => apiClient.post('/api/v1/tcfdreport/inputs', data),
+  getTcfdInputs: () => apiClient.get('/api/v1/tcfdreport/inputs'),
 };
 
 // 요청 인터셉터

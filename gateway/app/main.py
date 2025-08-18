@@ -12,6 +12,7 @@ import asyncio
 
 from app.domain.auth.controller.auth_controller import router as auth_router
 from app.router.tcfd_router import router as tcfd_router
+from app.router.tcfdreport_router import router as tcfdreport_router
 from app.www.jwt_auth_middleware import AuthMiddleware
 from app.domain.discovery.service_discovery import ServiceDiscovery
 from app.domain.discovery.service_type import ServiceType
@@ -211,6 +212,25 @@ async def lifespan(app: FastAPI):
         )
         logger.info("✅ 로컬 Materiality Service 등록 완료")
     
+    # TCFD Report Service 등록
+    tcfdreport_service_url = os.getenv("RAILWAY_TCFDREPORT_SERVICE_URL", "https://tcfdreport-service-production-3020.up.railway.app")
+    if tcfdreport_service_url and os.getenv("RAILWAY_ENVIRONMENT") == "production":
+        # Railway 환경에서 TCFD Report Service 등록
+        app.state.service_discovery.register_service(
+            service_name="tcfdreport-service",
+            instances=[{"host": tcfdreport_service_url, "port": 443, "weight": 1}],
+            load_balancer_type="round_robin"
+        )
+        logger.info(f"✅ Railway TCFD Report Service 등록: {tcfdreport_service_url}")
+    else:
+        # 로컬 Docker 환경에서 TCFD Report Service 등록
+        app.state.service_discovery.register_service(
+            service_name="tcfdreport-service",
+            instances=[{"host": "tcfdreport-service", "port": 8004, "weight": 1}],
+            load_balancer_type="round_robin"
+        )
+        logger.info("✅ 로컬 TCFD Report Service 등록 완료")
+    
     yield
     logger.info("🛑 Gateway API 서비스 종료")
 
@@ -244,6 +264,9 @@ app.include_router(auth_router)
 
 # ✅ TCFD Service 라우터 추가
 app.include_router(tcfd_router)
+
+# ✅ TCFD Report Service 라우터 추가
+app.include_router(tcfdreport_router)
 
 # 404 에러 핸들러
 @app.exception_handler(404)

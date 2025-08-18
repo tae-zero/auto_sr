@@ -650,7 +650,7 @@ export default function TcfdSrPage() {
                               G1: 기후 관련 위험과 기회에 대한 이사회 감독
                             </label>
                                                          <textarea
-                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                                rows={3}
                                placeholder="이사회가 기후 관련 위험과 기회를 어떻게 감독하고 있는지 설명하세요..."
                              />
@@ -664,7 +664,7 @@ export default function TcfdSrPage() {
                               G2: 기후 관련 위험과 기회에 대한 경영진 역할
                             </label>
                                                          <textarea
-                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                                rows={3}
                                placeholder="경영진이 기후 관련 위험과 기회를 어떻게 관리하는지 설명하세요..."
                              />
@@ -685,7 +685,7 @@ export default function TcfdSrPage() {
                               S1: 기후 관련 위험과 기회의 비즈니스 영향
                             </label>
                                                          <textarea
-                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                                rows={3}
                                placeholder="기후 관련 위험과 기회가 조직의 비즈니스, 전략, 재무 계획에 미치는 영향을 설명하세요..."
                              />
@@ -699,7 +699,7 @@ export default function TcfdSrPage() {
                               S2: 전략적 영향의 실제 잠재적 영향
                             </label>
                             <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="조직의 전략, 비즈니스, 재무 계획에 미치는 기후 관련 위험과 기회의 실제 잠재적 영향을 설명하세요..."
                             />
@@ -713,7 +713,7 @@ export default function TcfdSrPage() {
                               S3: 기후 시나리오 분석
                             </label>
                             <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                               rows={3}
                               placeholder="조직이 사용하는 기후 시나리오 분석 방법과 결과를 설명하세요..."
                             />

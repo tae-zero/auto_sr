@@ -1,8 +1,3 @@
-# ========================================
-# 로컬 개발용 requirements.txt
-# Railway 배포용은 requirements.prod.txt 사용
-# ========================================
-
 # FastAPI 및 웹 프레임워크
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
@@ -29,18 +24,18 @@ pypdf==3.17.4
 python-docx==1.1.0
 markdown==3.5.1
 
-# RAG 임베딩 관련 패키지 (안정 버전)
+# RAG 임베딩 관련 패키지 (Railway 배포용 안정 버전)
 sentence-transformers==2.2.2
 transformers==4.36.2
-torch==2.1.2
+torch==2.0.1
 pymupdf==1.23.8
 huggingface-hub==0.19.4
 sentencepiece==0.1.99
-pandas==2.1.4
+pandas==2.0.3
 openpyxl==3.1.2
 numpy==1.24.3
-scikit-learn==1.3.2
-tiktoken==0.5.2
+scikit-learn==1.3.0
+tiktoken==0.5.1
 
 # 유틸리티
 pydantic==2.5.0
@@ -50,11 +45,3 @@ passlib[bcrypt]==1.7.4
 
 # 로깅 및 모니터링
 structlog==23.2.0
-
-# ========================================
-# 개발 도구 (로컬 개발용만)
-# ========================================
-pytest==7.4.3
-pytest-asyncio==0.21.1
-black==23.11.0
-isort==5.12.0
