@@ -109,42 +109,47 @@ export const aiApi = {
   },
 };
 
-// GRI Report Service API
+// GRI Report 생성 데이터 타입
+interface GRIReportData {
+  company_name: string;
+  report_title: string;
+  report_content: string;
+  status?: string;
+}
+
+// Materiality 분석 생성 데이터 타입
+interface MaterialityAnalysisData {
+  company_name: string;
+  analysis_title: string;
+  stakeholder_impact: number;
+  business_impact: number;
+  priority_score: number;
+  analysis_content: string;
+  status?: string;
+}
+
+// GRI Service API
 export const griAPI = {
-  // GRI 서비스 상태 확인
   healthCheck: () => apiClient.get('/api/v1/gri/health'),
-  
-  // GRI 보고서 목록 조회
   getReports: (token: string) => apiClient.get('/api/v1/gri/reports', {
     headers: { 'Authorization': `Bearer ${token}` }
   }),
-  
-  // GRI 보고서 생성
-  createReport: (data: any, token: string) => apiClient.post('/api/v1/gri/reports', data, {
+  createReport: (data: GRIReportData, token: string) => apiClient.post('/api/v1/gri/reports', data, {
     headers: { 'Authorization': `Bearer ${token}` }
   }),
-  
-  // GRI 인증
   signup: (data: SignupData): Promise<{ data: AuthResponse }> => apiClient.post('/api/v1/gri/auth/signup', data),
   login: (data: LoginData): Promise<{ data: AuthResponse }> => apiClient.post('/api/v1/gri/auth/login', data),
 };
 
 // Materiality Service API
 export const materialityAPI = {
-  // Materiality 서비스 상태 확인
   healthCheck: () => apiClient.get('/api/v1/materiality/health'),
-  
-  // Materiality 분석 목록 조회
   getAnalyses: (token: string) => apiClient.get('/api/v1/materiality/analyses', {
     headers: { 'Authorization': `Bearer ${token}` }
   }),
-  
-  // Materiality 분석 생성
-  createAnalysis: (data: any, token: string) => apiClient.post('/api/v1/materiality/analyses', data, {
+  createAnalysis: (data: MaterialityAnalysisData, token: string) => apiClient.post('/api/v1/materiality/analyses', data, {
     headers: { 'Authorization': `Bearer ${token}` }
   }),
-  
-  // Materiality 인증
   signup: (data: SignupData): Promise<{ data: AuthResponse }> => apiClient.post('/api/v1/materiality/auth/signup', data),
   login: (data: LoginData): Promise<{ data: AuthResponse }> => apiClient.post('/api/v1/materiality/auth/login', data),
 };

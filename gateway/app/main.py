@@ -175,24 +175,22 @@ async def lifespan(app: FastAPI):
     else:
         logger.warning("⚠️ Auth Service가 등록되지 않음")
     
-    # GRI Report Service 등록
+    # GRI Service 등록
     gri_service_url = os.getenv("RAILWAY_GRI_SERVICE_URL", "https://gri-service-production-b925.up.railway.app")
     if gri_service_url and os.getenv("RAILWAY_ENVIRONMENT") == "production":
-        # Railway 환경에서 GRI Service 등록
         app.state.service_discovery.register_service(
-            service_name="gri-report-service",
+            service_name="gri-service",
             instances=[{"host": gri_service_url, "port": 443, "weight": 1}],
             load_balancer_type="round_robin"
         )
-        logger.info(f"✅ Railway GRI Report Service 등록: {gri_service_url}")
+        logger.info(f"✅ Railway GRI Service 등록: {gri_service_url}")
     else:
-        # 로컬 Docker 환경에서 GRI Service 등록
         app.state.service_discovery.register_service(
-            service_name="gri-report-service",
-            instances=[{"host": "gri-report-service", "port": 8006, "weight": 1}],
+            service_name="gri-service",
+            instances=[{"host": "gri-service", "port": 8006, "weight": 1}],
             load_balancer_type="round_robin"
         )
-        logger.info("✅ 로컬 GRI Report Service 등록 완료")
+        logger.info("✅ 로컬 GRI Service 등록 완료")
     
     # Materiality Service 등록
     materiality_service_url = os.getenv("RAILWAY_MATERIALITY_SERVICE_URL", "https://materiality-service-production-9a40.up.railway.app")
