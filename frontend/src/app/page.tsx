@@ -61,6 +61,15 @@ export default function Home() {
       ),
       title: "나한테 사진 찍힐래?",
       description: "사진찍는거 좋아하는데 내 필름으로 들어올래?"
+    },
+    {
+      icon: (
+        <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+      ),
+      title: "gri-materiality",
+      description: "GRI 기준으로 materiality 분석을 해볼까?"
     }
   ];
 
@@ -234,7 +243,7 @@ export default function Home() {
                    ) : item.title === "who am i?" ? (
                      <Link href="/contact">
                        <button 
-                         className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                         className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-transform duration-200 font-medium"
                        >
                          MORE
                        </button>
