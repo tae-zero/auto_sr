@@ -16,24 +16,39 @@ if os.getenv("RAILWAY_ENVIRONMENT") != "true":
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def create_database_tables():
+    """데이터베이스 테이블 생성 (동기 방식)"""
+    try:
+        from app.common.database.database import engine
+        from app.common.models import Base
+        
+        # 테이블이 이미 존재하는지 확인
+        inspector = engine.dialect.inspector(engine)
+        existing_tables = inspector.get_table_names()
+        
+        if 'tcfd_standard' not in existing_tables:
+            Base.metadata.create_all(bind=engine)
+            logger.info("✅ 데이터베이스 테이블 생성 완료")
+        else:
+            logger.info("✅ 데이터베이스 테이블이 이미 존재합니다")
+            
+    except Exception as e:
+        logger.error(f"❌ 데이터베이스 테이블 생성 실패: {str(e)}")
+        # 테이블 생성 실패해도 서비스는 계속 실행
+        pass
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """애플리케이션 생명주기 관리"""
     logger.info("🚀 TCFD Service 시작")
     
     # 데이터베이스 테이블 생성
-    try:
-        from app.common.database.database import engine
-        from app.common.models import Base
-        Base.metadata.create_all(bind=engine)
-        logger.info("✅ 데이터베이스 테이블 생성 완료")
-    except Exception as e:
-        logger.error(f"❌ 데이터베이스 테이블 생성 실패: {str(e)}")
+    create_database_tables()
     
     yield
     
     # 리소스 정리
-    logger.info("🛑 TCFD Service 종료")
+    logger.info("�� TCFD Service 종료")
 
 app = FastAPI(
     title="TCFD Service",
