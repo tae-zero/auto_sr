@@ -584,7 +584,7 @@ export default function TcfdSrPage() {
                                 <div className="text-center pt-2">
                                   <button
                                     onClick={() => handleTcfdDetails(category, data)}
-                                    className={`px-4 py-2 ${data.color.replace('text-', 'bg-').replace('-700', '-600')} text-white rounded-md hover:opacity-90 transition-colors text-sm font-medium shadow-sm border border-gray-300`}
+                                    className={`px-4 py-2 ${data.color.replace('text-', 'bg-').replace('-700', '-600')} text-black rounded-md hover:opacity-90 transition-colors text-sm font-medium shadow-sm border border-gray-300`}
                                   >
                                     상세보기 ({data.disclosures.length}개 전체)
                                   </button>
@@ -656,7 +656,7 @@ export default function TcfdSrPage() {
                              />
                              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                <p className="text-xs text-blue-700 font-medium mb-1">💡 예시:</p>
-                                                               <p className="text-xs text-blue-600">&ldquo;이사회는 기후변화 관련 주요 리스크와 기회를 정기적으로 검토하며, 연 2회 이상 ESG 위원회를 통해 관련 안건을 심의합니다.&rdquo;</p>
+                                                               <p className="text-xs text-black">&ldquo;이사회는 기후변화 관련 주요 리스크와 기회를 정기적으로 검토하며, 연 2회 이상 ESG 위원회를 통해 관련 안건을 심의합니다.&rdquo;</p>
                              </div>
                           </div>
                           <div className="bg-gray-50 p-4 rounded-lg">
@@ -670,7 +670,7 @@ export default function TcfdSrPage() {
                              />
                              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                <p className="text-xs text-blue-700 font-medium mb-1">💡 예시:</p>
-                                                               <p className="text-xs text-blue-600">&ldquo;경영진은 탄소중립 목표 달성을 위한 실행계획을 수립하고, 각 사업부에 KPI를 배분하여 이행 상황을 모니터링합니다.&rdquo;</p>
+                                                               <p className="text-xs text-black">&ldquo;경영진은 탄소중립 목표 달성을 위한 실행계획을 수립하고, 각 사업부에 KPI를 배분하여 이행 상황을 모니터링합니다.&rdquo;</p>
                              </div>
                           </div>
                         </div>
@@ -691,7 +691,7 @@ export default function TcfdSrPage() {
                              />
                              <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                                <p className="text-xs text-green-700 font-medium mb-1">💡 예시:</p>
-                                                               <p className="text-xs text-green-600">&ldquo;기후변화로 인한 원자재 가격 변동은 당사 제조원가에 영향을 미칠 수 있으며, 이에 따라 공급망 다변화 전략을 추진하고 있습니다.&rdquo;</p>
+                                                               <p className="text-xs text-black">&ldquo;기후변화로 인한 원자재 가격 변동은 당사 제조원가에 영향을 미칠 수 있으며, 이에 따라 공급망 다변화 전략을 추진하고 있습니다.&rdquo;</p>
                              </div>
                           </div>
                           <div className="bg-gray-50 p-4 rounded-lg">
@@ -703,6 +703,10 @@ export default function TcfdSrPage() {
                               rows={3}
                               placeholder="조직의 전략, 비즈니스, 재무 계획에 미치는 기후 관련 위험과 기회의 실제 잠재적 영향을 설명하세요..."
                             />
+                            <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                              <p className="text-xs text-green-700 font-medium mb-1">💡 예시:</p>
+                              <p className="text-xs text-black">&ldquo;탄소중립 정책으로 인한 규제 강화는 당사 제품의 경쟁력을 재정의할 수 있으며, 친환경 기술 개발에 대한 투자를 확대하고 있습니다.&rdquo;</p>
+                            </div>
                           </div>
                           <div className="bg-gray-50 p-4 rounded-lg">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -713,6 +717,10 @@ export default function TcfdSrPage() {
                               rows={3}
                               placeholder="조직이 사용하는 기후 시나리오 분석 방법과 결과를 설명하세요..."
                             />
+                            <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                              <p className="text-xs text-green-700 font-medium mb-1">💡 예시:</p>
+                              <p className="text-xs text-black">&ldquo;IPCC RCP 2.6 및 RCP 8.5 시나리오를 기반으로 2030년, 2050년, 2100년까지의 기후 변화 영향을 분석하여 장기 전략을 수립하고 있습니다.&rdquo;</p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -730,6 +738,10 @@ export default function TcfdSrPage() {
                               rows={3}
                               placeholder="조직이 기후 관련 위험을 식별, 평가, 관리하는 프로세스를 설명하세요..."
                             />
+                            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                              <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
+                              <p className="text-xs text-black">&ldquo;기후 관련 위험은 분기별 리스크 평가 회의에서 식별하고, 위험도와 영향도를 매트릭스로 평가하여 우선순위를 정하고 있습니다.&rdquo;</p>
+                            </div>
                           </div>
                           <div className="bg-gray-50 p-4 rounded-lg">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -740,6 +752,10 @@ export default function TcfdSrPage() {
                               rows={3}
                               placeholder="조직의 전반적인 위험 관리 프로세스에 기후 관련 위험을 통합하는 방법을 설명하세요..."
                             />
+                            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                              <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
+                              <p className="text-xs text-black">&ldquo;기후 관련 위험은 기존 ERM(Enterprise Risk Management) 프레임워크에 통합하여 전사적 위험 관리 체계의 일부로 운영하고 있습니다.&rdquo;</p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -757,6 +773,10 @@ export default function TcfdSrPage() {
                               rows={3}
                               placeholder="조직이 기후 관련 위험과 기회를 평가하는 데 사용하는 지표를 설명하세요..."
                             />
+                            <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                              <p className="text-xs text-purple-700 font-medium mb-1">💡 예시:</p>
+                              <p className="text-xs text-black">&ldquo;탄소 배출량(tCO2e), 에너지 효율성(단위당 에너지 소비량), 기후 관련 규제 준수율 등을 주요 지표로 사용하고 있습니다.&rdquo;</p>
+                            </div>
                           </div>
                           <div className="bg-gray-50 p-4 rounded-lg">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -767,6 +787,10 @@ export default function TcfdSrPage() {
                               rows={3}
                               placeholder="기후 관련 위험과 기회를 평가하는 데 사용하는 지표를 설명하세요..."
                             />
+                            <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                              <p className="text-xs text-purple-700 font-medium mb-1">💡 예시:</p>
+                              <p className="text-xs text-black">&ldquo;친환경 제품 매출 비중, 재생에너지 사용률, 기후 관련 R&D 투자 비율 등을 기회 평가 지표로 활용하고 있습니다.&rdquo;</p>
+                            </div>
                           </div>
                           <div className="bg-gray-50 p-4 rounded-lg">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -777,6 +801,10 @@ export default function TcfdSrPage() {
                               rows={3}
                               placeholder="조직이 기후 관련 위험과 기회를 평가하는 데 사용하는 목표를 설명하세요..."
                             />
+                            <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                              <p className="text-xs text-purple-700 font-medium mb-1">💡 예시:</p>
+                              <p className="text-xs text-black">&ldquo;2030년까지 탄소 배출량 30% 감축, 2050년까지 탄소중립 달성, 재생에너지 사용률 50% 달성 등의 목표를 설정하고 있습니다.&rdquo;</p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -804,7 +832,7 @@ export default function TcfdSrPage() {
                    <p className="text-red-700 mb-4">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
                    <button 
                      onClick={() => handleClimateDetails('ssp8.5')}
-                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
+                     className="px-4 py-2 bg-red-600 text-black rounded-md hover:bg-red-700 transition-colors text-sm"
                    >
                      상세보기
                    </button>
@@ -814,7 +842,7 @@ export default function TcfdSrPage() {
                    <p className="text-blue-700 mb-4">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
                    <button 
                      onClick={() => handleClimateDetails('ssp2.6')}
-                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                     className="px-4 py-2 bg-blue-600 text-black rounded-md hover:bg-blue-700 transition-colors text-sm"
                    >
                      상세보기
                    </button>
