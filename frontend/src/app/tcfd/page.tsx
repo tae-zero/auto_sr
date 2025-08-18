@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
+import ClimateScenarioModal from '@/components/ClimateScenarioModal';
 
 
 // 테이블 데이터 타입 정의
@@ -42,6 +42,10 @@ export default function TcfdSrPage() {
   
   // 연락처 모달 상태
   const [showContactModal, setShowContactModal] = useState(false);
+
+  // 상세보기 모달 상태 추가
+  const [selectedScenario, setSelectedScenario] = useState<'ssp2.6' | 'ssp8.5' | null>(null);
+  const [isClimateModalOpen, setIsClimateModalOpen] = useState(false);
 
   // 회사 목록 로드 (사용하지 않음)
   const loadCompanies = async () => {
@@ -113,6 +117,18 @@ export default function TcfdSrPage() {
   // 연락처 모달 열기
   const handleContactClick = () => {
     setShowContactModal(true);
+  };
+
+  // 상세보기 모달 열기
+  const handleClimateDetails = (scenario: 'ssp2.6' | 'ssp8.5') => {
+    setSelectedScenario(scenario);
+    setIsClimateModalOpen(true);
+  };
+
+  // 상세보기 모달 닫기
+  const closeClimateModal = () => {
+    setIsClimateModalOpen(false);
+    setSelectedScenario(null);
   };
 
   // 컴포넌트 마운트 시 회사 목록 로드
@@ -430,7 +446,7 @@ export default function TcfdSrPage() {
                    <h3 className="text-lg font-semibold text-red-900 mb-2">RCP 8.5 (고탄소 시나리오)</h3>
                    <p className="text-red-700 mb-4">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
                    <button 
-                     onClick={handleContactClick}
+                     onClick={() => handleClimateDetails('ssp8.5')}
                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
                    >
                      상세보기
@@ -440,7 +456,7 @@ export default function TcfdSrPage() {
                    <h3 className="text-lg font-semibold text-blue-900 mb-2">RCP 2.6 (극저탄소 시나리오)</h3>
                    <p className="text-blue-700 mb-4">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
                    <button 
-                     onClick={handleContactClick}
+                     onClick={() => handleClimateDetails('ssp2.6')}
                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
                    >
                      상세보기
@@ -512,6 +528,15 @@ export default function TcfdSrPage() {
              </div>
            </div>
          </div>
+       )}
+
+       {/* 기후시나리오 상세보기 모달 */}
+       {isClimateModalOpen && selectedScenario && (
+         <ClimateScenarioModal
+           isOpen={isClimateModalOpen}
+           scenario={selectedScenario}
+           onClose={closeClimateModal}
+         />
        )}
      </div>
    );
