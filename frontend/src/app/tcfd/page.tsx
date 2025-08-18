@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import ClimateScenarioModal from '@/components/ClimateScenarioModal';
-import { tcfdAPI } from '@/services/api';
 import axios from 'axios';
 
 // TCFD 표준 데이터 타입 정의
@@ -158,7 +157,7 @@ export default function TcfdSrPage() {
         try {
           // tcfdAPI 대신 직접 axios 사용
           const response = await axios.get('/api/v1/tcfd/standards');
-          const data: TCFDStandardData[] = response.data.data;
+          const data: TCFDStandardData[] = response.data;  // ✅ response.data.data 제거
 
           // 데이터를 카테고리별로 그룹화하고 TCFD 프레임워크에 맞게 구성
           const frameworkData: TCFDFrameworkData = {
