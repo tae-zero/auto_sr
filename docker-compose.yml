@@ -200,7 +200,7 @@ services:
       - INIT_DATABASE=true
       # Railway PostgreSQL 연결
       - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - SECRET_KEY=${SECRET_KEY}
     restart: always
     depends_on:
       - redis
@@ -231,7 +231,7 @@ services:
       - INIT_DATABASE=true
       # Railway PostgreSQL 연결
       - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - SECRET_KEY=${SECRET_KEY}
     restart: always
     depends_on:
       - redis

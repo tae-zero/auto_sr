@@ -11,7 +11,9 @@ from app.domain.auth.auth_schema import UserSignupRequest, UserLoginRequest, Use
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT 설정
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY environment variable is required")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
