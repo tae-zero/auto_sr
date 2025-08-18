@@ -16,6 +16,10 @@ except ImportError:
     RAG_AVAILABLE = False
     print("⚠️ RAG 서비스 사용 불가: chromadb 등 필요한 패키지가 설치되지 않음")
 
+# 데이터베이스 import
+from app.common.database.database import database
+from app.common.database.init_tables import init_tables
+
 # 환경변수 로드
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
     load_dotenv()
@@ -28,6 +32,25 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """애플리케이션 생명주기 관리"""
     logger.info("🚀 TCFD Report Service 시작")
+    
+    # 데이터베이스 연결 초기화
+    try:
+        await database.connect()
+        logger.info("✅ 데이터베이스 연결 초기화 완료")
+        
+        # 데이터베이스 테이블 초기화
+        database_url = os.getenv("DATABASE_URL")
+        if database_url:
+            table_init_success = await init_tables(database_url)
+            if table_init_success:
+                logger.info("✅ 데이터베이스 테이블 초기화 완료")
+            else:
+                logger.warning("⚠️ 데이터베이스 테이블 초기화 실패")
+        else:
+            logger.warning("⚠️ DATABASE_URL 환경변수가 설정되지 않음")
+            
+    except Exception as e:
+        logger.error(f"❌ 데이터베이스 연결 초기화 실패: {str(e)}")
     
     # RAG 서비스 초기화 (조건부)
     if RAG_AVAILABLE:
@@ -48,6 +71,14 @@ async def lifespan(app: FastAPI):
     
     # 리소스 정리
     logger.info("🛑 TCFD Report Service 종료")
+    
+    # 데이터베이스 연결 해제
+    try:
+        await database.disconnect()
+        logger.info("✅ 데이터베이스 연결 해제 완료")
+    except Exception as e:
+        logger.error(f"❌ 데이터베이스 연결 해제 실패: {str(e)}")
+    
     if hasattr(app.state, 'rag_service'):
         await app.state.rag_service.close()
 
