@@ -656,7 +656,7 @@ export default function TcfdSrPage() {
                              />
                              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                <p className="text-xs text-blue-700 font-medium mb-1">💡 예시:</p>
-                               <p className="text-xs text-blue-600">"이사회는 기후변화 관련 주요 리스크와 기회를 정기적으로 검토하며, 연 2회 이상 ESG 위원회를 통해 관련 안건을 심의합니다."</p>
+                                                               <p className="text-xs text-blue-600">&ldquo;이사회는 기후변화 관련 주요 리스크와 기회를 정기적으로 검토하며, 연 2회 이상 ESG 위원회를 통해 관련 안건을 심의합니다.&rdquo;</p>
                              </div>
                           </div>
                           <div className="bg-gray-50 p-4 rounded-lg">
@@ -670,7 +670,7 @@ export default function TcfdSrPage() {
                              />
                              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                <p className="text-xs text-blue-700 font-medium mb-1">💡 예시:</p>
-                               <p className="text-xs text-blue-600">"경영진은 탄소중립 목표 달성을 위한 실행계획을 수립하고, 각 사업부에 KPI를 배분하여 이행 상황을 모니터링합니다."</p>
+                                                               <p className="text-xs text-blue-600">&ldquo;경영진은 탄소중립 목표 달성을 위한 실행계획을 수립하고, 각 사업부에 KPI를 배분하여 이행 상황을 모니터링합니다.&rdquo;</p>
                              </div>
                           </div>
                         </div>
@@ -691,7 +691,7 @@ export default function TcfdSrPage() {
                              />
                              <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                                <p className="text-xs text-green-700 font-medium mb-1">💡 예시:</p>
-                               <p className="text-xs text-green-600">"기후변화로 인한 원자재 가격 변동은 당사 제조원가에 영향을 미칠 수 있으며, 이에 따라 공급망 다변화 전략을 추진하고 있습니다."</p>
+                                                               <p className="text-xs text-green-600">&ldquo;기후변화로 인한 원자재 가격 변동은 당사 제조원가에 영향을 미칠 수 있으며, 이에 따라 공급망 다변화 전략을 추진하고 있습니다.&rdquo;</p>
                              </div>
                           </div>
                           <div className="bg-gray-50 p-4 rounded-lg">
