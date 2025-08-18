@@ -1,0 +1,59 @@
+# === INFERENCE/SERVICE IMAGE ===
+FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    BITSANDBYTES_NOWELCOME=1 \
+    PYTORCH_CUDA_ALLOC_CONF="max_split_size_mb:128"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.11 python3.11-venv python3-pip git curl ca-certificates && \
+    ln -s /usr/bin/python3.11 /usr/bin/python && \
+    python -m pip install --upgrade pip && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# 서비스 요구사항 설치
+COPY service/tcfdreport-service/requirements.infer.txt /app/requirements.txt
+
+# Torch + 추론 스택
+RUN pip install "torch==2.5.1+cu121" --index-url https://download.pytorch.org/whl/cu121 && \
+    pip install -r /app/requirements.txt
+
+# 앱 코드 복사
+COPY service/tcfdreport-service/app /app/app
+
+# 벡터DB/문서 저장 경로 (호스트 마운트 권장)
+# /app/chroma_db, /app/document
+
+EXPOSE 8000
+
+# Uvicorn으로 FastAPI 가동
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+service/tcfdreport-service/requirements.infer.txt
+makefile
+복사
+편집
+# 핵심
+transformers==4.55.0
+peft==0.13.2
+bitsandbytes==0.43.3
+sentencepiece==0.2.0
+huggingface-hub==0.25.2
+
+# LangChain + VectorDB + PDF
+langchain==0.2.16
+chromadb==0.5.5
+pymupdf
+unstructured
+
+# FastAPI
+fastapi==0.115.5
+uvicorn[standard]==0.32.0
+
+# 임베딩
+torch==2.5.1+cu121  # 설치는 Dockerfile에서 별도 수행

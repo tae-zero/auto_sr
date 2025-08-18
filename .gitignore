@@ -43,5 +43,5 @@ next-env.d.ts
 __pycache__/
 *.pyc
 
-# TCFD Report Service (GitHub에 올리지 않음)
-/service/tcfdreport-service/
+# TCFD Report Service - 벡터 DB만 제외
+/service/tcfdreport-service/chroma_db/

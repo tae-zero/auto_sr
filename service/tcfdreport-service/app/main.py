@@ -8,10 +8,8 @@ import logging
 import os
 from dotenv import load_dotenv
 
-# LangChain 서비스들 import
-from app.domain.tcfd.analysis_service import TCFDAnalysisService
-from app.domain.tcfd.report_service import TCFDReportService
-from app.domain.tcfd.risk_assessment_service import RiskAssessmentService
+# RAG 서비스 import
+from app.domain.tcfd.rag_service import RAGService
 
 # 환경변수 로드
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
@@ -26,28 +24,24 @@ async def lifespan(app: FastAPI):
     """애플리케이션 생명주기 관리"""
     logger.info("🚀 TCFD Report Service 시작")
     
-    # AI 서비스 초기화
+    # RAG 서비스 초기화
     try:
-        app.state.tcfd_analysis_service = TCFDAnalysisService()
-        app.state.tcfd_report_service = TCFDReportService()
-        app.state.risk_assessment_service = RiskAssessmentService()
-        
-        # AI 서비스 초기화
-        ai_initialized = await app.state.tcfd_analysis_service.initialize_ai_services()
-        if ai_initialized:
-            logger.info("✅ AI 서비스 초기화 완료")
+        app.state.rag_service = RAGService()
+        rag_initialized = await app.state.rag_service.initialize_embeddings()
+        if rag_initialized:
+            logger.info("✅ RAG 서비스 초기화 완료")
         else:
-            logger.warning("⚠️ AI 서비스 초기화 실패 (API 키 없음)")
+            logger.warning("⚠️ RAG 서비스 초기화 실패")
             
     except Exception as e:
-        logger.error(f"❌ AI 서비스 초기화 실패: {str(e)}")
+        logger.error(f"❌ RAG 서비스 초기화 실패: {str(e)}")
     
     yield
     
     # 리소스 정리
     logger.info("🛑 TCFD Report Service 종료")
-    if hasattr(app.state, 'tcfd_analysis_service'):
-        await app.state.tcfd_analysis_service.close()
+    if hasattr(app.state, 'rag_service'):
+        await app.state.rag_service.close()
 
 app = FastAPI(
     title="TCFD Report Service",
@@ -65,9 +59,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# TCFD 도메인 라우터 포함
-from app.domain.tcfd.controller.tcfd_controller import router as tcfd_router
-app.include_router(tcfd_router)
+# RAG 라우터 포함
+from app.domain.tcfd.controller.rag_controller import router as rag_router
+
+app.include_router(rag_router)
 
 # 헬스 체크
 @app.get("/health")
@@ -75,7 +70,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "tcfd-report-service",
-        "ai_services": "enabled" if hasattr(app.state, 'tcfd_analysis_service') else "disabled",
+        "rag_services": "enabled" if hasattr(app.state, 'rag_service') else "disabled",
         "description": "AI 기반 TCFD 보고서 생성 서비스"
     }
 

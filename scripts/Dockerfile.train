@@ -1,0 +1,36 @@
+# === GPU TRAINING IMAGE ===
+FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
+
+# 기본 유틸 + Python 3.11
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    BITSANDBYTES_NOWELCOME=1 \
+    PYTORCH_CUDA_ALLOC_CONF="max_split_size_mb:128"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.11 python3.11-venv python3-pip git curl ca-certificates && \
+    ln -s /usr/bin/python3.11 /usr/bin/python && \
+    python -m pip install --upgrade pip && \
+    rm -rf /var/lib/apt/lists/*
+
+# 작업 디렉토리
+WORKDIR /workspace
+
+# 학습 전용 요구사항
+COPY scripts/requirements.train.txt /workspace/requirements.train.txt
+
+# PyTorch CUDA12.1 + 학습 스택 설치
+RUN pip install "torch==2.5.1+cu121" --index-url https://download.pytorch.org/whl/cu121 && \
+    pip install -r requirements.train.txt
+
+# 학습 스크립트/유틸 복사
+COPY scripts/train_sft.py scripts/merge_and_push.py /workspace/scripts/
+
+# 데이터/문서/출력은 런타임에 마운트 권장
+# /workspace/data, /workspace/document, /workspace/outputs
+
+# 기본 엔트리포인트: 쉘로 진입(커맨드 오버라이드해서 학습 실행)
+CMD ["/bin/bash"]
