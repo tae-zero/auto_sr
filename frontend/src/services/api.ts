@@ -154,6 +154,20 @@ export const materialityAPI = {
   login: (data: LoginData): Promise<{ data: AuthResponse }> => apiClient.post('/api/v1/materiality/auth/login', data),
 };
 
+// TCFD Service API
+export const tcfdAPI = {
+  healthCheck: () => apiClient.get('/api/v1/tcfd/health'),
+  getCompanyFinancialData: (companyName: string) => apiClient.get(`/api/v1/tcfd/company-financial-data?company_name=${encodeURIComponent(companyName)}`),
+  getCompanyFinancialSummary: (companyName: string) => apiClient.get(`/api/v1/tcfd/company-financial-summary?company_name=${encodeURIComponent(companyName)}`),
+  getAllCompanies: () => apiClient.get('/api/v1/tcfd/companies'),
+  getFinancialData: () => apiClient.get('/api/v1/tcfd/financial-data'),
+  createFinancialData: (data: any) => apiClient.post('/api/v1/tcfd/financial-data', data),
+  getClimateScenarios: () => apiClient.get('/api/v1/tcfd/climate-scenarios'),
+  // TCFD 표준 정보 조회 추가
+  getTcfdStandards: () => apiClient.get('/api/v1/tcfd/standards'),
+  getTcfdStandardsByCategory: (category: string) => apiClient.get(`/api/v1/tcfd/standards/${category}`),
+};
+
 // 요청 인터셉터
 apiClient.interceptors.request.use(
   (config) => {

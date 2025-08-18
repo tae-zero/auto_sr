@@ -2,7 +2,27 @@
 
 import { useState, useEffect } from 'react';
 import ClimateScenarioModal from '@/components/ClimateScenarioModal';
+import { tcfdAPI } from '@/services/api';
 
+// TCFD 표준 데이터 타입 정의
+interface TCFDStandardData {
+  id: number;
+  category: string;
+  disclosure_id: string;
+  disclosure_summary: string;
+  disclosure_detail: string;
+}
+
+// TCFD 프레임워크 카테고리별 데이터 그룹화
+interface TCFDFrameworkData {
+  [category: string]: {
+    title: string;
+    description: string;
+    color: string;
+    bgColor: string;
+    disclosures: TCFDStandardData[];
+  };
+}
 
 // 테이블 데이터 타입 정의
 interface TableRecord {
@@ -46,6 +66,11 @@ export default function TcfdSrPage() {
   // 상세보기 모달 상태 추가
   const [selectedScenario, setSelectedScenario] = useState<'ssp2.6' | 'ssp8.5' | null>(null);
   const [isClimateModalOpen, setIsClimateModalOpen] = useState(false);
+
+  // TCFD 표준 데이터 상태 추가
+  const [tcfdStandards, setTcfdStandards] = useState<TCFDFrameworkData>({});
+  const [isLoadingTcfd, setIsLoadingTcfd] = useState(false);
+  const [tcfdError, setTcfdError] = useState<string | null>(null);
 
   // 회사 목록 로드 (사용하지 않음)
   const loadCompanies = async () => {
@@ -130,6 +155,67 @@ export default function TcfdSrPage() {
     setIsClimateModalOpen(false);
     setSelectedScenario(null);
   };
+
+  // TCFD 표준 데이터 불러오기
+  useEffect(() => {
+    if (activeTab === 3) { // TCFD 프레임워크 탭일 때만 데이터 로드
+      const fetchTcfdStandards = async () => {
+        setIsLoadingTcfd(true);
+        setTcfdError(null);
+        try {
+          const response = await tcfdAPI.getTcfdStandards();
+          const data: TCFDStandardData[] = response.data;
+
+          // 데이터를 카테고리별로 그룹화하고 TCFD 프레임워크에 맞게 구성
+          const frameworkData: TCFDFrameworkData = {
+            '지배구조': {
+              title: '거버넌스',
+              description: '기후 관련 위험과 기회에 대한 감독 및 책임',
+              color: 'text-blue-700',
+              bgColor: 'bg-blue-50',
+              disclosures: []
+            },
+            '전략': {
+              title: '전략',
+              description: '기후 관련 위험과 기회가 비즈니스 모델에 미치는 영향',
+              color: 'text-green-700',
+              bgColor: 'bg-green-50',
+              disclosures: []
+            },
+            '위험관리': {
+              title: '위험관리',
+              description: '기후 관련 위험 식별, 평가 및 관리',
+              color: 'text-yellow-700',
+              bgColor: 'bg-yellow-50',
+              disclosures: []
+            },
+            '지표와 감축목표': {
+              title: '지표 및 목표',
+              description: '기후 관련 위험과 기회를 평가하고 관리하기 위한 지표 및 목표',
+              color: 'text-purple-700',
+              bgColor: 'bg-purple-50',
+              disclosures: []
+            }
+          };
+
+          // 데이터를 각 카테고리에 분류
+          data.forEach(item => {
+            if (frameworkData[item.category]) {
+              frameworkData[item.category].disclosures.push(item);
+            }
+          });
+
+          setTcfdStandards(frameworkData);
+        } catch (err) {
+          console.error("Failed to fetch TCFD standards:", err);
+          setTcfdError("TCFD 표준 정보를 불러오는 데 실패했습니다.");
+        } finally {
+          setIsLoadingTcfd(false);
+        }
+      };
+      fetchTcfdStandards();
+    }
+  }, [activeTab]);
 
   // 컴포넌트 마운트 시 회사 목록 로드
   useEffect(() => {
@@ -416,22 +502,87 @@ export default function TcfdSrPage() {
           {activeTab === 3 && (
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">📊 TCFD 프레임워크</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-2">거버넌스</h3>
-                  <p className="text-blue-700">기후 관련 위험과 기회에 대한 감독 및 책임</p>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-2">전략</h3>
-                  <p className="text-green-700">기후 관련 위험과 기회가 비즈니스 모델에 미치는 영향</p>
-                </div>
-                <div className="bg-yellow-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-2">위험관리</h3>
-                  <p className="text-yellow-700">기후 관련 위험 식별, 평가 및 관리</p>
-                </div>
-                <div className="bg-purple-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-2">지표 및 목표</h3>
-                  <p className="text-purple-700">기후 관련 위험과 기회를 평가하고 관리하기 위한 지표 및 목표</p>
+              
+              {/* TCFD 표준 정보 표시 */}
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">TCFD 표준 권고사항</h3>
+                
+                {isLoadingTcfd && (
+                  <div className="text-center py-8">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p className="mt-2 text-gray-600">TCFD 표준 정보를 불러오는 중...</p>
+                  </div>
+                )}
+
+                {tcfdError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <p className="text-red-700">{tcfdError}</p>
+                  </div>
+                )}
+
+                {!isLoadingTcfd && !tcfdError && Object.keys(tcfdStandards).length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {Object.entries(tcfdStandards).map(([category, data]) => (
+                      <div key={category} className={`${data.bgColor} p-6 rounded-lg shadow-md`}>
+                        <h4 className={`text-xl font-semibold mb-3 ${data.color}`}>{data.title}</h4>
+                        <p className={`mb-4 ${data.color}`}>{data.description}</p>
+                        
+                        {/* 해당 카테고리의 공개 정보 표시 */}
+                        {data.disclosures.length > 0 && (
+                          <div className="space-y-3">
+                            <h5 className="font-medium text-gray-800 mb-2">공개 요구사항:</h5>
+                            {data.disclosures.map((disclosure) => (
+                              <div key={disclosure.id} className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
+                                <h6 className="font-semibold text-gray-800 mb-1">{disclosure.disclosure_id}</h6>
+                                <p className="text-sm text-gray-700 mb-1">{disclosure.disclosure_summary}</p>
+                                <p className="text-xs text-gray-500">{disclosure.disclosure_detail}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {data.disclosures.length === 0 && (
+                          <p className="text-gray-500 text-sm">해당 카테고리의 공개 정보가 없습니다.</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {!isLoadingTcfd && !tcfdError && Object.keys(tcfdStandards).length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">TCFD 표준 정보가 없습니다.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* TCFD 표준 상세 정보 */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">TCFD 표준 상세 정보</h3>
+                <div className="space-y-4">
+                  {companyFinancialData ? (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <h4 className="text-lg font-semibold text-green-900 mb-2">
+                        📊 {companyFinancialData.company_name} TCFD 분석
+                      </h4>
+                      <p className="text-green-700">
+                        회사 정보와 재무 데이터를 기반으로 TCFD 프레임워크에 따른 분석을 진행할 수 있습니다.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                      <h4 className="text-lg font-semibold text-blue-900 mb-2">회사 검색이 필요합니다</h4>
+                      <p className="text-blue-700 mb-4">
+                        회사정보 탭에서 회사명을 검색하면 해당 회사의 TCFD 분석을 진행할 수 있습니다.
+                      </p>
+                      <button
+                        onClick={() => setActiveTab(1)}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      >
+                        회사정보 탭으로 이동
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

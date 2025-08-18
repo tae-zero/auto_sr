@@ -5,19 +5,22 @@ TCFD Service TCFD 컨트롤러
 - AI 분석, 위험 평가, 보고서 생성
 """
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Query
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import logging
 import json
+from sqlalchemy.orm import Session
+from app.common.database.database import get_db
 
 from app.domain.tcfd.service.tcfd_service import TCFDService
 from app.domain.tcfd.model.tcfd_model import (
     CompanyInfoRequest, FinancialDataRequest, RiskAssessmentRequest,
     TCFDAnalysisResponse, RiskAssessmentResponse, ReportGenerationResponse
 )
-from app.domain.tcfd.schema.tcfd_schema import TCFDReport, ClimateRisk
+from app.domain.tcfd.schema.tcfd_schema import TCFDReport, ClimateRisk, TCFDStandardsListResponse, TCFDStandardResponse
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/tcfd", tags=["TCFD"])
+tcfd_service = TCFDService()
 
 @router.get("/health")
 async def health_check():
@@ -40,7 +43,6 @@ async def health_check():
 async def get_company_financial_data(company_name: str):
     """특정 회사의 재무정보 조회"""
     try:
-        tcfd_service = TCFDService()
         result = await tcfd_service.get_company_financial_data(company_name)
         return result
         
@@ -52,7 +54,6 @@ async def get_company_financial_data(company_name: str):
 async def get_company_financial_summary(company_name: str):
     """특정 회사의 재무요약 정보 조회"""
     try:
-        tcfd_service = TCFDService()
         result = await tcfd_service.get_company_financial_summary(company_name)
         return result
         
@@ -64,7 +65,6 @@ async def get_company_financial_summary(company_name: str):
 async def get_all_companies():
     """등록된 모든 회사 목록 조회"""
     try:
-        tcfd_service = TCFDService()
         result = await tcfd_service.get_all_companies()
         return result
         
@@ -76,7 +76,6 @@ async def get_all_companies():
 async def get_company_financial_data_by_query(company_name: str = Query(...)):
     """쿼리 파라미터로 회사별 재무정보 조회 (Gateway 호환용)"""
     try:
-        tcfd_service = TCFDService()
         result = await tcfd_service.get_company_financial_data(company_name)
         return result
         
@@ -93,7 +92,6 @@ async def analyze_tcfd_report(
     try:
         company_data = json.loads(company_info) if company_info else {}
         
-        tcfd_service = TCFDService()
         result = await tcfd_service.analyze_report(file, company_data)
         
         return TCFDAnalysisResponse(**result)
@@ -118,7 +116,6 @@ async def assess_tcfd_risk(
         company_request = CompanyInfoRequest(**company_data)
         financial_request = FinancialDataRequest(**financial_info)
         
-        tcfd_service = TCFDService()
         result = await tcfd_service.assess_climate_risk(
             company_request, financial_request
         )
@@ -148,7 +145,6 @@ async def generate_tcfd_report(
         financial_request = FinancialDataRequest(**financial_info)
         risk_request = RiskAssessmentRequest(**risk_info)
         
-        tcfd_service = TCFDService()
         result = await tcfd_service.generate_report(
             company_request, financial_request, risk_request
         )
@@ -165,7 +161,6 @@ async def generate_tcfd_report(
 async def get_financial_data():
     """재무 데이터 조회"""
     try:
-        tcfd_service = TCFDService()
         result = await tcfd_service.get_financial_data()
         return result
         
@@ -177,7 +172,6 @@ async def get_financial_data():
 async def create_financial_data(data: Dict[str, Any]):
     """재무 데이터 생성"""
     try:
-        tcfd_service = TCFDService()
         result = await tcfd_service.create_financial_data(data)
         return result
         
@@ -189,10 +183,42 @@ async def create_financial_data(data: Dict[str, Any]):
 async def get_climate_scenarios():
     """기후 시나리오 조회"""
     try:
-        tcfd_service = TCFDService()
         result = await tcfd_service.get_climate_scenarios()
         return result
         
     except Exception as e:
         logger.error(f"기후 시나리오 조회 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/standards", response_model=TCFDStandardsListResponse, summary="TCFD 표준 정보 전체 조회")
+async def get_tcfd_standards(db: Session = Depends(get_db)):
+    """TCFD 표준 정보 전체를 조회합니다."""
+    try:
+        standards = tcfd_service.get_tcfd_standards(db)
+        return {
+            "success": True,
+            "message": "TCFD 표준 정보 조회 성공",
+            "data": standards
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"TCFD 표준 정보 조회 실패: {str(e)}")
+
+@router.get("/standards/{category}", response_model=TCFDStandardsListResponse, summary="카테고리별 TCFD 표준 정보 조회")
+async def get_tcfd_standards_by_category(category: str, db: Session = Depends(get_db)):
+    """특정 카테고리의 TCFD 표준 정보를 조회합니다."""
+    try:
+        standards = tcfd_service.get_tcfd_standards_by_category(db, category)
+        if not standards:
+            return {
+                "success": False,
+                "message": f"'{category}' 카테고리의 TCFD 표준 정보를 찾을 수 없습니다.",
+                "data": []
+            }
+        
+        return {
+            "success": True,
+            "message": f"'{category}' 카테고리 TCFD 표준 정보 조회 성공",
+            "data": standards
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"카테고리별 TCFD 표준 정보 조회 실패: {str(e)}")

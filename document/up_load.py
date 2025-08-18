@@ -6,7 +6,7 @@ class ExcelUploader:
     def __init__(self):
         """초기화"""
         # Railway PostgreSQL 연결 문자열
-        self.database_url = "postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@postgres.railway.internal:5432/railway"
+        self.database_url = ""
         self.engine = None
         # 업로드할 파일 목록
         self.files_to_upload = [
