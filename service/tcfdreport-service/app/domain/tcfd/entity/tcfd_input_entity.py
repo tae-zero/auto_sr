@@ -8,16 +8,17 @@ class TCFDInputEntity:
         self,
         company_name: str,
         user_id: Optional[str] = None,
-        g1_text: Optional[str] = None,
-        g2_text: Optional[str] = None,
-        s1_text: Optional[str] = None,
-        s2_text: Optional[str] = None,
-        s3_text: Optional[str] = None,
-        r1_text: Optional[str] = None,
-        r2_text: Optional[str] = None,
-        m1_text: Optional[str] = None,
-        m2_text: Optional[str] = None,
-        m3_text: Optional[str] = None,
+        governance_g1: Optional[str] = None,
+        governance_g2: Optional[str] = None,
+        strategy_s1: Optional[str] = None,
+        strategy_s2: Optional[str] = None,
+        strategy_s3: Optional[str] = None,
+        risk_management_r1: Optional[str] = None,
+        risk_management_r2: Optional[str] = None,
+        risk_management_r3: Optional[str] = None,
+        metrics_targets_m1: Optional[str] = None,
+        metrics_targets_m2: Optional[str] = None,
+        metrics_targets_m3: Optional[str] = None,
         id: Optional[int] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None
@@ -25,16 +26,17 @@ class TCFDInputEntity:
         self.id = id
         self.company_name = company_name
         self.user_id = user_id
-        self.g1_text = g1_text
-        self.g2_text = g2_text
-        self.s1_text = s1_text
-        self.s2_text = s2_text
-        self.s3_text = s3_text
-        self.r1_text = r1_text
-        self.r2_text = r2_text
-        self.m1_text = m1_text
-        self.m2_text = m2_text
-        self.m3_text = m3_text
+        self.governance_g1 = governance_g1
+        self.governance_g2 = governance_g2
+        self.strategy_s1 = strategy_s1
+        self.strategy_s2 = strategy_s2
+        self.strategy_s3 = strategy_s3
+        self.risk_management_r1 = risk_management_r1
+        self.risk_management_r2 = risk_management_r2
+        self.risk_management_r3 = risk_management_r3
+        self.metrics_targets_m1 = metrics_targets_m1
+        self.metrics_targets_m2 = metrics_targets_m2
+        self.metrics_targets_m3 = metrics_targets_m3
         self.created_at = created_at or datetime.now()
         self.updated_at = updated_at or datetime.now()
     
@@ -44,16 +46,17 @@ class TCFDInputEntity:
             'id': self.id,
             'company_name': self.company_name,
             'user_id': self.user_id,
-            'g1_text': self.g1_text,
-            'g2_text': self.g2_text,
-            's1_text': self.s1_text,
-            's2_text': self.s2_text,
-            's3_text': self.s3_text,
-            'r1_text': self.r1_text,
-            'r2_text': self.r2_text,
-            'm1_text': self.m1_text,
-            'm2_text': self.m2_text,
-            'm3_text': self.m3_text,
+            'governance_g1': self.governance_g1,
+            'governance_g2': self.governance_g2,
+            'strategy_s1': self.strategy_s1,
+            'strategy_s2': self.strategy_s2,
+            'strategy_s3': self.strategy_s3,
+            'risk_management_r1': self.risk_management_r1,
+            'risk_management_r2': self.risk_management_r2,
+            'risk_management_r3': self.risk_management_r3,
+            'metrics_targets_m1': self.metrics_targets_m1,
+            'metrics_targets_m2': self.metrics_targets_m2,
+            'metrics_targets_m3': self.metrics_targets_m3,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
@@ -65,16 +68,17 @@ class TCFDInputEntity:
             id=data.get('id'),
             company_name=data['company_name'],
             user_id=data.get('user_id'),
-            g1_text=data.get('g1_text'),
-            g2_text=data.get('g2_text'),
-            s1_text=data.get('s1_text'),
-            s2_text=data.get('s2_text'),
-            s3_text=data.get('s3_text'),
-            r1_text=data.get('r1_text'),
-            r2_text=data.get('r2_text'),
-            m1_text=data.get('m1_text'),
-            m2_text=data.get('m2_text'),
-            m3_text=data.get('m3_text'),
+            governance_g1=data.get('governance_g1'),
+            governance_g2=data.get('governance_g2'),
+            strategy_s1=data.get('strategy_s1'),
+            strategy_s2=data.get('strategy_s2'),
+            strategy_s3=data.get('strategy_s3'),
+            risk_management_r1=data.get('risk_management_r1'),
+            risk_management_r2=data.get('risk_management_r2'),
+            risk_management_r3=data.get('risk_management_r3'),
+            metrics_targets_m1=data.get('metrics_targets_m1'),
+            metrics_targets_m2=data.get('metrics_targets_m2'),
+            metrics_targets_m3=data.get('metrics_targets_m3'),
             created_at=datetime.fromisoformat(data['created_at']) if data.get('created_at') else None,
             updated_at=datetime.fromisoformat(data['updated_at']) if data.get('updated_at') else None
         )
