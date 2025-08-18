@@ -579,17 +579,17 @@ export default function TcfdSrPage() {
                                <p className="text-xs text-gray-500">{data.disclosures[0].disclosure_detail}</p>
                              </div>
                              
-                             {/* 더 많은 항목이 있을 경우 상세보기 버튼 표시 */}
-                             {data.disclosures.length > 1 && (
-                               <div className="text-center pt-2">
-                                 <button
-                                   onClick={() => handleTcfdDetails(category, data)}
-                                   className={`px-4 py-2 ${data.color.replace('text-', 'bg-').replace('-700', '-600')} text-white rounded-md hover:opacity-90 transition-colors text-sm`}
-                                 >
-                                   상세보기 ({data.disclosures.length}개 전체)
-                                 </button>
-                               </div>
-                             )}
+                                                           {/* 더 많은 항목이 있을 경우 상세보기 버튼 표시 */}
+                              {data.disclosures.length > 1 && (
+                                <div className="text-center pt-2">
+                                  <button
+                                    onClick={() => handleTcfdDetails(category, data)}
+                                    className={`px-4 py-2 ${data.color.replace('text-', 'bg-').replace('-700', '-600')} text-white rounded-md hover:opacity-90 transition-colors text-sm font-medium shadow-sm border border-gray-300`}
+                                  >
+                                    상세보기 ({data.disclosures.length}개 전체)
+                                  </button>
+                                </div>
+                              )}
                            </div>
                          )}
                          
@@ -649,21 +649,29 @@ export default function TcfdSrPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               G1: 기후 관련 위험과 기회에 대한 이사회 감독
                             </label>
-                            <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              rows={3}
-                              placeholder="이사회가 기후 관련 위험과 기회를 어떻게 감독하고 있는지 설명하세요..."
-                            />
+                                                         <textarea
+                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               rows={3}
+                               placeholder="이사회가 기후 관련 위험과 기회를 어떻게 감독하고 있는지 설명하세요..."
+                             />
+                             <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                               <p className="text-xs text-blue-700 font-medium mb-1">💡 예시:</p>
+                               <p className="text-xs text-blue-600">"이사회는 기후변화 관련 주요 리스크와 기회를 정기적으로 검토하며, 연 2회 이상 ESG 위원회를 통해 관련 안건을 심의합니다."</p>
+                             </div>
                           </div>
                           <div className="bg-gray-50 p-4 rounded-lg">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               G2: 기후 관련 위험과 기회에 대한 경영진 역할
                             </label>
-                            <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              rows={3}
-                              placeholder="경영진이 기후 관련 위험과 기회를 어떻게 관리하는지 설명하세요..."
-                            />
+                                                         <textarea
+                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               rows={3}
+                               placeholder="경영진이 기후 관련 위험과 기회를 어떻게 관리하는지 설명하세요..."
+                             />
+                             <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                               <p className="text-xs text-blue-700 font-medium mb-1">💡 예시:</p>
+                               <p className="text-xs text-blue-600">"경영진은 탄소중립 목표 달성을 위한 실행계획을 수립하고, 각 사업부에 KPI를 배분하여 이행 상황을 모니터링합니다."</p>
+                             </div>
                           </div>
                         </div>
                       </div>
@@ -676,11 +684,15 @@ export default function TcfdSrPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               S1: 기후 관련 위험과 기회의 비즈니스 영향
                             </label>
-                            <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              rows={3}
-                              placeholder="기후 관련 위험과 기회가 조직의 비즈니스, 전략, 재무 계획에 미치는 영향을 설명하세요..."
-                            />
+                                                         <textarea
+                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               rows={3}
+                               placeholder="기후 관련 위험과 기회가 조직의 비즈니스, 전략, 재무 계획에 미치는 영향을 설명하세요..."
+                             />
+                             <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                               <p className="text-xs text-green-700 font-medium mb-1">💡 예시:</p>
+                               <p className="text-xs text-green-600">"기후변화로 인한 원자재 가격 변동은 당사 제조원가에 영향을 미칠 수 있으며, 이에 따라 공급망 다변화 전략을 추진하고 있습니다."</p>
+                             </div>
                           </div>
                           <div className="bg-gray-50 p-4 rounded-lg">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
