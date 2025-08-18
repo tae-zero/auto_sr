@@ -7,7 +7,7 @@ import { apiClient } from '@/services/api';
 import axios from 'axios';
 
 // TCFD 표준 데이터 타입 정의
-interface TCFDStandardData {
+export interface TCFDStandardData {
   // id 필드 제거 (실제 DB에 없음)
   category: string;
   disclosure_id: string;
