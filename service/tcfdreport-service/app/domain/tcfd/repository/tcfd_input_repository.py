@@ -1,157 +1,206 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
-from sqlalchemy import and_
-
-from ..model.tcfd_input_model import TCFDInputModel
+import asyncpg
 from ..entity.tcfd_input_entity import TCFDInputEntity
 
 class TCFDInputRepository:
     """TCFD 입력 데이터 Repository"""
     
-    def __init__(self, db_session: Session):
-        self.db_session = db_session
+    def __init__(self):
+        pass
     
-    def save(self, tcfd_input: TCFDInputEntity) -> int:
+    async def save(self, conn: asyncpg.Connection, tcfd_input: TCFDInputEntity) -> int:
         """TCFD 입력 데이터 저장"""
-        model = TCFDInputModel(
-            company_name=tcfd_input.company_name,
-            user_id=tcfd_input.user_id,
-            g1_text=tcfd_input.g1_text,
-            g2_text=tcfd_input.g2_text,
-            s1_text=tcfd_input.s1_text,
-            s2_text=tcfd_input.s2_text,
-            s3_text=tcfd_input.s3_text,
-            r1_text=tcfd_input.r1_text,
-            r2_text=tcfd_input.r2_text,
-            m1_text=tcfd_input.m1_text,
-            m2_text=tcfd_input.m2_text,
-            m3_text=tcfd_input.m3_text
+        query = """
+        INSERT INTO tcfd_inputs (
+            company_name, user_id, g1_text, g2_text, s1_text, s2_text, s3_text,
+            r1_text, r2_text, r3_text, m1_text, m2_text, m3_text, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
+        RETURNING id
+        """
+        
+        result = await conn.fetchrow(
+            query,
+            tcfd_input.company_name,
+            tcfd_input.user_id,
+            tcfd_input.g1_text,
+            tcfd_input.g2_text,
+            tcfd_input.s1_text,
+            tcfd_input.s2_text,
+            tcfd_input.s3_text,
+            tcfd_input.r1_text,
+            tcfd_input.r2_text,
+            tcfd_input.r3_text,
+            tcfd_input.m1_text,
+            tcfd_input.m2_text,
+            tcfd_input.m3_text
         )
         
-        self.db_session.add(model)
-        self.db_session.commit()
-        self.db_session.refresh(model)
-        
-        return model.id
+        return result['id']
     
-    def find_by_id(self, input_id: int) -> Optional[TCFDInputEntity]:
+    async def find_by_id(self, conn: asyncpg.Connection, input_id: int) -> Optional[TCFDInputEntity]:
         """ID로 TCFD 입력 데이터 조회"""
-        model = self.db_session.query(TCFDInputModel).filter(
-            TCFDInputModel.id == input_id
-        ).first()
+        query = """
+        SELECT id, company_name, user_id, g1_text, g2_text, s1_text, s2_text, s3_text,
+               r1_text, r2_text, r3_text, m1_text, m2_text, m3_text, created_at, updated_at
+        FROM tcfd_inputs WHERE id = $1
+        """
         
-        if not model:
+        result = await conn.fetchrow(query, input_id)
+        
+        if not result:
             return None
         
         return TCFDInputEntity(
-            id=model.id,
-            company_name=model.company_name,
-            user_id=model.user_id,
-            g1_text=model.g1_text,
-            g2_text=model.g2_text,
-            s1_text=model.s1_text,
-            s2_text=model.s2_text,
-            s3_text=model.s3_text,
-            r1_text=model.r1_text,
-            r2_text=model.r2_text,
-            m1_text=model.m1_text,
-            m2_text=model.m2_text,
-            m3_text=model.m3_text,
-            created_at=model.created_at,
-            updated_at=model.updated_at
+            id=result['id'],
+            company_name=result['company_name'],
+            user_id=result['user_id'],
+            g1_text=result['g1_text'],
+            g2_text=result['g2_text'],
+            s1_text=result['s1_text'],
+            s2_text=result['s2_text'],
+            s3_text=result['s3_text'],
+            r1_text=result['r1_text'],
+            r2_text=result['r2_text'],
+            r3_text=result['r3_text'],
+            m1_text=result['m1_text'],
+            m2_text=result['m2_text'],
+            m3_text=result['m3_text'],
+            created_at=result['created_at'],
+            updated_at=result['updated_at']
         )
     
-    def find_by_company(self, company_name: str) -> List[TCFDInputEntity]:
+    async def find_by_company(self, conn: asyncpg.Connection, company_name: str) -> List[TCFDInputEntity]:
         """회사명으로 TCFD 입력 데이터 조회"""
-        models = self.db_session.query(TCFDInputModel).filter(
-            TCFDInputModel.company_name == company_name
-        ).order_by(TCFDInputModel.created_at.desc()).all()
+        query = """
+        SELECT id, company_name, user_id, g1_text, g2_text, s1_text, s2_text, s3_text,
+               r1_text, r2_text, r3_text, m1_text, m2_text, m3_text, created_at, updated_at
+        FROM tcfd_inputs WHERE company_name = $1 ORDER BY created_at DESC
+        """
+        
+        results = await conn.fetch(query, company_name)
         
         entities = []
-        for model in models:
+        for result in results:
             entity = TCFDInputEntity(
-                id=model.id,
-                company_name=model.company_name,
-                user_id=model.user_id,
-                g1_text=model.g1_text,
-                g2_text=model.g2_text,
-                s1_text=model.s1_text,
-                s2_text=model.s2_text,
-                s3_text=model.s3_text,
-                r1_text=model.r1_text,
-                r2_text=model.r2_text,
-                m1_text=model.m1_text,
-                m2_text=model.m2_text,
-                m3_text=model.m3_text,
-                created_at=model.created_at,
-                updated_at=model.updated_at
+                id=result['id'],
+                company_name=result['company_name'],
+                user_id=result['user_id'],
+                g1_text=result['g1_text'],
+                g2_text=result['g2_text'],
+                s1_text=result['s1_text'],
+                s2_text=result['s2_text'],
+                s3_text=result['s3_text'],
+                r1_text=result['r1_text'],
+                r2_text=result['r2_text'],
+                r3_text=result['r3_text'],
+                m1_text=result['m1_text'],
+                m2_text=result['m2_text'],
+                m3_text=result['m3_text'],
+                created_at=result['created_at'],
+                updated_at=result['updated_at']
             )
             entities.append(entity)
         
         return entities
     
-    def find_by_user(self, user_id: str) -> List[TCFDInputEntity]:
+    async def find_by_user(self, conn: asyncpg.Connection, user_id: str) -> List[TCFDInputEntity]:
         """사용자 ID로 TCFD 입력 데이터 조회"""
-        models = self.db_session.query(TCFDInputModel).filter(
-            TCFDInputModel.user_id == user_id
-        ).order_by(TCFDInputModel.created_at.desc()).all()
+        query = """
+        SELECT id, company_name, user_id, g1_text, g2_text, s1_text, s2_text, s3_text,
+               r1_text, r2_text, r3_text, m1_text, m2_text, m3_text, created_at, updated_at
+        FROM tcfd_inputs WHERE user_id = $1 ORDER BY created_at DESC
+        """
+        
+        results = await conn.fetch(query, user_id)
         
         entities = []
-        for model in models:
+        for result in results:
             entity = TCFDInputEntity(
-                id=model.id,
-                company_name=model.company_name,
-                user_id=model.user_id,
-                g1_text=model.g1_text,
-                g2_text=model.g2_text,
-                s1_text=model.s1_text,
-                s2_text=model.s2_text,
-                s3_text=model.s3_text,
-                r1_text=model.r1_text,
-                r2_text=model.r2_text,
-                m1_text=model.m1_text,
-                m2_text=model.m2_text,
-                m3_text=model.m3_text,
-                created_at=model.created_at,
-                updated_at=model.updated_at
+                id=result['id'],
+                company_name=result['company_name'],
+                user_id=result['user_id'],
+                g1_text=result['g1_text'],
+                g2_text=result['g2_text'],
+                s1_text=result['s1_text'],
+                s2_text=result['s2_text'],
+                s3_text=result['s3_text'],
+                r1_text=result['r1_text'],
+                r2_text=result['r2_text'],
+                r3_text=result['r3_text'],
+                m1_text=result['m1_text'],
+                m2_text=result['m2_text'],
+                m3_text=result['m3_text'],
+                created_at=result['created_at'],
+                updated_at=result['updated_at']
             )
             entities.append(entity)
         
         return entities
     
-    def update(self, input_id: int, tcfd_input: TCFDInputEntity) -> bool:
+    async def update(self, conn: asyncpg.Connection, input_id: int, tcfd_input: TCFDInputEntity) -> bool:
         """TCFD 입력 데이터 업데이트"""
-        model = self.db_session.query(TCFDInputModel).filter(
-            TCFDInputModel.id == input_id
-        ).first()
+        query = """
+        UPDATE tcfd_inputs SET
+            g1_text = $1, g2_text = $2, s1_text = $3, s2_text = $4, s3_text = $5,
+            r1_text = $6, r2_text = $7, r3_text = $8, m1_text = $9, m2_text = $10, m3_text = $11,
+            updated_at = NOW()
+        WHERE id = $12
+        """
         
-        if not model:
-            return False
+        result = await conn.execute(
+            query,
+            tcfd_input.g1_text,
+            tcfd_input.g2_text,
+            tcfd_input.s1_text,
+            tcfd_input.s2_text,
+            tcfd_input.s3_text,
+            tcfd_input.r1_text,
+            tcfd_input.r2_text,
+            tcfd_input.r3_text,
+            tcfd_input.m1_text,
+            tcfd_input.m2_text,
+            tcfd_input.m3_text,
+            input_id
+        )
         
-        # 업데이트할 필드들
-        model.g1_text = tcfd_input.g1_text
-        model.g2_text = tcfd_input.g2_text
-        model.s1_text = tcfd_input.s1_text
-        model.s2_text = tcfd_input.s2_text
-        model.s3_text = tcfd_input.s3_text
-        model.r1_text = tcfd_input.r1_text
-        model.r2_text = tcfd_input.r2_text
-        model.m1_text = tcfd_input.m1_text
-        model.m2_text = tcfd_input.m2_text
-        model.m3_text = tcfd_input.m3_text
-        
-        self.db_session.commit()
-        return True
+        return result != "UPDATE 0"
     
-    def delete(self, input_id: int) -> bool:
+    async def delete(self, conn: asyncpg.Connection, input_id: int) -> bool:
         """TCFD 입력 데이터 삭제"""
-        model = self.db_session.query(TCFDInputModel).filter(
-            TCFDInputModel.id == input_id
-        ).first()
+        query = "DELETE FROM tcfd_inputs WHERE id = $1"
+        result = await conn.execute(query, input_id)
+        return result != "DELETE 0"
+    
+    async def find_all(self, conn: asyncpg.Connection) -> List[TCFDInputEntity]:
+        """모든 TCFD 입력 데이터 조회"""
+        query = """
+        SELECT id, company_name, user_id, g1_text, g2_text, s1_text, s2_text, s3_text,
+               r1_text, r2_text, r3_text, m1_text, m2_text, m3_text, created_at, updated_at
+        FROM tcfd_inputs ORDER BY created_at DESC
+        """
         
-        if not model:
-            return False
+        results = await conn.fetch(query)
         
-        self.db_session.delete(model)
-        self.db_session.commit()
-        return True
+        entities = []
+        for result in results:
+            entity = TCFDInputEntity(
+                id=result['id'],
+                company_name=result['company_name'],
+                user_id=result['user_id'],
+                g1_text=result['g1_text'],
+                g2_text=result['g2_text'],
+                s1_text=result['s1_text'],
+                s2_text=result['s2_text'],
+                s3_text=result['s3_text'],
+                r1_text=result['r1_text'],
+                r2_text=result['r2_text'],
+                r3_text=result['r3_text'],
+                m1_text=result['m1_text'],
+                m2_text=result['m2_text'],
+                m3_text=result['m3_text'],
+                created_at=result['created_at'],
+                updated_at=result['updated_at']
+            )
+            entities.append(entity)
+        
+        return entities
