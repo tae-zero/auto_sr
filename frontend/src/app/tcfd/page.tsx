@@ -613,7 +613,7 @@ export default function TcfdSrPage() {
                 <h3 className="text-xl font-semibold text-gray-800 mb-4">TCFD 표준 상세 정보</h3>
                 <div className="space-y-4">
                   {companyFinancialData ? (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                       <h4 className="text-lg font-semibold text-green-900 mb-2">
                         📊 {companyFinancialData.company_name} TCFD 분석
                       </h4>
@@ -622,7 +622,7 @@ export default function TcfdSrPage() {
                       </p>
                     </div>
                   ) : (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center mb-6">
                       <h4 className="text-lg font-semibold text-blue-900 mb-2">회사 검색이 필요합니다</h4>
                       <p className="text-blue-700 mb-4">
                         회사정보 탭에서 회사명을 검색하면 해당 회사의 TCFD 분석을 진행할 수 있습니다.
@@ -633,6 +633,148 @@ export default function TcfdSrPage() {
                       >
                         회사정보 탭으로 이동
                       </button>
+                    </div>
+                  )}
+
+                  {/* TCFD 11개 인덱스 입력 폼 */}
+                  {companyFinancialData && (
+                    <div className="mt-8">
+                      <h4 className="text-lg font-semibold text-gray-800 mb-4">TCFD 11개 핵심 인덱스 데이터 입력</h4>
+                      
+                      {/* 거버넌스 */}
+                      <div className="mb-6">
+                        <h5 className="text-md font-semibold text-blue-700 mb-3 border-b border-blue-200 pb-2">거버넌스 (Governance)</h5>
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              G1: 기후 관련 위험과 기회에 대한 이사회 감독
+                            </label>
+                            <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              rows={3}
+                              placeholder="이사회가 기후 관련 위험과 기회를 어떻게 감독하고 있는지 설명하세요..."
+                            />
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              G2: 기후 관련 위험과 기회에 대한 경영진 역할
+                            </label>
+                            <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              rows={3}
+                              placeholder="경영진이 기후 관련 위험과 기회를 어떻게 관리하는지 설명하세요..."
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 전략 */}
+                      <div className="mb-6">
+                        <h5 className="text-md font-semibold text-green-700 mb-3 border-b border-green-200 pb-2">전략 (Strategy)</h5>
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              S1: 기후 관련 위험과 기회의 비즈니스 영향
+                            </label>
+                            <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              rows={3}
+                              placeholder="기후 관련 위험과 기회가 조직의 비즈니스, 전략, 재무 계획에 미치는 영향을 설명하세요..."
+                            />
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              S2: 전략적 영향의 실제 잠재적 영향
+                            </label>
+                            <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              rows={3}
+                              placeholder="조직의 전략, 비즈니스, 재무 계획에 미치는 기후 관련 위험과 기회의 실제 잠재적 영향을 설명하세요..."
+                            />
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              S3: 기후 시나리오 분석
+                            </label>
+                            <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              rows={3}
+                              placeholder="조직이 사용하는 기후 시나리오 분석 방법과 결과를 설명하세요..."
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 리스크 관리 */}
+                      <div className="mb-6">
+                        <h5 className="text-md font-semibold text-yellow-700 mb-3 border-b border-yellow-200 pb-2">리스크 관리 (Risk Management)</h5>
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              R1: 기후 관련 위험 식별 및 평가 프로세스
+                            </label>
+                            <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              rows={3}
+                              placeholder="조직이 기후 관련 위험을 식별, 평가, 관리하는 프로세스를 설명하세요..."
+                            />
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              R2: 위험 관리 프로세스 통합
+                            </label>
+                            <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              rows={3}
+                              placeholder="조직의 전반적인 위험 관리 프로세스에 기후 관련 위험을 통합하는 방법을 설명하세요..."
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 지표 및 목표 */}
+                      <div className="mb-6">
+                        <h5 className="text-md font-semibold text-purple-700 mb-3 border-b border-purple-200 pb-2">지표 및 목표 (Metrics and Targets)</h5>
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              M1: 기후 관련 위험 평가 지표
+                            </label>
+                            <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              rows={3}
+                              placeholder="조직이 기후 관련 위험과 기회를 평가하는 데 사용하는 지표를 설명하세요..."
+                            />
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              M2: 기후 관련 기회 평가 지표
+                            </label>
+                            <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              rows={3}
+                              placeholder="기후 관련 위험과 기회를 평가하는 데 사용하는 지표를 설명하세요..."
+                            />
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              M3: 기후 관련 목표 설정
+                            </label>
+                            <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              rows={3}
+                              placeholder="조직이 기후 관련 위험과 기회를 평가하는 데 사용하는 목표를 설명하세요..."
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 제출 버튼 */}
+                      <div className="flex justify-center mt-8">
+                        <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200">
+                          TCFD 분석 시작
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
