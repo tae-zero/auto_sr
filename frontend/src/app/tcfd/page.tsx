@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import ClimateScenarioModal from '@/components/ClimateScenarioModal';
 import TCFDDetailModal from '@/components/TCFDDetailModal';
 import Header from '@/components/Header';
@@ -52,6 +53,7 @@ interface CompanyFinancialData {
 }
 
 export default function TcfdSrPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState(1);
   
   // 회사 검색 관련 상태
@@ -939,26 +941,39 @@ export default function TcfdSrPage() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">🌍 기후시나리오</h2>
               <div className="space-y-4">
-                                 <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                   <h3 className="text-lg font-semibold text-red-900 mb-2">RCP 8.5 (고탄소 시나리오)</h3>
-                   <p className="text-red-700 mb-4">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
-                   <button 
-                     onClick={() => handleClimateDetails('ssp8.5')}
-                     className="px-4 py-2 bg-red-600 text-black rounded-md hover:bg-red-700 transition-colors text-sm"
-                   >
-                     상세보기
-                   </button>
-                 </div>
-                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                   <h3 className="text-lg font-semibold text-blue-900 mb-2">RCP 2.6 (극저탄소 시나리오)</h3>
-                   <p className="text-blue-700 mb-4">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
-                   <button 
-                     onClick={() => handleClimateDetails('ssp2.6')}
-                     className="px-4 py-2 bg-blue-600 text-black rounded-md hover:bg-blue-700 transition-colors text-sm"
-                   >
-                     상세보기
-                   </button>
-                 </div>
+                <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                  <h3 className="text-lg font-semibold text-red-900 mb-2">RCP 8.5 (고탄소 시나리오)</h3>
+                  <p className="text-red-700 mb-4">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
+                  <button 
+                    onClick={() => handleClimateDetails('ssp8.5')}
+                    className="px-4 py-2 bg-red-600 text-black rounded-md hover:bg-red-700 transition-colors text-sm"
+                  >
+                    상세보기
+                  </button>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-2">RCP 2.6 (극저탄소 시나리오)</h3>
+                  <p className="text-blue-700 mb-4">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
+                  <button 
+                    onClick={() => handleClimateDetails('ssp2.6')}
+                    className="px-4 py-2 bg-blue-600 text-black rounded-md hover:bg-red-700 transition-colors text-sm"
+                  >
+                    상세보기
+                  </button>
+                </div>
+                
+                {/* 기후 시나리오 이미지 갤러리로 이동하는 More 버튼 */}
+                <div className="mt-6 text-center">
+                  <button
+                    onClick={() => router.push('/climate-scenarios')}
+                    className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-lg shadow-md hover:shadow-lg"
+                  >
+                    🌍 기후 시나리오 이미지 더보기
+                  </button>
+                  <p className="text-sm text-gray-600 mt-2">
+                    SSP 2.6과 SSP 8.5 시나리오의 상세한 기후 변화 예측 이미지를 확인하세요
+                  </p>
+                </div>
               </div>
             </div>
           )}
