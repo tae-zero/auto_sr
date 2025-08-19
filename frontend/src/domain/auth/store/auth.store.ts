@@ -1,18 +1,21 @@
 import { create } from 'zustand';
 
+// 사용자 데이터 타입 정의
+interface UserData {
+  username: string;
+  email?: string;
+  name?: string;
+  company_id?: string;
+}
+
 interface AuthState {
   isAuthenticated: boolean;
   isInitialized: boolean;
-  user: {
-    username: string;
-    email?: string;
-    name?: string;
-    company_id?: string;
-  } | null;
+  user: UserData | null;
   checkAuthStatus: () => Promise<void>;
-  login: (username: string, userData?: any) => Promise<void>;
+  login: (username: string, userData?: UserData) => Promise<void>;
   logout: () => Promise<void>;
-  setUserData: (userData: any) => void;
+  setUserData: (userData: UserData) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -50,10 +53,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  login: async (username: string, userData?: any) => {
+  login: async (username: string, userData?: UserData) => {
     try {
       // 서버에서 받은 사용자 데이터가 있으면 사용, 없으면 기본값 사용
-      const finalUserData = userData || {
+      const finalUserData: UserData = userData || {
         username,
         email: `${username}@example.com`
       };
@@ -87,7 +90,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  setUserData: (userData: any) => {
+  setUserData: (userData: UserData) => {
     set({ user: userData });
     localStorage.setItem('user_data', JSON.stringify(userData));
   }
