@@ -44,29 +44,38 @@ export default function LoginPage() {
     // Gateway를 통해 auth-service로 요청 (환경변수 사용)
     const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
     axios.post(`${gatewayUrl}/api/v1/auth/login`, formData)
-      .then((response: { data: { success: boolean; message: string; name?: string; email?: string; company_id?: string } }) => {
+      .then((response: any) => {
         console.log('Login response:', response.data);
+        console.log('🔍 response.data.data:', response.data.data);
+        console.log('🔍 userInfo.success:', response.data.data?.success);
+        console.log('🔍 userInfo.name:', response.data.data?.name);
         
         // 성공 메시지 표시
         if (response.data.success) {
-          const { name = 'N/A', email = 'N/A', company_id = 'N/A' } = response.data;
+          // 서버 응답에서 data 객체 안의 사용자 정보를 가져옴
+          const userInfo = response.data.data || {};
           
-          // 사용자 정보를 auth store에 저장
-          const userData = {
-            username: formData.auth_id,
-            email: email,
-            name: name,
-            company_id: company_id
-          };
-          
-          // auth store의 login 함수 호출하여 사용자 정보 저장
-          useAuthStore.getState().login(formData.auth_id, userData);
-          
-          alert(`✅ ${response.data.message}\n\n이름: ${name}\n이메일: ${email}\n회사 ID: ${company_id}`);
-          // 로그인 성공 후 메인페이지로 이동
-          router.push('/');
-        } else {
-          alert(`❌ ${response.data.message}`);
+          // 내부 응답의 success 확인
+          if (userInfo.success) {
+            const { name = 'N/A', email = 'N/A', company_id = 'N/A' } = userInfo;
+            
+            // 사용자 정보를 auth store에 저장
+            const userData = {
+              username: formData.auth_id,
+              email: email,
+              name: name,
+              company_id: company_id
+            };
+            
+            // auth store의 login 함수 호출하여 사용자 정보 저장
+            useAuthStore.getState().login(formData.auth_id, userData);
+            
+            alert(`✅ ${response.data.message}\n\n이름: ${name}\n이메일: ${email}\n회사 ID: ${company_id}`);
+            // 로그인 성공 후 메인페이지로 이동
+            router.push('/');
+          } else {
+            alert(`❌ ${userInfo.message}`);
+          }
         }
       })
       .catch(error => {
