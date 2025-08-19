@@ -52,7 +52,12 @@ export default function Header() {
               <>
                 {/* 사용자 이름 표시 */}
                 <div className="text-white text-sm font-medium">
-                  {user.name && user.name !== 'N/A' ? `${user.name}님 환영합니다.` : `${user.username}님 환영합니다.`}
+                  {(() => {
+                    console.log('🔍 User data:', user);
+                    console.log('🔍 user.name:', user.name);
+                    console.log('🔍 user.username:', user.username);
+                    return user.name && user.name !== 'N/A' && user.name.trim() !== '' ? `${user.name}님 환영합니다.` : `${user.username}님 환영합니다.`;
+                  })()}
                 </div>
                 {/* 로그아웃 버튼 */}
                 <button
@@ -88,7 +93,7 @@ export default function Header() {
               {isInitialized && isAuthenticated && user ? (
                 <>
                   <div className="text-gray-600 block px-3 py-2 text-base font-medium">
-                    {user.name && user.name !== 'N/A' ? `${user.name}님 환영합니다.` : `${user.username}님 환영합니다.`}
+                    {user.name && user.name !== 'N/A' && user.name.trim() !== '' ? `${user.name}님 환영합니다.` : `${user.username}님 환영합니다.`}
                   </div>
                   <button
                     onClick={handleLogout}
