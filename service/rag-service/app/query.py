@@ -11,19 +11,19 @@ from .vectorstore import retriever, collection_path
 
 # ---- LLM 지연 로드 & 캐시 ----
 _LLM = None
+# ---- HF 로컬 모델 (Polyglot 3.8B 등) ----
 def get_llm():
     global _LLM
     if _LLM is not None:
         return _LLM
 
     if LLM_BACKEND == "openai":
+        from langchain_openai import ChatOpenAI
         if not OPENAI_API_KEY:
             raise RuntimeError("OPENAI_API_KEY 미설정")
-        from langchain_openai import ChatOpenAI
         _LLM = ChatOpenAI(model="gpt-4o-mini", temperature=0.0)
         return _LLM
 
-    # ---- HF 로컬 모델 (Polyglot 3.8B) ----
     import torch
     from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
     from langchain_community.llms import HuggingFacePipeline
@@ -32,25 +32,32 @@ def get_llm():
     if tok.pad_token is None and tok.eos_token is not None:
         tok.pad_token = tok.eos_token
 
-    load_kwargs = {"device_map": "auto", "torch_dtype": "auto"}
-    if QUANTIZE == "8bit":
-        load_kwargs["load_in_8bit"] = True
-    elif QUANTIZE == "4bit":
-        load_kwargs["load_in_4bit"] = True
+    # ✅ device_map 사용하지 말고 직접 지정
+    device = 0 if torch.cuda.is_available() else -1
 
-    mdl = AutoModelForCausalLM.from_pretrained(BASE_MODEL, **load_kwargs)
+    # ✅ 양자화/accelerate 관련 옵션 제거
+    mdl = AutoModelForCausalLM.from_pretrained(
+        BASE_MODEL,
+        torch_dtype="auto",
+        # device_map="auto"  # ❌ 제거
+        # load_in_8bit / load_in_4bit ❌ 일단 사용하지 않음
+    )
+    if device >= 0:
+        mdl = mdl.to("cuda")  # GPU로 이동
 
     gen = pipeline(
         "text-generation",
         model=mdl,
         tokenizer=tok,
-        max_new_tokens=512,
+        max_new_tokens=256,
         do_sample=False,
-        return_full_text=False,  # 프롬프트 제외
+        return_full_text=False,
         pad_token_id=tok.eos_token_id,
+        device=device,  # ✅ 파이프라인에도 명시
     )
     _LLM = HuggingFacePipeline(pipeline=gen)
     return _LLM
+
 
 PROMPT = PromptTemplate.from_template(
     """당신은 ESG/TCFD 전문가입니다.
@@ -133,7 +140,7 @@ def query(req: QueryReq):
     # 4) 생성
     llm = get_llm()
     prompt = PROMPT.format(question=req.question, context=context)
-    answer = llm(prompt)
+    answer = llm.invoke(prompt)
 
     # 5) 참고 메타
     refs: List[Dict] = []
