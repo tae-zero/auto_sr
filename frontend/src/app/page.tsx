@@ -215,14 +215,22 @@ export default function Home() {
                          MORE
                        </button>
                      </Link>
-                   ) : item.title === "재무대시보드" ? (
-                     <button 
-                       onClick={() => window.open('https://finance-dashboard-git-main-jeongtaeyeongs-projects.vercel.app', '_blank')}
-                       className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
-                     >
-                       MORE
-                     </button>
-                   ) : (
+                                       ) : item.title === "나한테 사진 찍힐래?" ? (
+                      <Link href="/photo-gallery">
+                        <button 
+                          className="border-2 border-purple-400 text-purple-600 hover:bg-purple-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                        >
+                          MORE
+                        </button>
+                      </Link>
+                    ) : item.title === "재무대시보드" ? (
+                      <button 
+                        onClick={() => window.open('https://finance-dashboard-git-main-jeongtaeyeongs-projects.vercel.app', '_blank')}
+                        className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                      >
+                        MORE
+                      </button>
+                    ) : (
                      <button className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
                        MORE
                      </button>
