@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Set, Tuple
 from pathlib import Path
-
+from .embeddings import embeddings
 from langchain.prompts import PromptTemplate
 from langchain.schema import Document
 

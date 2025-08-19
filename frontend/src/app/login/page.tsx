@@ -8,7 +8,7 @@ import axios from 'axios';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isInitialized, checkAuthStatus } = useAuthStore();
+  const { isAuthenticated, isInitialized, checkAuthStatus } = useAuthStore();
 
   // Form state management
   const [formData, setFormData] = useState({
@@ -21,12 +21,12 @@ export default function LoginPage() {
     checkAuthStatus();
   }, [checkAuthStatus]);
 
-  // Redirect authenticated users to dashboard
-  // useEffect(() => {
-  //   if (isAuthenticated && isInitialized) {
-  //     router.push('/dashboard');
-  //   }
-  // }, [isAuthenticated, isInitialized, router]);
+  // Redirect authenticated users to main page
+  useEffect(() => {
+    if (isAuthenticated && isInitialized) {
+      router.push('/');
+    }
+  }, [isAuthenticated, isInitialized, router]);
 
   // Form input handler
   const handleInputChange = (userData: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,8 +91,7 @@ export default function LoginPage() {
   }
 
   // Show login screen for unauthenticated users
-  // if (!isAuthenticated && isInitialized) {
-  if (true) { // 임시로 항상 로그인 화면 표시
+  if (!isAuthenticated && isInitialized) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
         <Header />
