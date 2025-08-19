@@ -1,11 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.www.jwt_auth_middleware import get_current_user
 from app.domain.auth import auth_controller
+from app.domain.controller import materiality_controller
 
 router = APIRouter()
 
 # 인증 관련 라우터
 router.include_router(auth_controller.router, prefix="/auth", tags=["인증"])
+
+# Materiality 데이터 관련 라우터
+router.include_router(materiality_controller.router, prefix="/data", tags=["Materiality 데이터"])
 
 @router.get("/analyses")
 async def get_materiality_analyses(current_user: dict = Depends(get_current_user)):

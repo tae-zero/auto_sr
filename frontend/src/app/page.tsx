@@ -215,7 +215,15 @@ export default function Home() {
                          MORE
                        </button>
                      </Link>
-                                       ) : item.title === "나한테 사진 찍힐래?" ? (
+                   ) : item.title === "Materiality 분석으로 핵심 이슈를 파악해볼까?" ? (
+                     <Link href="/materiality">
+                       <button 
+                         className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                       >
+                         MORE
+                       </button>
+                     </Link>
+                   ) : item.title === "나한테 사진 찍힐래?" ? (
                       <Link href="/photo-gallery">
                         <button 
                           className="border-2 border-purple-400 text-purple-600 hover:bg-purple-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
