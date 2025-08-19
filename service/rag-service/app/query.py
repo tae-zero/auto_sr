@@ -1,33 +1,56 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Set, Tuple
 from pathlib import Path
 
 from langchain.prompts import PromptTemplate
 from langchain.schema import Document
 
-from .config import FAISS_DIR, SR_COLLECTION, STD_COLLECTION, LLM_BACKEND, BASE_MODEL, OPENAI_API_KEY
-from .vectorstore import retriever
-from .embeddings import embeddings
+from .config import FAISS_DIR, LLM_BACKEND, BASE_MODEL, OPENAI_API_KEY, QUANTIZE
+from .vectorstore import retriever, collection_path
 
-# ---- LLM 선택 (HF 기본, 필요시 OpenAI) ----
-def build_llm():
+# ---- LLM 지연 로드 & 캐시 ----
+_LLM = None
+def get_llm():
+    global _LLM
+    if _LLM is not None:
+        return _LLM
+
     if LLM_BACKEND == "openai":
-        from langchain_openai import ChatOpenAI
         if not OPENAI_API_KEY:
             raise RuntimeError("OPENAI_API_KEY 미설정")
-        return ChatOpenAI(model="gpt-4o-mini", temperature=0)
-    else:
-        # HF Transformers 파이프라인
-        from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
-        tok = AutoTokenizer.from_pretrained(BASE_MODEL)
-        mdl = AutoModelForCausalLM.from_pretrained(BASE_MODEL, torch_dtype="auto", device_map="auto")
-        gen = pipeline("text-generation", model=mdl, tokenizer=tok, max_new_tokens=512, do_sample=False)
-        # LangChain 래핑
-        from langchain.llms import HuggingFacePipeline
-        return HuggingFacePipeline(pipeline=gen)
+        from langchain_openai import ChatOpenAI
+        _LLM = ChatOpenAI(model="gpt-4o-mini", temperature=0.0)
+        return _LLM
 
-LLM = build_llm()
+    # ---- HF 로컬 모델 (Polyglot 3.8B) ----
+    import torch
+    from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+    from langchain_community.llms import HuggingFacePipeline
+
+    tok = AutoTokenizer.from_pretrained(BASE_MODEL)
+    if tok.pad_token is None and tok.eos_token is not None:
+        tok.pad_token = tok.eos_token
+
+    load_kwargs = {"device_map": "auto", "torch_dtype": "auto"}
+    if QUANTIZE == "8bit":
+        load_kwargs["load_in_8bit"] = True
+    elif QUANTIZE == "4bit":
+        load_kwargs["load_in_4bit"] = True
+
+    mdl = AutoModelForCausalLM.from_pretrained(BASE_MODEL, **load_kwargs)
+
+    gen = pipeline(
+        "text-generation",
+        model=mdl,
+        tokenizer=tok,
+        max_new_tokens=512,
+        do_sample=False,
+        return_full_text=False,  # 프롬프트 제외
+        pad_token_id=tok.eos_token_id,
+    )
+    _LLM = HuggingFacePipeline(pipeline=gen)
+    return _LLM
 
 PROMPT = PromptTemplate.from_template(
     """당신은 ESG/TCFD 전문가입니다.
@@ -51,44 +74,70 @@ router = APIRouter(prefix="/rag", tags=["RAG"])
 class QueryReq(BaseModel):
     question: str
     top_k: int = 5
-    collections: List[str] = ["sr_corpus", "standards"]  # 검색할 코퍼스 선택
+    collections: List[str] = ["sr_corpus", "standards"]
+
+def _dedup_docs(docs: List[Document]) -> List[Document]:
+    seen: Set[Tuple[str, str]] = set()
+    uniq: List[Document] = []
+    for d in docs:
+        m = d.metadata or {}
+        key = (str(m.get("source")), str(m.get("page_from")))
+        if key in seen:
+            continue
+        seen.add(key)
+        uniq.append(d)
+    return uniq
 
 @router.post("/query")
 def query(req: QueryReq):
-    # 1) retriever 묶기
+    # 1) 컬렉션 경로 확인
     paths = []
     for c in req.collections:
-        p = FAISS_DIR / c
-        if not (p / "index.faiss").exists():
+        p = collection_path(c)
+        if not ((p / "index.faiss").exists() and (p / "index.pkl").exists()):
             raise HTTPException(404, f"FAISS 인덱스가 없습니다: {p}")
         paths.append(p)
 
-    # 단순 합치기: 각 컬렉션 k//len(paths)씩 가져온 후 합산
-    per = max(1, req.top_k // len(paths))
+    # 2) 컬렉션별 검색
+    k = max(1, req.top_k)
+    per = max(1, k // len(paths))
     docs: List[Document] = []
     for p in paths:
         r = retriever(p, k=per)
-        docs.extend(r.get_relevant_documents(req.question))
+        docs.extend(r.invoke(req.question))     # ✅ 최신 권장
 
-    # 부족하면 첫 컬렉션에서 보충
-    if len(docs) < req.top_k:
-        r0 = retriever(paths[0], k=req.top_k)
-        docs = r0.get_relevant_documents(req.question)
+    docs = _dedup_docs(docs)
 
-    # 2) 컨텍스트 구성
+    # 부족분 보충
+    if len(docs) < k:
+        r0 = retriever(paths[0], k=k)
+        extra = _dedup_docs(r0.invoke(req.question))
+        have = {(str(d.metadata.get("source")), str(d.metadata.get("page_from"))) for d in docs}
+        for d in extra:
+            key = (str(d.metadata.get("source")), str(d.metadata.get("page_from")))
+            if key not in have:
+                docs.append(d)
+                have.add(key)
+            if len(docs) >= k:
+                break
+
+    docs = docs[:k]
+
+    # 3) 컨텍스트
     def fmt(d: Document):
         m = d.metadata or {}
         src = f"{m.get('company','?')} {m.get('year','?')} p.{m.get('page_from','?')}"
         return f"[{src}] {d.page_content.strip()}"
-    context = "\n\n".join(fmt(d) for d in docs[:req.top_k])
+    context = "\n\n".join(fmt(d) for d in docs)
 
-    # 3) 생성
+    # 4) 생성
+    llm = get_llm()
     prompt = PROMPT.format(question=req.question, context=context)
-    answer = LLM(prompt)
+    answer = llm(prompt)
 
-    # 4) 참고 메타 반환
+    # 5) 참고 메타
     refs: List[Dict] = []
-    for d in docs[:req.top_k]:
+    for d in docs:
         m = d.metadata or {}
         refs.append({
             "source": m.get("source"),

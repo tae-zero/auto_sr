@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/domain/auth/store/auth.store';
+import Header from '@/components/Header';
 import axios from 'axios';
 
 export default function LoginPage() {
@@ -49,6 +50,18 @@ export default function LoginPage() {
         // 성공 메시지 표시
         if (response.data.success) {
           const { name = 'N/A', email = 'N/A', company_id = 'N/A' } = response.data;
+          
+          // 사용자 정보를 auth store에 저장
+          const userData = {
+            username: formData.auth_id,
+            email: email,
+            name: name,
+            company_id: company_id
+          };
+          
+          // auth store의 login 함수 호출하여 사용자 정보 저장
+          useAuthStore.getState().login(formData.auth_id, userData);
+          
           alert(`✅ ${response.data.message}\n\n이름: ${name}\n이메일: ${email}\n회사 ID: ${company_id}`);
           // 로그인 성공 후 메인페이지로 이동
           router.push('/');
@@ -81,7 +94,9 @@ export default function LoginPage() {
   // if (!isAuthenticated && isInitialized) {
   if (true) { // 임시로 항상 로그인 화면 표시
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
+        <Header />
+        <div className="flex items-center justify-center p-4 pt-20">
         <div className="w-full max-w-sm">
           <div className="bg-white rounded-3xl shadow-2xl px-8 py-12">
             {/* Login Title */}

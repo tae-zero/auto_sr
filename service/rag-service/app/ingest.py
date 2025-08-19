@@ -1,12 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from pathlib import Path
-from typing import Optional
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS, DistanceStrategy
 from langchain_community.document_loaders import PyPDFLoader
-
 from .embeddings import embeddings
+from .config import FAISS_DIR
 
 router = APIRouter(prefix="/ingest", tags=["Ingest"])
 
@@ -21,7 +20,10 @@ class IngestReq(BaseModel):
 @router.post("/pdfs")
 def ingest_pdfs(req: IngestReq):
     src = Path(req.pdf_dir)
-    out = Path.cwd() / "vectordb" / req.collection
+    if not src.exists():
+        raise HTTPException(404, f"PDF 디렉토리가 없습니다: {src}")
+
+    out = FAISS_DIR / req.collection
     out.mkdir(parents=True, exist_ok=True)
 
     docs = []
@@ -39,20 +41,23 @@ def ingest_pdfs(req: IngestReq):
     texts, metas = [], []
     for d in docs:
         for c in splitter.split_text(d.page_content or ""):
-            if c.strip():
+            c = c.strip()
+            if c:
                 texts.append(c)
                 metas.append(dict(d.metadata))
 
-    idx = out / "index.faiss"
-    pkl = out / "index.pkl"
+    idx, pkl = out / "index.faiss", out / "index.pkl"
     if idx.exists() and pkl.exists():
-        store = FAISS.load_local(str(out), embeddings, allow_dangerous_deserialization=True,
-                                 distance_strategy=DistanceStrategy.COSINE)
+        store = FAISS.load_local(
+            str(out), embeddings, allow_dangerous_deserialization=True,
+            distance_strategy=DistanceStrategy.COSINE
+        )
         store.add_texts(texts, metadatas=metas)
         store.save_local(str(out))
-        return {"status":"append", "chunks_added": len(texts), "collection": req.collection}
+        return {"status": "append", "chunks_added": len(texts), "collection": req.collection, "path": str(out)}
     else:
-        store = FAISS.from_texts(texts, embeddings, metadatas=metas,
-                                 distance_strategy=DistanceStrategy.COSINE)
+        store = FAISS.from_texts(
+            texts, embeddings, metadatas=metas, distance_strategy=DistanceStrategy.COSINE
+        )
         store.save_local(str(out))
-        return {"status":"created", "chunks": len(texts), "collection": req.collection}
+        return {"status": "created", "chunks": len(texts), "collection": req.collection, "path": str(out)}

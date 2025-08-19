@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Header from '@/components/Header';
 
 export default function Home() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [stars, setStars] = useState<Array<{left: string, top: string, delay: string, duration: string}>>([]);
 
   const portfolioItems = [
@@ -96,57 +96,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* 네비게이션 */}
-      <nav className="absolute top-0 left-0 right-0 z-50 bg-transparent">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* 햄버거 메뉴 */}
-            <div className="flex items-center">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-white hover:text-gray-300 focus:outline-none"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-            </div>
-            
-            {/* 중앙 로고 */}
-            <div className="flex-1 flex justify-center">
-              <h1 className="text-white text-xl font-medium">정태영의 인생사</h1>
-            </div>
-            
-            {/* 우측 메뉴 - 기존 URL들 보존 */}
-            <div className="flex items-center space-x-6">
-              <Link href="/login" className="text-white hover:text-gray-300 text-sm font-medium">
-                LOGIN
-              </Link>
-              <Link href="/signup" className="text-white hover:text-gray-300 text-sm font-medium">
-                SIGNUP
-              </Link>
-              <button className="text-white hover:text-gray-300">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        {/* 모바일 메뉴 - 기존 URL들 보존 */}
-        {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-100">
-              <Link href="/login" className="text-gray-600 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium">
-                LOGIN
-              </Link>
-              <Link href="/signup" className="text-gray-600 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium">
-                SIGNUP
-              </Link>
-            </div>
-          </div>
-        )}
-      </nav>
+      <Header />
 
       {/* 히어로 섹션 - 밤하늘 배경 */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Header from '@/components/Header';
 import axios from 'axios';
 
 export default function SignupPage() {
@@ -97,7 +98,9 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
+      <Header />
+      <div className="flex items-center justify-center p-4 pt-20">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-3xl shadow-2xl px-8 py-12">
           {/* Signup Title */}

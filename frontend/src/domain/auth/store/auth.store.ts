@@ -6,10 +6,13 @@ interface AuthState {
   user: {
     username: string;
     email?: string;
+    name?: string;
+    company_id?: string;
   } | null;
   checkAuthStatus: () => Promise<void>;
-  login: (username: string) => Promise<void>;
+  login: (username: string, userData?: any) => Promise<void>;
   logout: () => Promise<void>;
+  setUserData: (userData: any) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -47,21 +50,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  login: async (username: string) => {
+  login: async (username: string, userData?: any) => {
     try {
-      // TODO: 실제 로그인 API 호출
-      // 임시 로그인 로직
-      const mockUserData = {
+      // 서버에서 받은 사용자 데이터가 있으면 사용, 없으면 기본값 사용
+      const finalUserData = userData || {
         username,
         email: `${username}@example.com`
       };
       
       localStorage.setItem('auth_token', 'mock_token');
-      localStorage.setItem('user_data', JSON.stringify(mockUserData));
+      localStorage.setItem('user_data', JSON.stringify(finalUserData));
 
       set({ 
         isAuthenticated: true,
-        user: mockUserData
+        user: finalUserData
       });
     } catch (error) {
       console.error('로그인 중 오류:', error);
@@ -83,5 +85,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.error('로그아웃 중 오류:', error);
       throw error;
     }
+  },
+
+  setUserData: (userData: any) => {
+    set({ user: userData });
+    localStorage.setItem('user_data', JSON.stringify(userData));
   }
 }));

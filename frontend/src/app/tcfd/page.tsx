@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import ClimateScenarioModal from '@/components/ClimateScenarioModal';
 import TCFDDetailModal from '@/components/TCFDDetailModal';
+import Header from '@/components/Header';
 import { apiClient, tcfdReportAPI } from '@/services/api';
 import axios from 'axios';
 
@@ -447,17 +448,19 @@ export default function TcfdSrPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 헤더 */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            TCFD 기준으로 SR 작성
-          </h1>
-          <p className="text-gray-600">
-            기후 관련 재무 공시를 위한 지속가능보고서 작성 도구
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="pt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* 헤더 */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              TCFD 기준으로 SR 작성
+            </h1>
+            <p className="text-gray-600">
+              기후 관련 재무 공시를 위한 지속가능보고서 작성 도구
+            </p>
+          </div>
 
         {/* 탭 네비게이션 */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
