@@ -3,6 +3,7 @@
 RAG 임베딩 서비스
 SR PDF와 TCFD 기준서를 임베딩하여 ChromaDB에 저장
 """
+## pgvector 
 
 import os
 import sys

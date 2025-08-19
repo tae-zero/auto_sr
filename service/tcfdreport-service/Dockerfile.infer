@@ -34,26 +34,3 @@ EXPOSE 8000
 
 # Uvicorn으로 FastAPI 가동
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
-service/tcfdreport-service/requirements.infer.txt
-makefile
-복사
-편집
-# 핵심
-transformers==4.55.0
-peft==0.13.2
-bitsandbytes==0.43.3
-sentencepiece==0.2.0
-huggingface-hub==0.25.2
-
-# LangChain + VectorDB + PDF
-langchain==0.2.16
-chromadb==0.5.5
-pymupdf
-unstructured
-
-# FastAPI
-fastapi==0.115.5
-uvicorn[standard]==0.32.0
-
-# 임베딩
-torch==2.5.1+cu121  # 설치는 Dockerfile에서 별도 수행
