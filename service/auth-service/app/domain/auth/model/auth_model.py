@@ -58,6 +58,8 @@ class AuthResponse(BaseModel):
     message: str = Field(..., description="응답 메시지")
     user_id: Optional[Union[str, int]] = Field(None, description="사용자 ID")  # 문자열 또는 정수 허용
     email: Optional[str] = Field(None, description="이메일")
+    name: Optional[str] = Field(None, description="사용자 이름")
+    company_id: Optional[str] = Field(None, description="회사 ID")
     token: Optional[str] = Field(None, description="JWT 토큰")
     error: Optional[str] = Field(None, description="에러 메시지")
     timestamp: Optional[datetime] = Field(None, description="응답 시간")
