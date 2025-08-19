@@ -6,13 +6,18 @@ import Header from '@/components/Header';
 interface MaterialityData {
   id: number;
   created_at: string;
-  [key: string]: any;
-}
-
-interface MaterialityResponse {
-  success: boolean;
-  message: string;
-  data: MaterialityData[];
+  esg_division?: string;
+  materiality_list?: string;
+  environment?: string;
+  social?: string;
+  governance?: string;
+  industry?: string;
+  disclosure_topic?: string;
+  kpi_category_e?: string;
+  kpi_category_s?: string;
+  kpi_category_g?: string;
+  index_name?: string;
+  [key: string]: string | number | undefined;
 }
 
 export default function MaterialityPage() {
@@ -96,7 +101,7 @@ export default function MaterialityPage() {
     }
   };
 
-  const renderTable = (tableData: MaterialityData[], columns: string[]) => {
+  const renderTable = (tableData: Record<string, string | number>[], columns: string[]) => {
     if (!tableData || tableData.length === 0) {
       return (
         <div className="text-center py-8 text-gray-500">
@@ -162,55 +167,55 @@ export default function MaterialityPage() {
     const tableData = data[tabKey as keyof typeof data] || [];
     const columns = getTableColumns(tabKey);
     
-    return tableData.map(row => {
-      const mappedRow: any = {};
-      columns.forEach(column => {
-        switch (column) {
-          case 'ID':
-            mappedRow[column] = row.id;
-            break;
-          case 'ESG 구분':
-            mappedRow[column] = row.esg_division;
-            break;
-          case '중대성평가 목록':
-            mappedRow[column] = row.materiality_list;
-            break;
-          case '환경(E)':
-            mappedRow[column] = row.environment;
-            break;
-          case '사회(S)':
-            mappedRow[column] = row.social;
-            break;
-          case '거버넌스(G)':
-            mappedRow[column] = row.governance;
-            break;
-          case '산업':
-            mappedRow[column] = row.industry;
-            break;
-          case '공시 주제':
-            mappedRow[column] = row.disclosure_topic;
-            break;
-          case 'KPI 카테고리 E':
-            mappedRow[column] = row.kpi_category_e;
-            break;
-          case 'KPI 카테고리 S':
-            mappedRow[column] = row.kpi_category_s;
-            break;
-          case 'KPI 카테고리 G':
-            mappedRow[column] = row.kpi_category_g;
-            break;
-          case '인덱스명':
-            mappedRow[column] = row.index_name;
-            break;
-          case '생성일':
-            mappedRow[column] = row.created_at ? new Date(row.created_at).toLocaleDateString('ko-KR') : '-';
-            break;
-          default:
-            mappedRow[column] = row[column.toLowerCase()] || '-';
-        }
-      });
-      return mappedRow;
-    });
+              return tableData.map(row => {
+       const mappedRow: Record<string, string | number> = {};
+       columns.forEach(column => {
+         switch (column) {
+           case 'ID':
+             mappedRow[column] = row.id;
+             break;
+           case 'ESG 구분':
+             mappedRow[column] = row.esg_division || '-';
+             break;
+           case '중대성평가 목록':
+             mappedRow[column] = row.materiality_list || '-';
+             break;
+           case '환경(E)':
+             mappedRow[column] = row.environment || '-';
+             break;
+           case '사회(S)':
+             mappedRow[column] = row.social || '-';
+             break;
+           case '거버넌스(G)':
+             mappedRow[column] = row.governance || '-';
+             break;
+           case '산업':
+             mappedRow[column] = row.industry || '-';
+             break;
+           case '공시 주제':
+             mappedRow[column] = row.disclosure_topic || '-';
+             break;
+           case 'KPI 카테고리 E':
+             mappedRow[column] = row.kpi_category_e || '-';
+             break;
+           case 'KPI 카테고리 S':
+             mappedRow[column] = row.kpi_category_s || '-';
+             break;
+           case 'KPI 카테고리 G':
+             mappedRow[column] = row.kpi_category_g || '-';
+             break;
+           case '인덱스명':
+             mappedRow[column] = row.index_name || '-';
+             break;
+           case '생성일':
+             mappedRow[column] = row.created_at ? new Date(row.created_at).toLocaleDateString('ko-KR') : '-';
+             break;
+           default:
+             mappedRow[column] = (row[column.toLowerCase() as keyof MaterialityData] as string) || '-';
+         }
+       });
+       return mappedRow;
+     });
   };
 
   if (loading) {
