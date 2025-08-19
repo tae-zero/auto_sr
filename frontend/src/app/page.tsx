@@ -207,6 +207,14 @@ export default function Home() {
                          MORE
                        </button>
                      </Link>
+                   ) : item.title === "지구가 아파한대!!" ? (
+                     <Link href="/climate-scenarios">
+                       <button 
+                         className="border-2 border-green-400 text-green-600 hover:bg-green-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                       >
+                         MORE
+                       </button>
+                     </Link>
                    ) : item.title === "재무대시보드" ? (
                      <button 
                        onClick={() => window.open('https://finance-dashboard-git-main-jeongtaeyeongs-projects.vercel.app', '_blank')}
