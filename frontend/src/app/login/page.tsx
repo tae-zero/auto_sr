@@ -44,7 +44,7 @@ export default function LoginPage() {
     // Gateway를 통해 auth-service로 요청 (환경변수 사용)
     const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
     axios.post(`${gatewayUrl}/api/v1/auth/login`, formData)
-      .then((response: any) => {
+      .then((response) => {
         console.log('Login response:', response.data);
         console.log('🔍 response.data.data:', response.data.data);
         console.log('🔍 userInfo.success:', response.data.data?.success);
