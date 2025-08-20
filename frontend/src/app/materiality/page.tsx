@@ -80,18 +80,14 @@ export default function MaterialityPage() {
 
 
   const fetchAllMaterialityData = async () => {
-    setLoading(true);
-    setError(null);
-    
     try {
+      setLoading(true);
+      
       const API_BASE_URL = process.env.NEXT_PUBLIC_MATERIALITY_URL || 'https://materiality-service-production-9a40.up.railway.app';
-      const token = localStorage.getItem('auth_token');
-
+      
       console.log('API 호출 시작:', API_BASE_URL);
-      console.log('토큰:', token ? '있음' : '없음');
-
-
-
+      console.log('인증 없이 API 호출 시도');
+  
       const endpoints = [
         '/api/v1/materiality/data/categories',
         '/api/v1/materiality/data/kcgs',
@@ -100,18 +96,15 @@ export default function MaterialityPage() {
         '/api/v1/materiality/data/sustainbest-s',
         '/api/v1/materiality/data/sustainbest-g'
       ];
-
+  
       const responses = await Promise.all(
         endpoints.map(endpoint => {
+          // 인증 헤더 완전 제거, 기본 헤더만 사용
           const headers: Record<string, string> = {
             'Content-Type': 'application/json'
           };
           
-          // 토큰이 있을 때만 Authorization 헤더 추가
-          if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-          }
-          
+          console.log(`${endpoint} 호출 중...`);
           return fetch(`${API_BASE_URL}${endpoint}`, { headers });
         })
       );
