@@ -83,13 +83,13 @@ export default function MaterialityPage() {
     try {
       setLoading(true);
       
-      // 게이트웨이를 통해 Materiality Service 호출
-      const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://gateway-production-1234.up.railway.app';
+      // Materiality Service 직접 호출 (원래대로 복구)
+      const API_BASE_URL = process.env.NEXT_PUBLIC_MATERIALITY_URL || 'https://materiality-service-production-9a40.up.railway.app';
       
-      console.log('게이트웨이를 통한 API 호출 시작:', GATEWAY_URL);
+      console.log('API 호출 시작:', API_BASE_URL);
       console.log('인증 없이 API 호출 시도');
   
-      // 게이트웨이를 통한 Materiality Service 엔드포인트
+      // Materiality Service 직접 호출
       const endpoints = [
         '/api/v1/materiality/data/categories',
         '/api/v1/materiality/data/kcgs',
@@ -107,7 +107,7 @@ export default function MaterialityPage() {
           };
           
           console.log(`${endpoint} 호출 중...`);
-          return fetch(`${GATEWAY_URL}${endpoint}`, { headers });
+          return fetch(`${API_BASE_URL}${endpoint}`, { headers });
         })
       );
 
