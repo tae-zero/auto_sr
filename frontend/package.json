@@ -6,8 +6,8 @@
   "author": "Your Name",
   "license": "MIT",
   "scripts": {
-    "dev": "set NEXT_PUBLIC_AUTH_URL=http://localhost:8008 && set NEXT_PUBLIC_GATEWAY_URL=http://localhost:8080 && next dev",
-    "dev:local": "set NEXT_PUBLIC_AUTH_URL=http://localhost:8008 && set NEXT_PUBLIC_GATEWAY_URL=http://localhost:8080 && next dev",
+           "dev": "set NEXT_PUBLIC_AUTH_URL=http://localhost:8008 && set NEXT_PUBLIC_GATEWAY_URL=http://localhost:8080 && set NEXT_PUBLIC_MATERIALITY_URL=https://materiality-service-production-9a40.up.railway.app/materiality && next dev",
+       "dev:local": "set NEXT_PUBLIC_AUTH_URL=http://localhost:8008 && set NEXT_PUBLIC_GATEWAY_URL=http://localhost:8080 && set NEXT_PUBLIC_MATERIALITY_URL=https://materiality-service-production-9a40.up.railway.app/materiality && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

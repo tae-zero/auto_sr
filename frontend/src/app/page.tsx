@@ -215,9 +215,14 @@ export default function Home() {
                          MORE
                        </button>
                      </Link>
-                   ) : item.title === "Materiality 분석으로 핵심 이슈를 파악해볼까?" ? (
+                   ) : item.title === "Materiality" ? (
                      <Link href="/materiality">
                        <button 
+                         onClick={() => {
+                           console.log('=== Materiality MORE 버튼 클릭됨 ===');
+                           console.log('현재 페이지:', window.location.href);
+                           console.log('이동할 페이지: /materiality');
+                         }}
                          className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
                        >
                          MORE

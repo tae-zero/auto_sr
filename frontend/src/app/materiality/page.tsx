@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 
 interface MaterialityData {
@@ -20,10 +21,13 @@ interface MaterialityData {
   [key: string]: string | number | undefined;
 }
 
+
+
 export default function MaterialityPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [data, setData] = useState<{
     categories: MaterialityData[];
     kcgs: MaterialityData[];
@@ -40,26 +44,53 @@ export default function MaterialityPage() {
     sustainbestG: []
   });
 
+  const router = useRouter();
+
   const tabs = [
-    { name: '카테고리', key: 'categories' },
-    { name: 'KCGS', key: 'kcgs' },
-    { name: 'SASB', key: 'sasb' },
-    { name: '서스틴베스트 E', key: 'sustainbestE' },
-    { name: '서스틴베스트 S', key: 'sustainbestS' },
-    { name: '서스틴베스트 G', key: 'sustainbestG' }
+    { 
+      name: '카테고리', 
+      key: 'categories'
+    },
+    { 
+      name: 'KCGS', 
+      key: 'kcgs'
+    },
+    { 
+      name: 'SASB', 
+      key: 'sasb'
+    },
+    { 
+      name: '서스틴베스트 E', 
+      key: 'sustainbestE'
+    },
+    { 
+      name: '서스틴베스트 S', 
+      key: 'sustainbestS'
+    },
+    { 
+      name: '서스틴베스트 G', 
+      key: 'sustainbestG'
+    }
   ];
 
   useEffect(() => {
     fetchAllMaterialityData();
   }, []);
 
+
+
   const fetchAllMaterialityData = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
+      const API_BASE_URL = process.env.NEXT_PUBLIC_MATERIALITY_URL || 'https://materiality-service-production-9a40.up.railway.app';
       const token = localStorage.getItem('auth_token');
+
+      console.log('API 호출 시작:', API_BASE_URL);
+      console.log('토큰:', token ? '있음' : '없음');
+
+
 
       const endpoints = [
         '/api/v1/materiality/data/categories',
@@ -71,19 +102,27 @@ export default function MaterialityPage() {
       ];
 
       const responses = await Promise.all(
-        endpoints.map(endpoint =>
-          fetch(`${API_BASE_URL}${endpoint}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          })
-        )
+        endpoints.map(endpoint => {
+          const headers: Record<string, string> = {
+            'Content-Type': 'application/json'
+          };
+          
+          // 토큰이 있을 때만 Authorization 헤더 추가
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
+          
+          return fetch(`${API_BASE_URL}${endpoint}`, { headers });
+        })
       );
+
+      console.log('API 응답 상태:', responses.map(r => r.status));
 
       const results = await Promise.all(
         responses.map(response => response.json())
       );
+
+      console.log('API 응답 데이터:', results);
 
       setData({
         categories: results[0].data || [],
@@ -94,12 +133,24 @@ export default function MaterialityPage() {
         sustainbestG: results[5].data || []
       });
     } catch (err) {
+      console.error('API 호출 오류 상세:', err);
       setError('데이터를 불러오는 중 오류가 발생했습니다.');
-      console.error('Materiality 데이터 로드 오류:', err);
+      
+      // 오류 발생 시에도 기본 UI를 보여주기 위해 더미 데이터 설정
+      setData({
+        categories: [{ id: 1, esg_division: '환경', materiality_list: '테스트 데이터', created_at: new Date().toISOString() }],
+        kcgs: [{ id: 1, environment: '테스트', social: '테스트', governance: '테스트', created_at: new Date().toISOString() }],
+        sasb: [{ id: 1, industry: '테스트', disclosure_topic: '테스트', created_at: new Date().toISOString() }],
+        sustainbestE: [{ id: 1, kpi_category_e: '테스트', index_name: '테스트', created_at: new Date().toISOString() }],
+        sustainbestS: [{ id: 1, kpi_category_s: '테스트', index_name: '테스트', created_at: new Date().toISOString() }],
+        sustainbestG: [{ id: 1, kpi_category_g: '테스트', index_name: '테스트', created_at: new Date().toISOString() }]
+      });
     } finally {
       setLoading(false);
     }
   };
+
+
 
   const renderTable = (tableData: Record<string, string | number>[], columns: string[]) => {
     if (!tableData || tableData.length === 0) {
@@ -167,56 +218,58 @@ export default function MaterialityPage() {
     const tableData = data[tabKey as keyof typeof data] || [];
     const columns = getTableColumns(tabKey);
     
-              return tableData.map(row => {
-       const mappedRow: Record<string, string | number> = {};
-       columns.forEach(column => {
-         switch (column) {
-           case 'ID':
-             mappedRow[column] = row.id;
-             break;
-           case 'ESG 구분':
-             mappedRow[column] = row.esg_division || '-';
-             break;
-           case '중대성평가 목록':
-             mappedRow[column] = row.materiality_list || '-';
-             break;
-           case '환경(E)':
-             mappedRow[column] = row.environment || '-';
-             break;
-           case '사회(S)':
-             mappedRow[column] = row.social || '-';
-             break;
-           case '거버넌스(G)':
-             mappedRow[column] = row.governance || '-';
-             break;
-           case '산업':
-             mappedRow[column] = row.industry || '-';
-             break;
-           case '공시 주제':
-             mappedRow[column] = row.disclosure_topic || '-';
-             break;
-           case 'KPI 카테고리 E':
-             mappedRow[column] = row.kpi_category_e || '-';
-             break;
-           case 'KPI 카테고리 S':
-             mappedRow[column] = row.kpi_category_s || '-';
-             break;
-           case 'KPI 카테고리 G':
-             mappedRow[column] = row.kpi_category_g || '-';
-             break;
-           case '인덱스명':
-             mappedRow[column] = row.index_name || '-';
-             break;
-           case '생성일':
-             mappedRow[column] = row.created_at ? new Date(row.created_at).toLocaleDateString('ko-KR') : '-';
-             break;
-           default:
-             mappedRow[column] = (row[column.toLowerCase() as keyof MaterialityData] as string) || '-';
-         }
-       });
-       return mappedRow;
-     });
+    return tableData.map(row => {
+      const mappedRow: Record<string, string | number> = {};
+      columns.forEach(column => {
+        switch (column) {
+          case 'ID':
+            mappedRow[column] = row.id;
+            break;
+          case 'ESG 구분':
+            mappedRow[column] = row.esg_division || '-';
+            break;
+          case '중대성평가 목록':
+            mappedRow[column] = row.materiality_list || '-';
+            break;
+          case '환경(E)':
+            mappedRow[column] = row.environment || '-';
+            break;
+          case '사회(S)':
+            mappedRow[column] = row.social || '-';
+            break;
+          case '거버넌스(G)':
+            mappedRow[column] = row.governance || '-';
+            break;
+          case '산업':
+            mappedRow[column] = row.industry || '-';
+            break;
+          case '공시 주제':
+            mappedRow[column] = row.disclosure_topic || '-';
+            break;
+          case 'KPI 카테고리 E':
+            mappedRow[column] = row.kpi_category_e || '-';
+            break;
+          case 'KPI 카테고리 S':
+            mappedRow[column] = row.kpi_category_s || '-';
+            break;
+          case 'KPI 카테고리 G':
+            mappedRow[column] = row.kpi_category_g || '-';
+            break;
+          case '인덱스명':
+            mappedRow[column] = row.index_name || '-';
+            break;
+          case '생성일':
+            mappedRow[column] = row.created_at ? new Date(row.created_at).toLocaleDateString('ko-KR') : '-';
+            break;
+          default:
+            mappedRow[column] = (row[column.toLowerCase() as keyof MaterialityData] as string) || '-';
+        }
+      });
+      return mappedRow;
+    });
   };
+
+
 
   if (loading) {
     return (
@@ -276,7 +329,10 @@ export default function MaterialityPage() {
               {tabs.map((tab, index) => (
                 <button
                   key={tab.key}
-                  onClick={() => setActiveTab(index)}
+                  onClick={() => {
+                    console.log('탭 클릭:', tab.name, index);
+                    setActiveTab(index);
+                  }}
                   className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                     activeTab === index
                       ? 'bg-blue-600 text-white'
@@ -291,13 +347,17 @@ export default function MaterialityPage() {
 
           {/* 데이터 테이블 */}
           <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="mb-4">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                {tabs[activeTab].name} 데이터
-              </h2>
-              <p className="text-gray-600">
-                총 {getTableData(tabs[activeTab].key).length}개의 항목
-              </p>
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                  {tabs[activeTab].name} 데이터
+                </h2>
+                <p className="text-gray-600">
+                  총 {getTableData(tabs[activeTab].key).length}개의 항목
+                </p>
+              </div>
+              
+
             </div>
             
             {renderTable(
@@ -307,6 +367,8 @@ export default function MaterialityPage() {
           </div>
         </div>
       </div>
+
+
     </div>
   );
 }
