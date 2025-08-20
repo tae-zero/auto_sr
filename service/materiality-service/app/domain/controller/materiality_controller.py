@@ -7,6 +7,91 @@ from typing import List, Dict, Any, Optional
 
 router = APIRouter()
 
+# 프론트엔드용 데이터 엔드포인트 (인증 없이 접근 가능)
+@router.get("/data/categories", tags=["프론트엔드용"])
+async def get_categories_for_frontend(db: Session = Depends(get_db)):
+    """프론트엔드용 카테고리 데이터 조회 (인증 불필요)"""
+    try:
+        service = MaterialityService(db)
+        data = service.get_all_categories()
+        return {
+            "success": True,
+            "message": "카테고리 데이터 조회 완료",
+            "data": data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/data/kcgs", tags=["프론트엔드용"])
+async def get_kcgs_for_frontend(db: Session = Depends(get_db)):
+    """프론트엔드용 KCGS 데이터 조회 (인증 불필요)"""
+    try:
+        service = MaterialityService(db)
+        data = service.get_all_kcgs()
+        return {
+            "success": True,
+            "message": "KCGS 데이터 조회 완료",
+            "data": data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/data/sasb", tags=["프론트엔드용"])
+async def get_sasb_for_frontend(db: Session = Depends(get_db)):
+    """프론트엔드용 SASB 데이터 조회 (인증 불필요)"""
+    try:
+        service = MaterialityService(db)
+        data = service.get_all_sasb()
+        return {
+            "success": True,
+            "message": "SASB 데이터 조회 완료",
+            "data": data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/data/sustainbest-e", tags=["프론트엔드용"])
+async def get_sustainbest_e_for_frontend(db: Session = Depends(get_db)):
+    """프론트엔드용 서스틴베스트 E 데이터 조회 (인증 불필요)"""
+    try:
+        service = MaterialityService(db)
+        data = service.get_all_sustainbest_e()
+        return {
+            "success": True,
+            "message": "서스틴베스트 E 데이터 조회 완료",
+            "data": data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/data/sustainbest-s", tags=["프론트엔드용"])
+async def get_sustainbest_s_for_frontend(db: Session = Depends(get_db)):
+    """프론트엔드용 서스틴베스트 S 데이터 조회 (인증 불필요)"""
+    try:
+        service = MaterialityService(db)
+        data = service.get_all_sustainbest_s()
+        return {
+            "success": True,
+            "message": "서스틴베스트 S 데이터 조회 완료",
+            "data": data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/data/sustainbest-g", tags=["프론트엔드용"])
+async def get_sustainbest_g_for_frontend(db: Session = Depends(get_db)):
+    """프론트엔드용 서스틴베스트 G 데이터 조회 (인증 불필요)"""
+    try:
+        service = MaterialityService(db)
+        data = service.get_all_sustainbest_g()
+        return {
+            "success": True,
+            "message": "서스틴베스트 G 데이터 조회 완료",
+            "data": data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Category Table Controllers
 @router.get("/categories", tags=["카테고리"])
 async def get_all_categories(
