@@ -75,38 +75,7 @@ export default function MaterialityPage() {
     }
   ];
 
-  // 인증 상태 확인
-  useEffect(() => {
-    // 클라이언트 사이드에서만 인증 확인
-    if (typeof window !== 'undefined') {
-      if (!authService.isAuthenticated()) {
-        setError('로그인이 필요합니다.');
-        router.push('/login');
-        return;
-      }
-      
-      setIsAuthenticated(true);
-      fetchAllMaterialityData();
-    }
-  }, [router]);
-
-  // 인증되지 않은 경우 로딩 화면 표시
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Header />
-        <div className="pt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">인증 확인 중...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // Materiality 데이터 불러오기 함수
   const fetchAllMaterialityData = async () => {
     try {
       setLoading(true);
@@ -172,6 +141,38 @@ export default function MaterialityPage() {
       setLoading(false);
     }
   };
+
+  // 인증 상태 확인
+  useEffect(() => {
+    // 클라이언트 사이드에서만 인증 확인
+    if (typeof window !== 'undefined') {
+      if (!authService.isAuthenticated()) {
+        setError('로그인이 필요합니다.');
+        router.push('/login');
+        return;
+      }
+      
+      setIsAuthenticated(true);
+      fetchAllMaterialityData();
+    }
+  }, [router]);
+
+  // 인증되지 않은 경우 로딩 화면 표시
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Header />
+        <div className="pt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">인증 확인 중...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
 
 
