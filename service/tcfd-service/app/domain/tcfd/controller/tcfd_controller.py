@@ -18,17 +18,24 @@ from app.domain.tcfd.model.tcfd_model import (
 )
 from app.domain.tcfd.schema.tcfd_schema import TCFDReport, ClimateRisk, TCFDStandardsListResponse, TCFDStandardResponse
 
+# 인증 미들웨어 추가
+from app.domain.auth.auth_middleware import get_current_user
+
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/tcfd", tags=["TCFD"])
 tcfd_service = TCFDService()
 
-# TCFD 표준 정보 조회 엔드포인트 추가
+# TCFD 표준 정보 조회 엔드포인트 추가 (인증 필요)
 @router.get("/standards", response_model=TCFDStandardsListResponse, summary="TCFD 표준 정보 전체 조회")
-async def get_tcfd_standards(db: AsyncSession = Depends(get_db)):
-    """TCFD 표준 정보 전체를 조회합니다."""
+async def get_tcfd_standards(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """TCFD 표준 정보 전체를 조회합니다. (인증 필요)"""
     try:
         logger.info("🔍 TCFD 표준 정보 조회 시작")
         logger.info(f"🔍 데이터베이스 세션: {db}")
+        logger.info(f"🔍 인증된 사용자: {current_user.get('email', 'unknown')}")
         
         standards = await tcfd_service.get_tcfd_standards(db)
         logger.info(f"✅ TCFD 표준 정보 조회 성공: {len(standards)}개 레코드")
@@ -46,9 +53,15 @@ async def get_tcfd_standards(db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"TCFD 표준 정보 조회 실패: {str(e)}")
 
 @router.get("/standards/{category}", response_model=TCFDStandardsListResponse, summary="카테고리별 TCFD 표준 정보 조회")
-async def get_tcfd_standards_by_category(category: str, db: AsyncSession = Depends(get_db)):
-    """특정 카테고리의 TCFD 표준 정보를 조회합니다."""
+async def get_tcfd_standards_by_category(
+    category: str, 
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """특정 카테고리의 TCFD 표준 정보를 조회합니다. (인증 필요)"""
     try:
+        logger.info(f"🔍 '{category}' 카테고리 TCFD 표준 정보 조회 - 사용자: {current_user.get('email', 'unknown')}")
+        
         standards = await tcfd_service.get_tcfd_standards_by_category(db, category)
         if not standards:
             return {
@@ -83,9 +96,14 @@ async def health_check():
     }
 
 @router.get("/financial-data/company/{company_name}")
-async def get_company_financial_data(company_name: str):
-    """특정 회사의 재무정보 조회"""
+async def get_company_financial_data(
+    company_name: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """특정 회사의 재무정보 조회 (인증 필요)"""
     try:
+        logger.info(f"🔍 회사 재무정보 조회 - 회사: {company_name}, 사용자: {current_user.get('email', 'unknown')}")
+        
         result = await tcfd_service.get_company_financial_data(company_name)
         return result
         
@@ -94,9 +112,14 @@ async def get_company_financial_data(company_name: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/financial-data/company/{company_name}/summary")
-async def get_company_financial_summary(company_name: str):
-    """특정 회사의 재무요약 정보 조회"""
+async def get_company_financial_summary(
+    company_name: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """특정 회사의 재무요약 정보 조회 (인증 필요)"""
     try:
+        logger.info(f"🔍 회사 재무요약 조회 - 회사: {company_name}, 사용자: {current_user.get('email', 'unknown')}")
+        
         result = await tcfd_service.get_company_financial_summary(company_name)
         return result
         

@@ -6,6 +6,7 @@ import ClimateScenarioModal from '@/components/ClimateScenarioModal';
 import TCFDDetailModal from '@/components/TCFDDetailModal';
 import Header from '@/components/Header';
 import { apiClient, tcfdReportAPI } from '@/services/api';
+import { authService } from '@/services/authService';
 import axios from 'axios';
 
 // TCFD 표준 데이터 타입 정의
@@ -55,6 +56,7 @@ interface CompanyFinancialData {
 export default function TcfdSrPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(1);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   
   // 회사 검색 관련 상태
   const [companyName, setCompanyName] = useState(''); // 빈 문자열로 초기화
@@ -259,81 +261,105 @@ export default function TcfdSrPage() {
   };
 
   // TCFD 표준 데이터 불러오기 (apiClient 사용)
-  useEffect(() => {
-    if (activeTab === 3) { // TCFD 프레임워크 탭일 때만 데이터 로드
-      const fetchTcfdStandards = async () => {
-        setIsLoadingTcfd(true);
-        setTcfdError(null);
-        try {
-                     // apiClient 사용 (Gateway를 통해 요청)
-           const response = await apiClient.get('/api/v1/tcfd/standards');
-           console.log('🔍 TCFD 응답 전체:', response.data);
-           
-           // 응답 구조에 맞게 data 추출
-           const responseData = response.data;
-           const data: TCFDStandardData[] = responseData.data || [];
-           
-           console.log('🔍 TCFD 데이터 배열:', data);
+  const fetchTcfdStandards = async () => {
+    setIsLoadingTcfd(true);
+    setTcfdError(null);
+    try {
+                 // apiClient 사용 (Gateway를 통해 요청)
+       const response = await apiClient.get('/api/v1/tcfd/standards');
+       console.log('🔍 TCFD 응답 전체:', response.data);
+       
+       // 응답 구조에 맞게 data 추출
+       const responseData = response.data;
+       const data: TCFDStandardData[] = responseData.data || [];
+       
+       console.log('🔍 TCFD 데이터 배열:', data);
 
-          // 데이터를 카테고리별로 그룹화하고 TCFD 프레임워크에 맞게 구성
-          const frameworkData: TCFDFrameworkData = {
-            '지배구조': {
-              title: '거버넌스',
-              description: '기후 관련 위험과 기회에 대한 감독 및 책임',
-              color: 'text-blue-700',
-              bgColor: 'bg-blue-50',
-              disclosures: []
-            },
-            '전략': {
-              title: '전략',
-              description: '기후 관련 위험과 기회가 비즈니스 모델에 미치는 영향',
-              color: 'text-green-700',
-              bgColor: 'bg-green-50',
-              disclosures: []
-            },
-            '위험관리': {
-              title: '위험관리',
-              description: '기후 관련 위험 식별, 평가 및 관리',
-              color: 'text-yellow-700',
-              bgColor: 'bg-yellow-50',
-              disclosures: []
-            },
-            '지표와 감축목표': {
-              title: '지표 및 목표',
-              description: '기후 관련 위험과 기회를 평가하고 관리하기 위한 지표 및 목표',
-              color: 'text-purple-700',
-              bgColor: 'bg-purple-50',
-              disclosures: []
-            }
-          };
-
-          // 데이터를 각 카테고리에 분류
-          data.forEach(item => {
-            if (frameworkData[item.category]) {
-              frameworkData[item.category].disclosures.push(item);
-            }
-          });
-
-          setTcfdStandards(frameworkData);
-        } catch (err) {
-          console.error("Failed to fetch TCFD standards:", err);
-          if (axios.isAxiosError(err)) {
-            setTcfdError(`TCFD 표준 정보 로드 실패: ${err.response?.status} - ${err.message}`);
-          } else {
-            setTcfdError("TCFD 표준 정보를 불러오는 데 실패했습니다.");
-          }
-        } finally {
-          setIsLoadingTcfd(false);
+      // 데이터를 카테고리별로 그룹화하고 TCFD 프레임워크에 맞게 구성
+      const frameworkData: TCFDFrameworkData = {
+        '지배구조': {
+          title: '거버넌스',
+          description: '기후 관련 위험과 기회에 대한 감독 및 책임',
+          color: 'text-blue-700',
+          bgColor: 'bg-blue-50',
+          disclosures: []
+        },
+        '전략': {
+          title: '전략',
+          description: '기후 관련 위험과 기회가 비즈니스 모델에 미치는 영향',
+          color: 'text-green-700',
+          bgColor: 'bg-green-50',
+          disclosures: []
+        },
+        '위험관리': {
+          title: '위험관리',
+          description: '기후 관련 위험 식별, 평가 및 관리',
+          color: 'text-yellow-700',
+          bgColor: 'bg-yellow-50',
+          disclosures: []
+        },
+        '지표와 감축목표': {
+          title: '지표 및 목표',
+          description: '기후 관련 위험과 기회를 평가하고 관리하기 위한 지표 및 목표',
+          color: 'text-purple-700',
+          bgColor: 'bg-purple-50',
+          disclosures: []
         }
       };
-      fetchTcfdStandards();
+
+      // 데이터를 각 카테고리에 분류
+      data.forEach(item => {
+        if (frameworkData[item.category]) {
+          frameworkData[item.category].disclosures.push(item);
+        }
+      });
+
+      setTcfdStandards(frameworkData);
+    } catch (err) {
+      console.error("Failed to fetch TCFD standards:", err);
+      if (axios.isAxiosError(err)) {
+        setTcfdError(`TCFD 표준 정보 로드 실패: ${err.response?.status} - ${err.message}`);
+      } else {
+        setTcfdError("TCFD 표준 정보를 불러오는 데 실패했습니다.");
+      }
+    } finally {
+      setIsLoadingTcfd(false);
     }
-  }, [activeTab]);
+  };
 
   // 컴포넌트 마운트 시 회사 목록 로드
   useEffect(() => {
     loadCompanies();
   }, []);
+
+  // 인증 상태 확인
+  useEffect(() => {
+    if (!authService.isAuthenticated()) {
+      router.push('/login');
+      return;
+    }
+    
+    setIsAuthenticated(true);
+    // TCFD 표준 데이터 로드
+    fetchTcfdStandards();
+  }, [router]);
+
+  // 인증되지 않은 경우 로딩 화면 표시
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Header />
+        <div className="pt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">인증 확인 중...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // 재무정보 표시 컴포넌트
   const renderFinancialTable = (data: TableRecord[] | undefined, title: string) => {

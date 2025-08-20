@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
+import { authService } from '@/services/authService';
 
 interface MaterialityData {
   id: number;
@@ -27,6 +28,7 @@ export default function MaterialityPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [data, setData] = useState<{
     categories: MaterialityData[];
@@ -73,21 +75,44 @@ export default function MaterialityPage() {
     }
   ];
 
+  // 인증 상태 확인
   useEffect(() => {
+    if (!authService.isAuthenticated()) {
+      setError('로그인이 필요합니다.');
+      router.push('/login');
+      return;
+    }
+    
+    setIsAuthenticated(true);
     fetchAllMaterialityData();
-  }, []);
+  }, [router]);
 
-
+  // 인증되지 않은 경우 로딩 화면 표시
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Header />
+        <div className="pt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">인증 확인 중...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const fetchAllMaterialityData = async () => {
     try {
       setLoading(true);
       
-      // Materiality Service 직접 호출 (원래대로 복구)
+      // Materiality Service 직접 호출 (통합 인증 서비스 사용)
       const API_BASE_URL = process.env.NEXT_PUBLIC_MATERIALITY_URL || 'https://materiality-service-production-9a40.up.railway.app';
       
       console.log('API 호출 시작:', API_BASE_URL);
-      console.log('인증 없이 API 호출 시도');
+      console.log('통합 인증 서비스로 API 호출 시도');
   
       // Materiality Service 직접 호출
       const endpoints = [
@@ -100,14 +125,10 @@ export default function MaterialityPage() {
       ];
   
       const responses = await Promise.all(
-        endpoints.map(endpoint => {
-          // 인증 헤더 완전 제거, 기본 헤더만 사용
-          const headers: Record<string, string> = {
-            'Content-Type': 'application/json'
-          };
-          
+        endpoints.map(async (endpoint) => {
           console.log(`${endpoint} 호출 중...`);
-          return fetch(`${API_BASE_URL}${endpoint}`, { headers });
+          // 통합 인증 서비스의 authenticatedFetch 사용
+          return await authService.authenticatedFetch(`${API_BASE_URL}${endpoint}`);
         })
       );
 
@@ -129,7 +150,11 @@ export default function MaterialityPage() {
       });
     } catch (err) {
       console.error('API 호출 오류 상세:', err);
-      setError('데이터를 불러오는 중 오류가 발생했습니다.');
+      if (err instanceof Error && err.message.includes('인증')) {
+        setError(err.message);
+      } else {
+        setError('데이터를 불러오는 중 오류가 발생했습니다.');
+      }
       
       // 오류 발생 시에도 기본 UI를 보여주기 위해 더미 데이터 설정
       setData({

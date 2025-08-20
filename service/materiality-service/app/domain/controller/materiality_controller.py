@@ -7,10 +7,13 @@ from typing import List, Dict, Any, Optional
 
 router = APIRouter()
 
-# 프론트엔드용 데이터 엔드포인트 (인증 없이 접근 가능)
+# 프론트엔드용 데이터 엔드포인트 (인증 필요)
 @router.get("/data/categories", tags=["프론트엔드용"])
-async def get_categories_for_frontend(db: Session = Depends(get_db)):
-    """프론트엔드용 카테고리 데이터 조회 (인증 불필요)"""
+async def get_categories_for_frontend(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """프론트엔드용 카테고리 데이터 조회 (인증 필요)"""
     try:
         service = MaterialityService(db)
         data = service.get_all_categories()
@@ -23,8 +26,11 @@ async def get_categories_for_frontend(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/data/kcgs", tags=["프론트엔드용"])
-async def get_kcgs_for_frontend(db: Session = Depends(get_db)):
-    """프론트엔드용 KCGS 데이터 조회 (인증 불필요)"""
+async def get_kcgs_for_frontend(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """프론트엔드용 KCGS 데이터 조회 (인증 필요)"""
     try:
         service = MaterialityService(db)
         data = service.get_all_kcgs()
@@ -37,8 +43,11 @@ async def get_kcgs_for_frontend(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/data/sasb", tags=["프론트엔드용"])
-async def get_sasb_for_frontend(db: Session = Depends(get_db)):
-    """프론트엔드용 SASB 데이터 조회 (인증 불필요)"""
+async def get_sasb_for_frontend(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """프론트엔드용 SASB 데이터 조회 (인증 필요)"""
     try:
         service = MaterialityService(db)
         data = service.get_all_sasb()
@@ -51,8 +60,11 @@ async def get_sasb_for_frontend(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/data/sustainbest-e", tags=["프론트엔드용"])
-async def get_sustainbest_e_for_frontend(db: Session = Depends(get_db)):
-    """프론트엔드용 서스틴베스트 E 데이터 조회 (인증 불필요)"""
+async def get_sustainbest_e_for_frontend(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """프론트엔드용 서스틴베스트 E 데이터 조회 (인증 필요)"""
     try:
         service = MaterialityService(db)
         data = service.get_all_sustainbest_e()
@@ -65,8 +77,11 @@ async def get_sustainbest_e_for_frontend(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/data/sustainbest-s", tags=["프론트엔드용"])
-async def get_sustainbest_s_for_frontend(db: Session = Depends(get_db)):
-    """프론트엔드용 서스틴베스트 S 데이터 조회 (인증 불필요)"""
+async def get_sustainbest_s_for_frontend(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """프론트엔드용 서스틴베스트 S 데이터 조회 (인증 필요)"""
     try:
         service = MaterialityService(db)
         data = service.get_all_sustainbest_s()
@@ -79,8 +94,11 @@ async def get_sustainbest_s_for_frontend(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/data/sustainbest-g", tags=["프론트엔드용"])
-async def get_sustainbest_g_for_frontend(db: Session = Depends(get_db)):
-    """프론트엔드용 서스틴베스트 G 데이터 조회 (인증 불필요)"""
+async def get_sustainbest_g_for_frontend(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """프론트엔드용 서스틴베스트 G 데이터 조회 (인증 필요)"""
     try:
         service = MaterialityService(db)
         data = service.get_all_sustainbest_g()
