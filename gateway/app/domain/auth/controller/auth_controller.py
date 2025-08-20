@@ -61,11 +61,8 @@ async def login(request: LoginRequest):
     try:
         service = AuthService()
         result = await service.process_login(request)
-        return AuthResponse(
-            success=True,
-            data=result,
-            message="로그인 성공"
-        )
+        # auth-service의 응답을 그대로 반환
+        return result
     except Exception as e:
         logger.error(f"로그인 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

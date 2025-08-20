@@ -17,7 +17,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     try:
         # 토큰 디코딩
         payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
+        user_id: str = payload.get("user_id")  # sub 대신 user_id 사용
         email: str = payload.get("email")
         
         if user_id is None or email is None:
@@ -30,8 +30,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         return {
             "user_id": user_id,
             "email": email,
-            "username": payload.get("username", "N/A"),
-            "name": payload.get("name", "N/A")
+            "name": payload.get("name", "N/A"),
+            "company_id": payload.get("company_id", "N/A")  # company_id 추가
         }
         
     except jwt.ExpiredSignatureError:

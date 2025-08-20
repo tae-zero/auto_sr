@@ -12,6 +12,6 @@
     "restartPolicyMaxRetries": 10
   },
   "variables": {
-    "PORT": "8006"
+    "PORT": "8001"
   }
 }

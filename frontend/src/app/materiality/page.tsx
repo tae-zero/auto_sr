@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import { authService } from '@/services/authService';
+import { Header } from '@/ui/organisms';
+import { authService } from '@/shared/lib';
 
 interface MaterialityData {
   id: number;

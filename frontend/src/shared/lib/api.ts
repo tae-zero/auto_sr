@@ -27,10 +27,13 @@ interface ChatMessage {
 interface AuthResponse {
   success: boolean;
   message: string;
+  token?: string;
   email?: string;
-  user_id?: string;
   name?: string;
   company_id?: string;
+  user_id?: string | number;
+  error?: string | null;
+  timestamp?: string | null;
 }
 
 // API 기본 설정
@@ -164,7 +167,14 @@ export const tcfdAPI = {
   createFinancialData: (data: Record<string, unknown>) => apiClient.post('/api/v1/tcfd/financial-data', data),
   getClimateScenarios: () => apiClient.get('/api/v1/tcfd/climate-scenarios'),
   // TCFD 표준 정보 조회 추가
-  getTcfdStandards: () => apiClient.get('/api/v1/tcfd/standards'),
+  getTcfdStandards: () => {
+    const token = localStorage.getItem('auth_token');
+    return apiClient.get('/api/v1/tcfd/standards', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  },
   getTcfdStandardsByCategory: (category: string) => apiClient.get(`/api/v1/tcfd/standards/${category}`),
 };
 

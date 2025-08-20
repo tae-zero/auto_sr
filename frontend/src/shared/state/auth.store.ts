@@ -13,7 +13,7 @@ interface AuthState {
   isInitialized: boolean;
   user: UserData | null;
   checkAuthStatus: () => Promise<void>;
-  login: (username: string, userData?: UserData) => Promise<void>;
+  login: (username: string, userData?: UserData, token?: string) => Promise<void>;
   logout: () => Promise<void>;
   setUserData: (userData: UserData) => void;
 }
@@ -53,7 +53,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  login: async (username: string, userData?: UserData) => {
+  login: async (username: string, userData?: UserData, token?: string) => {
     try {
       // 서버에서 받은 사용자 데이터가 있으면 사용, 없으면 기본값 사용
       const finalUserData: UserData = userData || {
@@ -61,7 +61,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         email: `${username}@example.com`
       };
       
-      localStorage.setItem('auth_token', 'mock_token');
+      localStorage.setItem('auth_token', token || 'mock_token');
       localStorage.setItem('user_data', JSON.stringify(finalUserData));
 
       set({ 

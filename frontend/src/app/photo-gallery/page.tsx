@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
+import { Header } from '@/ui/organisms';
 
 interface PhotoImage {
   id: string;

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { useAuthStore } from '@/domain/auth/store/auth.store';
+import { useAuthStore } from '@/shared/state/auth.store';
 
 export default function Header() {
   const { isAuthenticated, isInitialized, user, logout, checkAuthStatus } = useAuthStore();

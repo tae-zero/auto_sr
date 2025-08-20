@@ -50,8 +50,21 @@ async def get_tcfd_standards(request: Request):
         logger.info(f"🌐 TCFD Service URL: {host}")
         logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfd/standards")
         
+        # 요청 헤더에서 인증 토큰 가져오기
+        auth_header = request.headers.get("Authorization")
+        headers = {"Authorization": auth_header} if auth_header else {}
+        
         async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.get(f"{host}/api/v1/tcfd/standards")
+            # 요청 헤더에서 인증 토큰 가져오기
+            auth_header = request.headers.get("Authorization")
+            headers = {"Authorization": auth_header} if auth_header else {}
+            
+            # 포트가 있는 경우에만 포트 추가
+            url = f"{host}:{port}/api/v1/tcfd/standards" if port else f"{host}/api/v1/tcfd/standards"
+            logger.info(f"📤 최종 요청 URL: {url}")
+            logger.info(f"📤 요청 헤더: {headers}")
+            
+            response = await client.get(url, headers=headers)
             logger.info(f"📥 TCFD Service 응답 상태: {response.status_code}")
             logger.info(f"📥 TCFD Service 응답 헤더: {dict(response.headers)}")
             
@@ -238,9 +251,19 @@ async def get_company_financial_data(request: Request, company_name: str):
         logger.info(f"📤 요청 파라미터: company_name={company_name}")
         
         async with httpx.AsyncClient(timeout=60.0) as client:
+            # 요청 헤더에서 인증 토큰 가져오기
+            auth_header = request.headers.get("Authorization")
+            headers = {"Authorization": auth_header} if auth_header else {}
+            
+            # 포트가 있는 경우에만 포트 추가
+            url = f"{host}:{port}/api/v1/tcfd/company-financial-data" if port else f"{host}/api/v1/tcfd/company-financial-data"
+            logger.info(f"📤 최종 요청 URL: {url}")
+            logger.info(f"📤 요청 헤더: {headers}")
+            
             response = await client.get(
-                f"{host}/api/v1/tcfd/company-financial-data",
-                params={"company_name": company_name}
+                url,
+                params={"company_name": company_name},
+                headers=headers
             )
             logger.info(f"📥 TCFD Service 응답 상태: {response.status_code}")
             logger.info(f"📥 TCFD Service 응답 헤더: {dict(response.headers)}")

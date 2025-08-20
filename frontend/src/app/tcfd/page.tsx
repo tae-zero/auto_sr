@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import ClimateScenarioModal from '@/components/ClimateScenarioModal';
-import TCFDDetailModal from '@/components/TCFDDetailModal';
-import Header from '@/components/Header';
-import { apiClient, tcfdReportAPI } from '@/services/api';
-import { authService } from '@/services/authService';
+import { ClimateScenarioModal, TCFDDetailModal } from '@/ui/molecules';
+import { Header } from '@/ui/organisms';
+import { apiClient, tcfdReportAPI, tcfdAPI, authService } from '@/shared/lib';
 import axios from 'axios';
 
 // TCFD 표준 데이터 타입 정의
@@ -265,8 +263,9 @@ export default function TcfdSrPage() {
     setIsLoadingTcfd(true);
     setTcfdError(null);
     try {
-                 // apiClient 사용 (Gateway를 통해 요청)
-       const response = await apiClient.get('/api/v1/tcfd/standards');
+                 // 환경에 따라 다른 API 사용
+      // Gateway를 통해 TCFD 표준 정보 조회
+      const response = await tcfdAPI.getTcfdStandards();
        console.log('🔍 TCFD 응답 전체:', response.data);
        
        // 응답 구조에 맞게 data 추출

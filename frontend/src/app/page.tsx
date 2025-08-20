@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Header from '@/components/Header';
+import { Header } from '@/ui/organisms';
 
 export default function Home() {
   const [stars, setStars] = useState<Array<{left: string, top: string, delay: string, duration: string}>>([]);

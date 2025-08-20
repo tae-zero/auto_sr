@@ -50,14 +50,16 @@ services:
       - CORS_ALLOW_METHODS=["*"]
       - CORS_ALLOW_HEADERS=["*"]
       - INIT_DATABASE=true
-      # 하이브리드 모드: TCFD Service만 Railway, 나머지는 로컬 Docker
+      # JWT 설정
+      - JWT_SECRET_KEY=esg-mate-super-secret-key-2025-railway-deployment-2025
+      # 로컬 개발 환경: 모든 서비스를 로컬에서 실행
       - RAILWAY_ENVIRONMENT=false
-      - RAILWAY_TCFD_SERVICE_URL=https://tcfd-service-production.up.railway.app
-      - RAILWAY_GRI_SERVICE_URL=https://gri-service-production-b925.up.railway.app
-      - RAILWAY_MATERIALITY_SERVICE_URL=https://materiality-service-production-9a40.up.railway.app
-      - USE_RAILWAY_TCFD=true
+      - USE_RAILWAY_TCFD=false
       - USE_LOCAL_AUTH=true
       - USE_LOCAL_CHATBOT=true
+      # Service URLs 설정
+      - AUTH_SERVICE_URL=http://auth-service:8008
+      - TCFD_REPORT_SERVICE_URL=http://tcfd-report-service:8004
       # Railway PostgreSQL 연결 (Public Network URL)
       - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
       # AI 및 LangChain 설정
@@ -84,10 +86,10 @@ services:
       - app-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 15s
 
   # Chatbot Service (FastAPI)
   chatbot-service:
@@ -111,10 +113,10 @@ services:
       - app-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 15s
 
   # TCFD Service (FastAPI + 재무정보 처리)
   tcfd-service:
@@ -131,6 +133,7 @@ services:
       - SERVICE_PORT=8005
       - LOG_LEVEL=INFO
       - PYTHONUNBUFFERED=1
+      - JWT_SECRET_KEY=esg-mate-super-secret-key-2025-railway-deployment-2025
       # Railway PostgreSQL 연결 (Public Network URL)
       - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
     restart: always
@@ -140,10 +143,10 @@ services:
       - app-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 15s
 
   # TCFD Report Service (FastAPI + LangChain + AI 보고서 생성)
   tcfd-report-service:
@@ -161,6 +164,10 @@ services:
       - SERVICE_PORT=8004
       - LOG_LEVEL=INFO
       - PYTHONUNBUFFERED=1
+      # JWT 설정
+      - JWT_SECRET_KEY=esg-mate-super-secret-key-2025-railway-deployment-2025
+      # 데이터베이스 설정 추가
+      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
       # AI 및 LangChain 설정
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4}
@@ -177,10 +184,10 @@ services:
       - app-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 15s
 
   # GRI Service (FastAPI)
   gri-service:
@@ -189,7 +196,7 @@ services:
       dockerfile: Dockerfile
     container_name: gri-service
     ports:
-      - "8008:8006"
+      - "8006:8006"
     volumes:
       - ./service/gri-service:/app
     environment:
@@ -208,10 +215,10 @@ services:
       - app-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 15s
 
   # Materiality Service (FastAPI)
   materiality-service:
@@ -239,10 +246,10 @@ services:
       - app-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 15s
 
   # Auth Service (FastAPI)
   auth-service:
@@ -260,6 +267,8 @@ services:
       - LOG_LEVEL=INFO
       - PYTHONUNBUFFERED=1
       - INIT_DATABASE=true
+      # JWT 설정
+      - JWT_SECRET_KEY=esg-mate-super-secret-key-2025-railway-deployment-2025
       # Railway PostgreSQL 연결 (Public Network URL)
       - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
     restart: always
@@ -269,12 +278,10 @@ services:
       - app-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 40s
-
-  # PostgreSQL (데이터베이스) - 제거됨 (Railway PostgreSQL 사용)
+      start_period: 15s
 
   # Redis (캐싱 및 세션 저장)
   redis:
@@ -302,4 +309,4 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.25.0.0/16 
+        - subnet: 172.25.0.0/16

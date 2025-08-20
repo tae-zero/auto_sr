@@ -13,15 +13,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI 채팅 어시스턴트",
-  description: "무엇이든 물어보세요",
+  title: "TAEZERO",
+  description: "정태영의 포트폴리오",
   manifest: "/manifest.json",
   themeColor: "#111827",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "AI 채팅 어시스턴트",
+    title: "TAEZERO",
   },
 };
 
@@ -36,7 +36,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="AI 채팅 어시스턴트" />
+        <meta name="apple-mobile-web-app-title" content="TAEZERO" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-900 text-white`}

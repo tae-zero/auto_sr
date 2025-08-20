@@ -24,7 +24,7 @@ EXPOSE 8004
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 ENV SERVICE_HOST=0.0.0.0
-ENV PORT=8004
+ENV PORT=8006
 
 # Railway의 PORT 환경변수를 사용하여 애플리케이션 실행
-CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8004}"]
+CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8006}"]

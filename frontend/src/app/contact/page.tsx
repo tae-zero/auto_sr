@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import Header from '@/components/Header';
+import { Header } from '@/ui/organisms';
 
 export default function ContactPage() {
   return (

@@ -8,6 +8,9 @@ import os
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/tcfdreport", tags=["tcfdreport"])
 
+# TCFD Report Service URL 가져오기
+TCFD_REPORT_SERVICE_URL = os.getenv("TCFD_REPORT_SERVICE_URL", "http://tcfd-report-service:8004")
+
 @router.get("/health")
 async def health_check(request: Request):
     """TCFD Report Service 헬스 체크"""
@@ -31,7 +34,7 @@ async def health_check(request: Request):
             if os.getenv("RAILWAY_ENVIRONMENT") == "true":
                 host = f"https://{host}"
             else:
-                host = f"http://{host}"
+                host = f"http://{host}:{port}"
         
         logger.info(f"🌐 TCFD Report Service URL: {host}")
         logger.info(f"📤 요청 엔드포인트: {host}/health")
@@ -73,7 +76,7 @@ async def get_company_financial_data(request: Request, company_name: str):
             if os.getenv("RAILWAY_ENVIRONMENT") == "true":
                 host = f"https://{host}"
             else:
-                host = f"http://{host}"
+                host = f"http://{host}:{port}"
         
         logger.info(f"🌐 TCFD Report Service URL: {host}")
         logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfdreport/company-financial-data")
@@ -118,7 +121,7 @@ async def get_tcfd_standards(request: Request):
             if os.getenv("RAILWAY_ENVIRONMENT") == "true":
                 host = f"https://{host}"
             else:
-                host = f"http://{host}"
+                host = f"http://{host}:{port}"
         
         logger.info(f"🌐 TCFD Report Service URL: {host}")
         logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfdreport/standards")
@@ -160,13 +163,28 @@ async def create_tcfd_input(request: Request, data: dict):
             if os.getenv("RAILWAY_ENVIRONMENT") == "true":
                 host = f"https://{host}"
             else:
-                host = f"http://{host}"
+                host = f"http://{host}:{port}"
         
         logger.info(f"🌐 TCFD Report Service URL: {host}")
         logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfdreport/inputs")
         
         async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(f"{host}/api/v1/tcfdreport/inputs", json=data)
+            # 요청 헤더에서 인증 토큰 가져오기
+            auth_header = request.headers.get("Authorization")
+            headers = {"Authorization": auth_header} if auth_header else {}
+            
+            logger.info(f"📤 요청 데이터: {data}")
+            logger.info(f"📤 요청 헤더: {headers}")
+            
+            # 환경 변수에서 URL 가져오기
+            url = f"{TCFD_REPORT_SERVICE_URL}/api/v1/tcfdreport/inputs"
+            logger.info(f"📤 최종 요청 URL: {url}")
+            
+            response = await client.post(
+                url,
+                json=data,
+                headers=headers
+            )
             response.raise_for_status()
             response_data = response.json()
             logger.info(f"✅ TCFD Report Service 응답 데이터: {response_data}")
@@ -202,7 +220,7 @@ async def get_tcfd_inputs(request: Request):
             if os.getenv("RAILWAY_ENVIRONMENT") == "true":
                 host = f"https://{host}"
             else:
-                host = f"http://{host}"
+                host = f"http://{host}:{port}"
         
         logger.info(f"🌐 TCFD Report Service URL: {host}")
         logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfd/inputs")

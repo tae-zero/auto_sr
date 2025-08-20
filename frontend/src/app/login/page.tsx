@@ -2,9 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/domain/auth/store/auth.store';
-import Header from '@/components/Header';
-import axios from 'axios';
+import { useAuthStore } from '@/shared/state';
+import { Header } from '@/ui/organisms';
+import axios, { AxiosError } from 'axios';
+import { authAPI } from '@/shared/lib';
+
+// URL 유효성 검사 함수
+const isValidUrl = (urlString: string) => {
+  try {
+    new URL(urlString);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,56 +49,54 @@ export default function LoginPage() {
   };
 
   // Login form submission
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Gateway를 통해 auth-service로 요청 (환경변수 사용)
-    const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
-    axios.post(`${gatewayUrl}/api/v1/auth/login`, formData)
-      .then((response) => {
-        console.log('Login response:', response.data);
-        console.log('🔍 response.data.data:', response.data.data);
-        console.log('🔍 userInfo.success:', response.data.data?.success);
-        console.log('🔍 userInfo.name:', response.data.data?.name);
-        
-        // 성공 메시지 표시
-        if (response.data.success) {
-          // 서버 응답에서 data 객체 안의 사용자 정보를 가져옴
-          const userInfo = response.data.data || {};
-          
-          // 내부 응답의 success 확인
-          if (userInfo.success) {
-            const { name = 'N/A', email = 'N/A', company_id = 'N/A' } = userInfo;
-            
-            // 사용자 정보를 auth store에 저장
-            const userData = {
-              username: formData.auth_id,
-              email: email,
-              name: name,
-              company_id: company_id
-            };
-            
-            // auth store의 login 함수 호출하여 사용자 정보 저장
-            useAuthStore.getState().login(formData.auth_id, userData);
-            
-            alert(`✅ ${response.data.message}\n\n이름: ${name}\n이메일: ${email}\n회사 ID: ${company_id}`);
-            // 로그인 성공 후 메인페이지로 이동
-            router.push('/');
-          } else {
-            alert(`❌ ${userInfo.message}`);
-          }
-        }
-      })
-      .catch(error => {
-        console.error('Login failed:', error);
-        
-        // 에러 응답 처리
-        if (error.response && error.response.data) {
-          alert(`❌ 로그인 실패: ${error.response.data.message || error.response.data.detail || '알 수 없는 오류'}`);
+    try {
+      const response = await authAPI.login(formData);
+      console.log('Login response:', response.data);
+      
+      if (!response.data.success) {
+        alert(`❌ ${response.data.message || '로그인에 실패했습니다.'}`);
+        return;
+      }
+
+      const { token, name = 'N/A', email = 'N/A', company_id = 'N/A' } = response.data;
+      
+      if (!token) {
+        console.error('No token in response');
+        alert('❌ 토큰이 없습니다.');
+        return;
+      }
+      
+      // 토큰과 사용자 정보를 auth store에 저장
+      const userData = {
+        username: formData.auth_id,
+        email: email,
+        name: name,
+        company_id: company_id
+      };
+      
+      // auth store의 login 함수 호출하여 사용자 정보와 토큰 저장
+      useAuthStore.getState().login(formData.auth_id, userData, token);
+      
+      alert(`✅ 로그인 성공\n\n이름: ${name}\n이메일: ${email}\n회사 ID: ${company_id}`);
+      // 로그인 성공 후 메인페이지로 이동
+      router.push('/');
+    } catch (error) {
+      console.error('Login failed:', error);
+      
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError<any>;
+        if (axiosError.response?.data) {
+          alert(`❌ 로그인 실패: ${axiosError.response.data.message || axiosError.response.data.detail || '알 수 없는 오류'}`);
         } else {
           alert('❌ 로그인에 실패했습니다. 서버 연결을 확인해주세요.');
         }
-      });
+      } else {
+        alert('❌ 로그인에 실패했습니다. 서버 연결을 확인해주세요.');
+      }
+    }
   };
 
   // Show loading while checking authentication status
@@ -184,7 +193,22 @@ export default function LoginPage() {
                   <div className="flex justify-center space-x-8">
                     {/* Google Login */}
                     <button
-                      onClick={() => window.location.href = 'http://localhost:8080/api/v1/auth/google/login?redirect_uri=http://localhost:3000/dashboard'}
+                      onClick={() => {
+                        const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
+                        const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080';
+                        
+                        if (!isValidUrl(gatewayUrl)) {
+                          console.error('Invalid Gateway URL:', gatewayUrl);
+                          alert('❌ 서버 설정이 올바르지 않습니다.');
+                          return;
+                        }
+
+                        const redirectUrl = `${frontendUrl}/dashboard`;
+                        const loginUrl = new URL('/api/v1/auth/google/login', gatewayUrl);
+                        loginUrl.searchParams.append('redirect_uri', redirectUrl);
+                        
+                        window.location.href = loginUrl.toString();
+                      }}
                       className="w-16 h-16 bg-white border-2 border-gray-200 rounded-3xl flex items-center justify-center hover:bg-gray-50 hover:border-gray-300 hover:shadow-md transition-all duration-200 shadow-sm"
                     >
                       <svg width="32" height="32" viewBox="0 0 24 24">
