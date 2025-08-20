@@ -94,10 +94,7 @@ async def get_sustainbest_g_for_frontend(db: Session = Depends(get_db)):
 
 # Category Table Controllers
 @router.get("/categories", tags=["카테고리"])
-async def get_all_categories(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
+async def get_all_categories(db: Session = Depends(get_db)):
     """모든 카테고리 데이터 조회"""
     try:
         service = MaterialityService(db)
@@ -113,8 +110,7 @@ async def get_all_categories(
 @router.get("/categories/esg-division/{esg_division}", tags=["카테고리"])
 async def get_categories_by_esg_division(
     esg_division: str,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """ESG 구분별 카테고리 데이터 조회"""
     try:
@@ -129,10 +125,7 @@ async def get_categories_by_esg_division(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/categories/esg-divisions", tags=["카테고리"])
-async def get_esg_divisions(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
+async def get_esg_divisions(db: Session = Depends(get_db)):
     """ESG 구분 목록 조회"""
     try:
         service = MaterialityService(db)
@@ -147,10 +140,7 @@ async def get_esg_divisions(
 
 # KCGS Table Controllers
 @router.get("/kcgs", tags=["KCGS"])
-async def get_all_kcgs(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
+async def get_all_kcgs(db: Session = Depends(get_db)):
     """모든 KCGS 데이터 조회"""
     try:
         service = MaterialityService(db)

@@ -88,6 +88,7 @@ export default function MaterialityPage() {
       console.log('API 호출 시작:', API_BASE_URL);
       console.log('인증 없이 API 호출 시도');
   
+      // 올바른 API 엔드포인트 경로 사용
       const endpoints = [
         '/api/v1/materiality/data/categories',
         '/api/v1/materiality/data/kcgs',
