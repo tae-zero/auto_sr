@@ -12,7 +12,7 @@ from app.domain.tcfd.service.tcfd_input_service import TCFDInputService
 from app.common.database.database import database
 
 # 인증 미들웨어 추가
-from app.domain.auth.auth_middleware import get_current_user
+from ...auth.auth_middleware import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/tcfdreport", tags=["tcfd-input"])

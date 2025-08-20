@@ -19,7 +19,7 @@ from app.domain.tcfd.model.tcfd_model import (
 from app.domain.tcfd.schema.tcfd_schema import TCFDReport, ClimateRisk, TCFDStandardsListResponse, TCFDStandardResponse
 
 # 인증 미들웨어 추가
-from app.domain.auth.auth_middleware import get_current_user
+from ...auth.auth_middleware import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/tcfd", tags=["TCFD"])

@@ -6,6 +6,9 @@ uvicorn==0.27.1
 httpx==0.25.2
 aiohttp==3.9.1
 
+# JWT 인증
+PyJWT==2.8.0
+
 # 데이터 검증 및 설정
 pydantic==2.6.1
 pydantic-settings==2.1.0
