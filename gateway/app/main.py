@@ -13,6 +13,7 @@ import asyncio
 from app.domain.auth.controller.auth_controller import router as auth_router
 from app.router.tcfd_router import router as tcfd_router
 from app.router.tcfdreport_router import router as tcfdreport_router
+from app.router.materiality_router import router as materiality_router
 from app.www.jwt_auth_middleware import AuthMiddleware
 from app.domain.discovery.service_discovery import ServiceDiscovery
 from app.domain.discovery.service_type import ServiceType
@@ -267,6 +268,9 @@ app.include_router(tcfd_router)
 
 # ✅ TCFD Report Service 라우터 추가
 app.include_router(tcfdreport_router)
+
+# ✅ Materiality Service 라우터 추가
+app.include_router(materiality_router)
 
 # 404 에러 핸들러
 @app.exception_handler(404)
