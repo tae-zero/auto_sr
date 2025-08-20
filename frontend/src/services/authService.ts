@@ -6,7 +6,7 @@ export class AuthService {
   private constructor() {
     // 서버 사이드 렌더링 중에는 localStorage에 접근하지 않음
     if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      this.token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
     }
   }
 
@@ -22,9 +22,9 @@ export class AuthService {
     this.token = token;
     if (typeof window !== 'undefined') {
       if (rememberMe) {
-        localStorage.setItem('authToken', token);
+        localStorage.setItem('auth_token', token);
       } else {
-        sessionStorage.setItem('authToken', token);
+        sessionStorage.setItem('auth_token', token);
       }
     }
   }
@@ -32,7 +32,7 @@ export class AuthService {
   // 토큰 가져오기
   public getToken(): string | null {
     if (!this.token && typeof window !== 'undefined') {
-      this.token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      this.token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
     }
     return this.token;
   }
@@ -41,8 +41,8 @@ export class AuthService {
   public removeToken(): void {
     this.token = null;
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('authToken');
-      sessionStorage.removeItem('authToken');
+      localStorage.removeItem('auth_token');
+      sessionStorage.removeItem('auth_token');
     }
   }
 
