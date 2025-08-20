@@ -3,13 +3,13 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Set, Tuple
 from pathlib import Path
-
+import os
 from langchain.prompts import PromptTemplate
 from langchain.schema import Document
 
 from .config import LLM_BACKEND, BASE_MODEL, OPENAI_API_KEY
 from .vectorstore import retriever, collection_path
-
+from .utils.jsonl_logger import JsonlLogger
 # ---- LLM 지연 로드 & 캐시 ----
 _LLM = None
 
@@ -102,6 +102,11 @@ class QueryReq(BaseModel):
     top_k: int = 5
     collections: List[str] = ["sr_corpus", "standards"]
 
+# JSONL 로거(동기) 준비
+_qa_logger = JsonlLogger(
+    path=os.getenv("QA_JSONL_PATH", "./data/logs/qa_runs.jsonl"),
+    rotate_mb=int(os.getenv("QA_JSONL_ROTATE_MB", "200")),
+)
 
 def _dedup_docs(docs: List[Document]) -> List[Document]:
     """source + page_from 기준 중복 제거"""
@@ -189,16 +194,46 @@ def query(req: QueryReq):
         text = "제공된 자료 기준으로 확인되는 항목이 없습니다. 질문을 더 구체화하거나 top_k를 늘려보세요."
 
     # 6) 참고 메타
+
     refs: List[Dict] = []
     for d in docs:
-        m = d.metadata or {}
-        refs.append({
-            "source": m.get("source"),
-            "company": m.get("company"),
-            "year": m.get("year"),
-            "page_from": m.get("page_from"),
-            "page_to": m.get("page_to"),
-            "collection": m.get("collection"),
-        })
+         m = d.metadata or {}
+         refs.append({
+             "source": m.get("source"),
+             "company": m.get("company"),
+             "year": m.get("year"),
+             "page_from": m.get("page_from"),
+             "page_to": m.get("page_to"),
+             "collection": m.get("collection"),
+         })
+ 
+    # 7) JSONL 로그 저장 (append-only)
+    try:
+        # retrieved_chunks: 메타 + 짧은 발췌 포함(훈련/검수 시 유용)
+        retrieved_chunks = []
+        for d in docs:
+            m = d.metadata or {}
+            snippet = (d.page_content or "").strip().replace("\n", " ")
+            if len(snippet) > 300:
+                snippet = snippet[:300] + "…"
+            retrieved_chunks.append({
+                "source": m.get("source"),
+                "company": m.get("company"),
+                "year": m.get("year"),
+                "page_from": m.get("page_from"),
+                "page_to": m.get("page_to"),
+                "collection": m.get("collection"),
+                "text": snippet,
+            })
+        _qa_logger.log_qa(
+            question=req.question,
+            answer=text,
+            retrieved_chunks=retrieved_chunks,
+            citations=refs,              # 현재 refs를 citation 유사 구조로 재사용
+            meta={"route": "/rag/query", "top_k": req.top_k, "collections": req.collections},
+        )
+    except Exception:
+        # 로깅 실패는 서비스 응답에 영향 없도록 무시
+        pass
 
     return {"answer": text, "refs": refs}
