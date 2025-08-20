@@ -156,8 +156,7 @@ async def get_all_kcgs(db: Session = Depends(get_db)):
 @router.get("/kcgs/environment/{environment}", tags=["KCGS"])
 async def get_kcgs_by_environment(
     environment: str,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """환경(E) 기준 KCGS 데이터 조회"""
     try:
@@ -174,8 +173,7 @@ async def get_kcgs_by_environment(
 @router.get("/kcgs/social/{social}", tags=["KCGS"])
 async def get_kcgs_by_social(
     social: str,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """사회(S) 기준 KCGS 데이터 조회"""
     try:
@@ -192,8 +190,7 @@ async def get_kcgs_by_social(
 @router.get("/kcgs/governance/{governance}", tags=["KCGS"])
 async def get_kcgs_by_governance(
     governance: str,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """거버넌스(G) 기준 KCGS 데이터 조회"""
     try:
@@ -209,10 +206,7 @@ async def get_kcgs_by_governance(
 
 # SASB Table Controllers
 @router.get("/sasb", tags=["SASB"])
-async def get_all_sasb(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
+async def get_all_sasb(db: Session = Depends(get_db)):
     """모든 SASB 데이터 조회"""
     try:
         service = MaterialityService(db)
@@ -228,8 +222,7 @@ async def get_all_sasb(
 @router.get("/sasb/industry/{industry}", tags=["SASB"])
 async def get_sasb_by_industry(
     industry: str,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """산업별 SASB 데이터 조회"""
     try:
@@ -244,10 +237,7 @@ async def get_sasb_by_industry(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/sasb/industries", tags=["SASB"])
-async def get_sasb_industries(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
+async def get_sasb_industries(db: Session = Depends(get_db)):
     """SASB 산업 목록 조회"""
     try:
         service = MaterialityService(db)
@@ -261,11 +251,8 @@ async def get_sasb_industries(
         raise HTTPException(status_code=500, detail=str(e))
 
 # Sustainbest E Table Controllers
-@router.get("/sustainbest-e", tags=["서스틴베스트_E"])
-async def get_all_sustainbest_e(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
+@router.get("/sustainbest-e", tags=["서스틴베스트 E"])
+async def get_all_sustainbest_e(db: Session = Depends(get_db)):
     """모든 서스틴베스트 E 데이터 조회"""
     try:
         service = MaterialityService(db)
@@ -278,11 +265,10 @@ async def get_all_sustainbest_e(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/sustainbest-e/category/{kpi_category_e}", tags=["서스틴베스트_E"])
+@router.get("/sustainbest-e/category/{kpi_category_e}", tags=["서스틴베스트 E"])
 async def get_sustainbest_e_by_category(
     kpi_category_e: str,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """KPI 카테고리별 서스틴베스트 E 데이터 조회"""
     try:
@@ -296,11 +282,8 @@ async def get_sustainbest_e_by_category(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/sustainbest-e/categories", tags=["서스틴베스트_E"])
-async def get_sustainbest_e_categories(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
+@router.get("/sustainbest-e/categories", tags=["서스틴베스트 E"])
+async def get_sustainbest_e_categories(db: Session = Depends(get_db)):
     """서스틴베스트 E KPI 카테고리 목록 조회"""
     try:
         service = MaterialityService(db)
@@ -314,11 +297,8 @@ async def get_sustainbest_e_categories(
         raise HTTPException(status_code=500, detail=str(e))
 
 # Sustainbest S Table Controllers
-@router.get("/sustainbest-s", tags=["서스틴베스트_S"])
-async def get_all_sustainbest_s(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
+@router.get("/sustainbest-s", tags=["서스틴베스트 S"])
+async def get_all_sustainbest_s(db: Session = Depends(get_db)):
     """모든 서스틴베스트 S 데이터 조회"""
     try:
         service = MaterialityService(db)
@@ -331,11 +311,10 @@ async def get_all_sustainbest_s(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/sustainbest-s/category/{kpi_category_s}", tags=["서스틴베스트_S"])
+@router.get("/sustainbest-s/category/{kpi_category_s}", tags=["서스틴베스트 S"])
 async def get_sustainbest_s_by_category(
     kpi_category_s: str,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """KPI 카테고리별 서스틴베스트 S 데이터 조회"""
     try:
@@ -349,11 +328,8 @@ async def get_sustainbest_s_by_category(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/sustainbest-s/categories", tags=["서스틴베스트_S"])
-async def get_sustainbest_s_categories(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
+@router.get("/sustainbest-s/categories", tags=["서스틴베스트 S"])
+async def get_sustainbest_s_categories(db: Session = Depends(get_db)):
     """서스틴베스트 S KPI 카테고리 목록 조회"""
     try:
         service = MaterialityService(db)
@@ -367,11 +343,8 @@ async def get_sustainbest_s_categories(
         raise HTTPException(status_code=500, detail=str(e))
 
 # Sustainbest G Table Controllers
-@router.get("/sustainbest-g", tags=["서스틴베스트_G"])
-async def get_all_sustainbest_g(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
+@router.get("/sustainbest-g", tags=["서스틴베스트 G"])
+async def get_all_sustainbest_g(db: Session = Depends(get_db)):
     """모든 서스틴베스트 G 데이터 조회"""
     try:
         service = MaterialityService(db)
@@ -384,11 +357,10 @@ async def get_all_sustainbest_g(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/sustainbest-g/category/{kpi_category_g}", tags=["서스틴베스트_G"])
+@router.get("/sustainbest-g/category/{kpi_category_g}", tags=["서스틴베스트 G"])
 async def get_sustainbest_g_by_category(
     kpi_category_g: str,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """KPI 카테고리별 서스틴베스트 G 데이터 조회"""
     try:
@@ -402,11 +374,8 @@ async def get_sustainbest_g_by_category(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/sustainbest-g/categories", tags=["서스틴베스트_G"])
-async def get_sustainbest_g_categories(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
+@router.get("/sustainbest-g/categories", tags=["서스틴베스트 G"])
+async def get_sustainbest_g_categories(db: Session = Depends(get_db)):
     """서스틴베스트 G KPI 카테고리 목록 조회"""
     try:
         service = MaterialityService(db)
