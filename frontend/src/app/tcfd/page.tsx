@@ -334,14 +334,17 @@ export default function TcfdSrPage() {
 
   // 인증 상태 확인
   useEffect(() => {
-    if (!authService.isAuthenticated()) {
-      router.push('/login');
-      return;
+    // 클라이언트 사이드에서만 인증 확인
+    if (typeof window !== 'undefined') {
+      if (!authService.isAuthenticated()) {
+        router.push('/login');
+        return;
+      }
+      
+      setIsAuthenticated(true);
+      // TCFD 표준 데이터 로드
+      fetchTcfdStandards();
     }
-    
-    setIsAuthenticated(true);
-    // TCFD 표준 데이터 로드
-    fetchTcfdStandards();
   }, [router]);
 
   // 인증되지 않은 경우 로딩 화면 표시

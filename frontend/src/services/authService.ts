@@ -4,7 +4,10 @@ export class AuthService {
   private token: string | null = null;
 
   private constructor() {
-    this.token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    // 서버 사이드 렌더링 중에는 localStorage에 접근하지 않음
+    if (typeof window !== 'undefined') {
+      this.token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    }
   }
 
   public static getInstance(): AuthService {
@@ -17,16 +20,18 @@ export class AuthService {
   // 토큰 설정
   public setToken(token: string, rememberMe: boolean = false): void {
     this.token = token;
-    if (rememberMe) {
-      localStorage.setItem('authToken', token);
-    } else {
-      sessionStorage.setItem('authToken', token);
+    if (typeof window !== 'undefined') {
+      if (rememberMe) {
+        localStorage.setItem('authToken', token);
+      } else {
+        sessionStorage.setItem('authToken', token);
+      }
     }
   }
 
   // 토큰 가져오기
   public getToken(): string | null {
-    if (!this.token) {
+    if (!this.token && typeof window !== 'undefined') {
       this.token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     }
     return this.token;
@@ -35,8 +40,10 @@ export class AuthService {
   // 토큰 제거
   public removeToken(): void {
     this.token = null;
-    localStorage.removeItem('authToken');
-    sessionStorage.removeItem('authToken');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('authToken');
+      sessionStorage.removeItem('authToken');
+    }
   }
 
   // 인증된 사용자 여부 확인
@@ -72,7 +79,9 @@ export class AuthService {
     // 인증 실패 시 처리
     if (response.status === 401) {
       this.removeToken();
-      window.location.href = '/login';
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
       throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
     }
 
@@ -82,7 +91,9 @@ export class AuthService {
   // 로그아웃
   public logout(): void {
     this.removeToken();
-    window.location.href = '/login';
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
   }
 }
 

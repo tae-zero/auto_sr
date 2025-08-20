@@ -77,14 +77,17 @@ export default function MaterialityPage() {
 
   // 인증 상태 확인
   useEffect(() => {
-    if (!authService.isAuthenticated()) {
-      setError('로그인이 필요합니다.');
-      router.push('/login');
-      return;
+    // 클라이언트 사이드에서만 인증 확인
+    if (typeof window !== 'undefined') {
+      if (!authService.isAuthenticated()) {
+        setError('로그인이 필요합니다.');
+        router.push('/login');
+        return;
+      }
+      
+      setIsAuthenticated(true);
+      fetchAllMaterialityData();
     }
-    
-    setIsAuthenticated(true);
-    fetchAllMaterialityData();
   }, [router]);
 
   // 인증되지 않은 경우 로딩 화면 표시
