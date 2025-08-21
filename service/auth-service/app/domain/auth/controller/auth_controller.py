@@ -4,7 +4,7 @@ Auth Service Auth 컨트롤러
 - 요청/응답 처리 및 검증
 - 로그인 및 회원가입 처리
 """
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, HTTPException, Request, Depends, Header
 from typing import Dict, Any, Optional
 import logging
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -123,16 +123,45 @@ async def get_profile(session_token: str = None):
         logger.error(f"프로필 조회 오류: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/verify")
+async def verify_token_endpoint(authorization: str = Header(None)):
+    """토큰 검증 엔드포인트"""
+    try:
+        if not authorization or not authorization.startswith('Bearer '):
+            raise HTTPException(status_code=401, detail="Bearer 토큰이 필요합니다")
+        
+        token = authorization.replace('Bearer ', '')
+        
+        from app.domain.auth.utils.jwt_utils import verify_token
+        
+        # 토큰 검증
+        result = verify_token(token)
+        
+        if not result.get('valid'):
+            raise HTTPException(status_code=401, detail=result.get('message', '토큰이 유효하지 않습니다'))
+        
+        # 검증 성공 시 사용자 정보 반환
+        user_info = result.get('user_info', {})
+        return {
+            "success": True,
+            "message": "토큰이 유효합니다",
+            "user_info": user_info
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"토큰 검증 처리 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail="토큰 검증 중 오류가 발생했습니다")
+
 @router.post("/refresh", response_model=AuthResponse)
-async def refresh_token(request: Request):
+async def refresh_token(authorization: str = Header(None)):
     """토큰 갱신 처리"""
     try:
-        # 요청 본문에서 토큰 읽기
-        data = await request.json()
-        token = data.get('token')
+        if not authorization or not authorization.startswith('Bearer '):
+            raise HTTPException(status_code=400, detail="Bearer 토큰이 필요합니다")
         
-        if not token:
-            raise HTTPException(status_code=400, detail="토큰이 필요합니다")
+        token = authorization.replace('Bearer ', '')
         
         from app.domain.auth.utils.jwt_utils import verify_token, create_token
         
@@ -149,7 +178,7 @@ async def refresh_token(request: Request):
         return AuthResponse(
             success=True,
             message="토큰이 갱신되었습니다",
-            token=new_token,
+            access_token=new_token,
             email=user_info.get('email'),
             name=user_info.get('name'),
             company_id=user_info.get('company_id')

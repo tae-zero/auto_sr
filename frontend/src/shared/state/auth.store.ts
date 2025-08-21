@@ -37,8 +37,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (response.data.token) {
-        localStorage.setItem('auth_token', response.data.token);
+      if (response.data.access_token) {
+        localStorage.setItem('auth_token', response.data.access_token);
         return true;
       }
       return false;
