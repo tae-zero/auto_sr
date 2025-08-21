@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from fastapi import Request
 import asyncio
 
-from app.domain.auth.controller.auth_controller import router as auth_router
+from app.router.auth_router import router as auth_router
 from app.router.tcfd_router import router as tcfd_router
 from app.router.tcfdreport_router import router as tcfdreport_router
 from app.www.jwt_auth_middleware import AuthMiddleware

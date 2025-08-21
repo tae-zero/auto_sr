@@ -384,24 +384,24 @@ export default function TcfdSrPage() {
           } catch (authError: any) {
             console.log('⚠️ 인증 상태 확인 실패, 토큰 갱신 시도:', authError);
             
-            // 토큰 갱신 시도
-            try {
-              const refreshResponse = await apiClient.post('/api/v1/auth/refresh');
-              console.log('✅ 토큰 갱신 성공:', refreshResponse.data);
-              
-              // 새 토큰을 localStorage에 저장
-              if (refreshResponse.data.access_token) {
-                localStorage.setItem('auth_token', refreshResponse.data.access_token);
-                setIsAuthenticated(true);
+                                      // 토큰 갱신 시도
+              try {
+                const refreshResponse = await apiClient.post('/api/v1/auth/refresh');
+                console.log('✅ 토큰 갱신 성공:', refreshResponse.data);
                 
-                // 토큰 갱신 성공 후 TCFD 표준 데이터 로드
-                console.log('🔍 토큰 갱신 후 TCFD 표준 데이터 로드 시작...');
-                await fetchTcfdStandards();
-              } else {
-                throw new Error('토큰 갱신 실패');
-              }
-              
-            } catch (refreshError) {
+                // 새 토큰을 localStorage에 저장
+                if (refreshResponse.data.access_token) {
+                  localStorage.setItem('auth_token', refreshResponse.data.access_token);
+                  setIsAuthenticated(true);
+                  
+                  // 토큰 갱신 성공 후 TCFD 표준 데이터 로드
+                  console.log('🔍 토큰 갱신 후 TCFD 표준 데이터 로드 시작...');
+                  await fetchTcfdStandards();
+                } else {
+                  throw new Error('토큰 갱신 실패');
+                }
+                
+              } catch (refreshError) {
               console.error('❌ 토큰 갱신 실패:', refreshError);
               // 인증 실패 시 로그인 페이지로 이동
               alert('인증이 만료되었습니다. 다시 로그인해주세요.');
