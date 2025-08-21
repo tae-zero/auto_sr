@@ -13,38 +13,78 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localho
 # URL 디버깅
 print(f"Original DATABASE_URL: {DATABASE_URL}")
 
-# URL이 올바른 형식인지 확인하고 수정
-if not DATABASE_URL.startswith(("postgresql://", "postgresql+asyncpg://")):
-    # URL이 잘못된 형식으로 들어온 경우 (postgres://로 시작하거나 스키마가 누락된 경우)
-    if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL[len("postgres://"):]
-    else:
-        DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL
+# 환경별 URL 처리
+if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+    # Railway 환경: asyncpg 사용
+    if not DATABASE_URL.startswith("postgresql+asyncpg://"):
+        if DATABASE_URL.startswith("postgresql://"):
+            DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL[len("postgresql://"):]
+        elif DATABASE_URL.startswith("postgres://"):
+            DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL[len("postgres://"):]
+        else:
+            DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL
+else:
+    # Docker 환경: psycopg2 사용 (동기)
+    if DATABASE_URL.startswith("postgresql+asyncpg://"):
+        DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgresql+asyncpg://"):]
+    elif DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
 
 print(f"Final DATABASE_URL: {DATABASE_URL}")
 
-# 비동기 엔진 생성
-engine = create_async_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    echo=False
-)
+# 환경별 엔진 생성
+if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+    # Railway 환경: 비동기 엔진
+    engine = create_async_engine(
+        DATABASE_URL,
+        pool_pre_ping=True,
+        pool_recycle=300,
+        echo=False
+    )
+else:
+    # Docker 환경: 동기 엔진 (psycopg2)
+    from sqlalchemy import create_engine
+    engine = create_engine(
+        DATABASE_URL,
+        pool_pre_ping=True,
+        pool_recycle=300,
+        echo=False
+    )
 
-# 비동기 세션 팩토리
-AsyncSessionLocal = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False
-)
+# 환경별 세션 팩토리
+if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+    # Railway 환경: 비동기 세션
+    AsyncSessionLocal = async_sessionmaker(
+        engine,
+        class_=AsyncSession,
+        expire_on_commit=False
+    )
+else:
+    # Docker 환경: 동기 세션
+    from sqlalchemy.orm import sessionmaker, Session
+    SessionLocal = sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        bind=engine
+    )
 
 # Base 클래스
 Base = declarative_base()
 
-# 비동기 의존성 함수
-async def get_db() -> AsyncSession:
-    async with AsyncSessionLocal() as session:
+# 환경별 의존성 함수
+if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+    # Railway 환경: 비동기 의존성
+    async def get_db() -> AsyncSession:
+        async with AsyncSessionLocal() as session:
+            try:
+                yield session
+            finally:
+                await session.close()
+else:
+    # Docker 환경: 동기 의존성
+    def get_db() -> Session:
+        db = SessionLocal()
         try:
-            yield session
+            yield db
         finally:
-            await session.close()
+            db.close()
