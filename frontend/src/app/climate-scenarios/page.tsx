@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Header } from '@/ui/organisms';
+import { apiClient } from '@/shared/lib';
+import { useAuthStore } from '@/shared/state/auth.store';
 
 interface ClimateImage {
   id: string;
@@ -163,6 +165,7 @@ export default function ClimateScenariosPage() {
   const router = useRouter();
   const [selectedScenario, setSelectedScenario] = useState<'ssp26' | 'ssp85'>('ssp26');
   const [selectedImage, setSelectedImage] = useState<ClimateImage | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const handleBack = () => {
     router.push('/tcfd');
@@ -177,6 +180,69 @@ export default function ClimateScenariosPage() {
   };
 
   const currentImages = selectedScenario === 'ssp26' ? ssp26Images : ssp85Images;
+
+  // 인증 상태 확인
+  useEffect(() => {
+    // 클라이언트 사이드에서만 인증 확인
+    if (typeof window !== 'undefined') {
+      const checkAuth = async () => {
+        try {
+          // localStorage에서 토큰 확인
+          const token = localStorage.getItem('auth_token');
+          if (!token) {
+            console.log('❌ 인증 토큰이 없습니다');
+            router.push('/login');
+            return;
+          }
+
+          // 토큰 유효성 확인 (API 호출)
+          try {
+            await apiClient.get('/api/v1/auth/verify');
+            console.log('✅ 인증 토큰이 유효합니다');
+            setIsAuthenticated(true);
+          } catch (error: any) {
+            if (error.response?.status === 401) {
+              console.log('❌ 인증 토큰이 만료되었습니다');
+              // 토큰 갱신 시도
+              const refreshed = await useAuthStore.getState().refreshToken();
+              if (refreshed) {
+                console.log('✅ 토큰이 갱신되었습니다');
+                setIsAuthenticated(true);
+              } else {
+                console.log('❌ 토큰 갱신 실패');
+                router.push('/login');
+              }
+            } else {
+              console.log('❌ 인증 확인 중 오류 발생');
+              router.push('/login');
+            }
+          }
+        } catch (error) {
+          console.error('❌ 인증 확인 실패:', error);
+          router.push('/login');
+        }
+      };
+
+      checkAuth();
+    }
+  }, [router]);
+
+  // 인증되지 않은 경우 로딩 화면 표시
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Header />
+        <div className="pt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">인증 확인 중...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

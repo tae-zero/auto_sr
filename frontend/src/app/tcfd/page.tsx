@@ -1039,18 +1039,27 @@ export default function TcfdSrPage() {
                   </button>
                 </div>
                 
-                {/* 기후 시나리오 이미지 갤러리로 이동하는 More 버튼 */}
-                <div className="mt-6 text-center">
-                  <button
-                    onClick={() => router.push('/climate-scenarios')}
-                    className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-lg shadow-md hover:shadow-lg"
-                  >
-                    🌍 기후 시나리오 이미지 더보기
-                  </button>
-                  <p className="text-sm text-gray-600 mt-2">
-                    SSP 2.6과 SSP 8.5 시나리오의 상세한 기후 변화 예측 이미지를 확인하세요
-                  </p>
-                </div>
+                                 {/* 기후 시나리오 이미지 갤러리로 이동하는 More 버튼 */}
+                 <div className="mt-6 text-center">
+                   <button
+                     onClick={() => {
+                       // 인증 상태 확인 후 이동
+                       const token = localStorage.getItem('auth_token');
+                       if (token) {
+                         router.push('/climate-scenarios');
+                       } else {
+                         alert('로그인이 필요합니다. 먼저 로그인해주세요.');
+                         router.push('/login');
+                       }
+                     }}
+                     className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-lg shadow-md hover:shadow-lg"
+                   >
+                     🌍 기후 시나리오 이미지 더보기
+                   </button>
+                   <p className="text-sm text-gray-600 mt-2">
+                     SSP 2.6과 SSP 8.5 시나리오의 상세한 기후 변화 예측 이미지를 확인하세요
+                   </p>
+                 </div>
               </div>
             </div>
           )}
