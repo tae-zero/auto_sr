@@ -22,7 +22,13 @@ async def get_tcfd_standards(request: Request, authorization: str = Header(None)
         
         # 토큰 검증 및 사용자 정보 추출
         user_info = await verify_token(authorization)
-        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_id', 'unknown')}")
+        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_info', {}).get('user_id', 'unknown')}")
+        
+        # Auth Service 응답 구조에 맞게 사용자 정보 추출
+        user_data = user_info.get('user_info', {})
+        if not user_data:
+            logger.warning("⚠️ 사용자 정보가 없습니다")
+            user_data = {}
         
         # Service Discovery를 통해 TCFD Service 인스턴스 가져오기
         service_discovery: ServiceDiscovery = request.app.state.service_discovery
@@ -62,10 +68,10 @@ async def get_tcfd_standards(request: Request, authorization: str = Header(None)
         
         # 사용자 정보를 쿼리 파라미터로 전달
         user_params = {
-            "user_id": user_info.get("user_id"),
-            "email": user_info.get("email"),
-            "name": user_info.get("name"),
-            "company_id": user_info.get("company_id")
+            "user_id": user_data.get("user_id"),
+            "email": user_data.get("email"),
+            "name": user_data.get("name"),
+            "company_id": user_data.get("company_id")
         }
         
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -115,7 +121,13 @@ async def get_tcfd_standards_by_category(request: Request, category: str, author
         
         # 토큰 검증 및 사용자 정보 추출
         user_info = await verify_token(authorization)
-        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_id', 'unknown')}")
+        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_info', {}).get('user_id', 'unknown')}")
+        
+        # Auth Service 응답 구조에 맞게 사용자 정보 추출
+        user_data = user_info.get('user_info', {})
+        if not user_data:
+            logger.warning("⚠️ 사용자 정보가 없습니다")
+            user_data = {}
         
         # Service Discovery를 통해 TCFD Service 인스턴스 가져오기
         service_discovery: ServiceDiscovery = request.app.state.service_discovery
@@ -155,10 +167,10 @@ async def get_tcfd_standards_by_category(request: Request, category: str, author
         
         # 사용자 정보를 쿼리 파라미터로 전달
         user_params = {
-            "user_id": user_info.get("user_id"),
-            "email": user_info.get("email"),
-            "name": user_info.get("name"),
-            "company_id": user_info.get("company_id")
+            "user_id": user_data.get("user_id"),
+            "email": user_data.get("email"),
+            "name": user_data.get("name"),
+            "company_id": user_data.get("company_id")
         }
         
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -208,7 +220,13 @@ async def get_companies(request: Request, authorization: str = Header(None)):
         
         # 토큰 검증 및 사용자 정보 추출
         user_info = await verify_token(authorization)
-        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_id', 'unknown')}")
+        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_info', {}).get('user_id', 'unknown')}")
+        
+        # Auth Service 응답 구조에 맞게 사용자 정보 추출
+        user_data = user_info.get('user_info', {})
+        if not user_data:
+            logger.warning("⚠️ 사용자 정보가 없습니다")
+            user_data = {}
         
         # Service Discovery를 통해 TCFD Service 인스턴스 가져오기
         service_discovery: ServiceDiscovery = request.app.state.service_discovery
@@ -248,10 +266,10 @@ async def get_companies(request: Request, authorization: str = Header(None)):
         
         # 사용자 정보를 쿼리 파라미터로 전달
         user_params = {
-            "user_id": user_info.get("user_id"),
-            "email": user_info.get("email"),
-            "name": user_info.get("name"),
-            "company_id": user_info.get("company_id")
+            "user_id": user_data.get("user_id"),
+            "email": user_data.get("email"),
+            "name": user_data.get("name"),
+            "company_id": user_data.get("company_id")
         }
         
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -301,7 +319,13 @@ async def get_company_financial_data(request: Request, company_name: str, author
         
         # 토큰 검증 및 사용자 정보 추출
         user_info = await verify_token(authorization)
-        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_id', 'unknown')}")
+        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_info', {}).get('user_id', 'unknown')}")
+        
+        # Auth Service 응답 구조에 맞게 사용자 정보 추출
+        user_data = user_info.get('user_info', {})
+        if not user_data:
+            logger.warning("⚠️ 사용자 정보가 없습니다")
+            user_data = {}
         
         # Service Discovery를 통해 TCFD Service 인스턴스 가져오기
         service_discovery: ServiceDiscovery = request.app.state.service_discovery
@@ -342,10 +366,10 @@ async def get_company_financial_data(request: Request, company_name: str, author
         
         # 사용자 정보를 쿼리 파라미터로 전달
         user_params = {
-            "user_id": user_info.get("user_id"),
-            "email": user_info.get("email"),
-            "name": user_info.get("name"),
-            "company_id": user_info.get("company_id")
+            "user_id": user_data.get("user_id"),
+            "email": user_data.get("email"),
+            "name": user_data.get("name"),
+            "company_id": user_data.get("company_id")
         }
         
         async with httpx.AsyncClient(timeout=60.0) as client:
