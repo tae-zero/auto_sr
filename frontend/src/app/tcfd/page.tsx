@@ -195,6 +195,14 @@ export default function TcfdSrPage() {
       return;
     }
     
+    // 인증 상태 확인
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      alert('로그인이 필요합니다. 먼저 로그인해주세요.');
+      router.push('/login');
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       const submitData = {
@@ -204,6 +212,7 @@ export default function TcfdSrPage() {
       };
       
       console.log('📤 TCFD 데이터 제출:', submitData);
+      console.log('🔐 인증 토큰:', token ? '존재함' : '없음');
       
       const response = await tcfdReportAPI.createTcfdInput(submitData);
       console.log('✅ TCFD 데이터 저장 성공:', response.data);
@@ -225,9 +234,14 @@ export default function TcfdSrPage() {
         metrics_targets_m3: ''
       });
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ TCFD 데이터 저장 실패:', error);
-      alert('TCFD 데이터 저장에 실패했습니다. 다시 시도해주세요.');
+      if (error.response?.status === 401) {
+        alert('인증이 만료되었습니다. 다시 로그인해주세요.');
+        router.push('/login');
+      } else {
+        alert('TCFD 데이터 저장에 실패했습니다. 다시 시도해주세요.');
+      }
     } finally {
       setIsSubmitting(false);
     }

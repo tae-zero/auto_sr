@@ -177,7 +177,13 @@ async def create_tcfd_input(request: Request, data: dict):
         async with httpx.AsyncClient(timeout=60.0) as client:
             # 요청 헤더에서 인증 토큰 가져오기
             auth_header = request.headers.get("Authorization")
-            headers = {"Authorization": auth_header} if auth_header else {}
+            headers = {}
+            
+            if auth_header:
+                headers["Authorization"] = auth_header
+                logger.info(f"🔐 인증 토큰 발견: {auth_header[:20]}...")
+            else:
+                logger.warning("⚠️ 인증 토큰이 없습니다")
             
             logger.info(f"📤 요청 데이터: {data}")
             logger.info(f"📤 요청 헤더: {headers}")
