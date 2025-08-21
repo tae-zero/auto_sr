@@ -67,9 +67,13 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # 서비스 레지스트리 설정 (Railway 환경 감지)
+# ... existing code ...
+
+# 서비스 레지스트리 설정 (Railway 환경 감지)
 def get_service_registry():
     """Railway 환경인지 확인하고 적절한 서비스 레지스트리 반환"""
-    if settings.RAILWAY_AUTH_SERVICE_URL:
+    railway_env = os.getenv("RAILWAY_ENVIRONMENT")
+    if railway_env in ["true", "production"]:  # "production"도 인식
         # Railway 프로덕션 환경
         return {
             "auth-service": {
@@ -141,6 +145,8 @@ def get_service_registry():
                 "health_check_path": "/health"
             }
         }
+
+# ... existing code ...
 
 # 동적 서비스 레지스트리
 DEFAULT_SERVICE_REGISTRY = get_service_registry() 

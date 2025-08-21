@@ -10,12 +10,17 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
+# ... existing code ...
+
 # Auth Service URL 가져오기
 def get_auth_service_url():
     """환경에 따른 Auth Service URL 반환"""
-    if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+    railway_env = os.getenv("RAILWAY_ENVIRONMENT")
+    if railway_env in ["true", "production"]:  # "production"도 인식
         return os.getenv("RAILWAY_AUTH_SERVICE_URL", "https://auth-service-production-1deb.up.railway.app")
     return os.getenv("AUTH_SERVICE_URL", "http://auth-service:8008")
+
+
 
 @router.post("/login")
 async def login(auth_data: dict):

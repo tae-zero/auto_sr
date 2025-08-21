@@ -12,15 +12,13 @@ class Database:
     """데이터베이스 연결 관리 클래스"""
     
     def __init__(self):
+        """데이터베이스 연결 초기화"""
         self.pool: Optional[asyncpg.Pool] = None
         database_url = os.getenv("DATABASE_URL")
         
-        # URL 스키마 수정
-        if database_url:
-            if database_url.startswith("postgresql+asyncpg://"):
-                database_url = "postgresql://" + database_url[len("postgresql+asyncpg://"):]
-            elif database_url.startswith("postgres://"):
-                database_url = "postgresql://" + database_url[len("postgres://"):]
+        # asyncpg는 postgresql:// 스키마를 기대함
+        if database_url.startswith(("postgresql+asyncpg://", "postgres://")):
+            database_url = database_url.replace("postgresql+asyncpg://", "postgresql://").replace("postgres://", "postgresql://")
         
         self.database_url = database_url
     
