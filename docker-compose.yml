@@ -52,14 +52,15 @@ services:
       - INIT_DATABASE=true
       # JWT 설정
       - JWT_SECRET_KEY=esg-mate-super-secret-key-2025-railway-deployment-2025
-      # 로컬 개발 환경: 모든 서비스를 로컬에서 실행
-      - RAILWAY_ENVIRONMENT=false
-      - USE_RAILWAY_TCFD=false
-      - USE_LOCAL_AUTH=true
-      - USE_LOCAL_CHATBOT=true
-      # Service URLs 설정
-      - AUTH_SERVICE_URL=http://auth-service:8008
-      - TCFD_REPORT_SERVICE_URL=http://tcfd-report-service:8004
+      # Railway 프로덕션 환경 설정
+      - RAILWAY_ENVIRONMENT=true
+      - USE_RAILWAY_TCFD=true
+      - USE_LOCAL_AUTH=false
+      - USE_LOCAL_CHATBOT=false
+      # Railway Service URLs 설정
+      - RAILWAY_AUTH_SERVICE_URL=https://auth-service-production.up.railway.app
+      - RAILWAY_TCFD_SERVICE_URL=https://tcfd-service-production.up.railway.app
+      - RAILWAY_TCFD_REPORT_SERVICE_URL=https://tcfdreport-service-production-3020.up.railway.app
       # Railway PostgreSQL 연결 (Public Network URL)
       - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
       # AI 및 LangChain 설정

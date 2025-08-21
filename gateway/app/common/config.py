@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     RAILWAY_AUTH_SERVICE_URL: str = os.getenv("RAILWAY_AUTH_SERVICE_URL", "")
     RAILWAY_CHATBOT_SERVICE_URL: str = os.getenv("RAILWAY_CHATBOT_SERVICE_URL", "")
     RAILWAY_TCFD_SERVICE_URL: str = os.getenv("RAILWAY_TCFD_SERVICE_URL", "")
+    RAILWAY_TCFD_REPORT_SERVICE_URL: str = os.getenv("RAILWAY_TCFD_REPORT_SERVICE_URL", "")
     
     # Service Ports (로컬 개발 환경)
     AUTH_SERVICE_PORT: int = int(os.getenv("AUTH_SERVICE_PORT", "8008"))
@@ -94,6 +95,14 @@ def get_service_registry():
                 "load_balancer": "round_robin",
                 "current_index": 0,
                 "health_check_path": "/health"
+            },
+            "tcfd-report-service": {
+                "instances": [
+                    {"host": settings.RAILWAY_TCFD_REPORT_SERVICE_URL.replace("https://", "").split("/")[0], "port": 443, "health": True, "weight": 1, "ssl": True},
+                ],
+                "load_balancer": "round_robin",
+                "current_index": 0,
+                "health_check_path": "/health"
             }
         }
     else:
@@ -118,6 +127,14 @@ def get_service_registry():
             "tcfd-service": {
                 "instances": [
                     {"host": "localhost", "port": settings.TCFD_SERVICE_PORT, "health": True, "weight": 1},
+                ],
+                "load_balancer": "round_robin",
+                "current_index": 0,
+                "health_check_path": "/health"
+            },
+            "tcfd-report-service": {
+                "instances": [
+                    {"host": "localhost", "port": 8004, "health": True, "weight": 1},
                 ],
                 "load_balancer": "round_robin",
                 "current_index": 0,
