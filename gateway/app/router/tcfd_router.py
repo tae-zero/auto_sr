@@ -380,8 +380,11 @@ async def get_company_financial_data(request: Request, company_name: str, author
                 url = f"{host}:{port}/api/v1/tcfd/company-financial-data" if port else f"{host}/api/v1/tcfd/company-financial-data"
             
             logger.info(f"📤 최종 요청 URL: {url}")
-            logger.info(f"📤 요청 헤더: {headers}")
+            logger.info(f"📤 사용자 정보: {user_params}")
+            logger.info(f"📤 Authorization 헤더: {authorization}")
             
+            # Authorization 헤더와 사용자 정보를 함께 전달
+            headers = {"Authorization": authorization}
             response = await client.get(
                 url,
                 params={"company_name": company_name, **user_params},
