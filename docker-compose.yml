@@ -169,8 +169,11 @@ services:
       - PYTHONUNBUFFERED=1
       # JWT 설정
       - JWT_SECRET_KEY=esg-mate-super-secret-key-2025-railway-deployment-2025
-      # 데이터베이스 설정 추가
-      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
+      # Railway 환경 설정
+      - RAILWAY_ENVIRONMENT=production
+      - USE_RAILWAY_TCFD=true
+      # 데이터베이스 설정
+      - DATABASE_URL=postgresql+asyncpg://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@postgres.railway.internal:5432/railway
       # AI 및 LangChain 설정
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4}
