@@ -60,7 +60,7 @@ services:
       # Docker Service URLs 설정 (ServiceDiscovery 사용)
       - AUTH_SERVICE_URL=http://auth-service:8008
       - TCFD_SERVICE_URL=http://tcfd-service:8005
-      - TCFD_REPORT_SERVICE_URL=http://tcfd-report-service:8004
+      - TCFD_REPORT_SERVICE_URL=http://tcfdreport-service:8004
       # Railway PostgreSQL 연결 (Public Network URL)
       - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
       # AI 및 LangChain 설정
@@ -80,7 +80,7 @@ services:
         condition: service_healthy
       tcfd-service:
         condition: service_healthy
-      tcfd-report-service:
+      tcfdreport-service:
         condition: service_healthy
     dns:
       - 8.8.8.8
@@ -152,11 +152,11 @@ services:
       start_period: 15s
 
   # TCFD Report Service (FastAPI + LangChain + AI 보고서 생성)
-  tcfd-report-service:
+  tcfdreport-service:
     build:
       context: ./service/tcfdreport-service
       dockerfile: Dockerfile
-    container_name: tcfd-report-service
+    container_name: tcfdreport-service
     ports:
       - "8004:8004"
     volumes:

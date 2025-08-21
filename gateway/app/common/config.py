@@ -132,9 +132,9 @@ def get_service_registry():
                 "current_index": 0,
                 "health_check_path": "/health"
             },
-            "tcfd-report-service": {
+            "tcfdreport-service": {
                 "instances": [
-                    {"host": "localhost", "port": 8004, "health": True, "weight": 1},
+                    {"host": "tcfdreport-service", "port": 8004, "health": True, "weight": 1},
                 ],
                 "load_balancer": "round_robin",
                 "current_index": 0,

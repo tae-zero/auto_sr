@@ -6,6 +6,7 @@ TCFD Service TCFD 서비스
 """
 from typing import Dict, Any, Optional, List
 import logging
+import os
 from fastapi import UploadFile, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -31,8 +32,6 @@ class TCFDService:
     # TCFD 표준 정보 조회 메서드 (환경별 처리)
     async def get_tcfd_standards(self, db) -> List[TCFDStandard]:
         """TCFD 표준 정보 전체 조회"""
-        import os
-        
         if os.getenv("RAILWAY_ENVIRONMENT") == "true":
             # Railway 환경: 비동기 처리
             result = await db.execute(select(TCFDStandard))
@@ -50,8 +49,6 @@ class TCFDService:
     
     async def get_tcfd_standards_by_category(self, db, category: str) -> List[TCFDStandard]:
         """카테고리별 TCFD 표준 정보 조회"""
-        import os
-        
         if os.getenv("RAILWAY_ENVIRONMENT") == "true":
             # Railway 환경: 비동기 처리
             result = await db.execute(select(TCFDStandard).where(TCFDStandard.category == category))

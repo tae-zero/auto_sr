@@ -13,14 +13,14 @@ def get_service_url():
     """환경에 따른 서비스 URL 반환"""
     if os.getenv("RAILWAY_ENVIRONMENT") == "true":
         return os.getenv("RAILWAY_TCFD_REPORT_SERVICE_URL", "")
-    return "http://tcfd-report-service:8004"
+    return "http://tcfdreport-service:8004"
 
 TCFD_REPORT_SERVICE_URL = get_service_url()
 
 # Docker 환경에서 직접 연결 시도
 def get_docker_service_url():
     """Docker 환경에서 직접 서비스 연결"""
-    return "http://tcfd-report-service:8004"
+    return "http://tcfdreport-service:8004"
 
 @router.get("/health")
 async def health_check(request: Request):
