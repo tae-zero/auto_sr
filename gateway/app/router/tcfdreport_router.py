@@ -22,6 +22,19 @@ def get_docker_service_url():
     """Docker 환경에서 직접 서비스 연결"""
     return "http://tcfdreport-service:8004"
 
+def build_service_url(host: str, port: str, environment: str) -> str:
+    """환경에 따른 서비스 URL 생성"""
+    if environment == "true":  # Railway 환경
+        if host.startswith(('http://', 'https://')):
+            return host
+        else:
+            return f"https://{host}"
+    else:  # Docker 환경
+        if host.startswith(('http://', 'https://')):
+            return f"{host}:{port}" if port else host
+        else:
+            return f"http://{host}:{port}" if port else f"http://{host}"
+
 @router.get("/health")
 async def health_check(request: Request):
     """TCFD Report Service 헬스 체크"""
@@ -40,18 +53,14 @@ async def health_check(request: Request):
         host = tcfdreport_service.host
         port = tcfdreport_service.port
         
-        # URL이 이미 완전한 형태인지 확인
-        if not host.startswith(('http://', 'https://')):
-            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
-                host = f"https://{host}"
-            else:
-                host = f"http://{host}:{port}"
+        # 환경에 따른 URL 생성
+        final_url = build_service_url(host, port, os.getenv("RAILWAY_ENVIRONMENT", "false"))
         
-        logger.info(f"🌐 TCFD Report Service URL: {host}")
-        logger.info(f"📤 요청 엔드포인트: {host}/health")
+        logger.info(f"🌐 TCFD Report Service URL: {final_url}")
+        logger.info(f"📤 요청 엔드포인트: {final_url}/health")
         
         async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.get(f"{host}/health")
+            response = await client.get(f"{final_url}/health")
             response.raise_for_status()
             response_data = response.json()
             logger.info(f"✅ TCFD Report Service 헬스 체크 성공: {response_data}")
@@ -82,19 +91,15 @@ async def get_company_financial_data(request: Request, company_name: str):
         host = tcfdreport_service.host
         port = tcfdreport_service.port
         
-        # URL이 이미 완전한 형태인지 확인
-        if not host.startswith(('http://', 'https://')):
-            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
-                host = f"https://{host}"
-            else:
-                host = f"http://{host}:{port}"
+        # 환경에 따른 URL 생성
+        final_url = build_service_url(host, port, os.getenv("RAILWAY_ENVIRONMENT", "false"))
         
-        logger.info(f"🌐 TCFD Report Service URL: {host}")
-        logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfdreport/company-financial-data")
+        logger.info(f"🌐 TCFD Report Service URL: {final_url}")
+        logger.info(f"📤 요청 엔드포인트: {final_url}/api/v1/tcfdreport/company-financial-data")
         
         async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.get(
-                f"{host}/api/v1/tcfdreport/company-financial-data",
+                f"{final_url}/api/v1/tcfdreport/company-financial-data",
                 params={"company_name": company_name}
             )
             response.raise_for_status()
@@ -127,18 +132,14 @@ async def get_tcfd_standards(request: Request):
         host = tcfdreport_service.host
         port = tcfdreport_service.port
         
-        # URL이 이미 완전한 형태인지 확인
-        if not host.startswith(('http://', 'https://')):
-            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
-                host = f"https://{host}"
-            else:
-                host = f"http://{host}:{port}"
+        # 환경에 따른 URL 생성
+        final_url = build_service_url(host, port, os.getenv("RAILWAY_ENVIRONMENT", "false"))
         
-        logger.info(f"🌐 TCFD Report Service URL: {host}")
-        logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfdreport/standards")
+        logger.info(f"🌐 TCFD Report Service URL: {final_url}")
+        logger.info(f"📤 요청 엔드포인트: {final_url}/api/v1/tcfdreport/standards")
         
         async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.get(f"{host}/api/v1/tcfdreport/standards")
+            response = await client.get(f"{final_url}/api/v1/tcfdreport/standards")
             response.raise_for_status()
             response_data = response.json()
             logger.info(f"✅ TCFD Report Service 응답 데이터: {response_data}")
@@ -169,15 +170,11 @@ async def create_tcfd_input(request: Request, data: dict):
         host = tcfdreport_service.host
         port = tcfdreport_service.port
         
-        # URL이 이미 완전한 형태인지 확인
-        if not host.startswith(('http://', 'https://')):
-            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
-                host = f"https://{host}"
-            else:
-                host = f"http://{host}:{port}"
+        # 환경에 따른 URL 생성
+        final_url = build_service_url(host, port, os.getenv("RAILWAY_ENVIRONMENT", "false"))
         
-        logger.info(f"🌐 TCFD Report Service URL: {host}")
-        logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfdreport/inputs")
+        logger.info(f"🌐 TCFD Report Service URL: {final_url}")
+        logger.info(f"📤 요청 엔드포인트: {final_url}/api/v1/tcfdreport/inputs")
         
         async with httpx.AsyncClient(timeout=60.0) as client:
             # 요청 헤더에서 인증 토큰 가져오기
@@ -192,13 +189,6 @@ async def create_tcfd_input(request: Request, data: dict):
             
             logger.info(f"📤 요청 데이터: {data}")
             logger.info(f"📤 요청 헤더: {headers}")
-            
-            # Docker 환경에서는 직접 연결, Railway 환경에서는 Service Discovery 사용
-            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
-                final_url = TCFD_REPORT_SERVICE_URL
-            else:
-                # Docker 환경: 직접 연결 시도
-                final_url = get_docker_service_url()
             
             url = f"{final_url}/api/v1/tcfdreport/inputs"
             logger.info(f"📤 최종 요청 URL: {url}")
@@ -238,18 +228,14 @@ async def get_tcfd_inputs(request: Request):
         host = tcfdreport_service.host
         port = tcfdreport_service.port
         
-        # URL이 이미 완전한 형태인지 확인
-        if not host.startswith(('http://', 'https://')):
-            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
-                host = f"https://{host}"
-            else:
-                host = f"http://{host}:{port}"
+        # 환경에 따른 URL 생성
+        final_url = build_service_url(host, port, os.getenv("RAILWAY_ENVIRONMENT", "false"))
         
-        logger.info(f"🌐 TCFD Report Service URL: {host}")
-        logger.info(f"📤 요청 엔드포인트: {host}/api/v1/tcfd/inputs")
+        logger.info(f"🌐 TCFD Report Service URL: {final_url}")
+        logger.info(f"📤 요청 엔드포인트: {final_url}/api/v1/tcfdreport/inputs")
         
         async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.get(f"{host}/api/v1/tcfd/inputs")
+            response = await client.get(f"{final_url}/api/v1/tcfdreport/inputs")
             response.raise_for_status()
             response_data = response.json()
             logger.info(f"✅ TCFD Report Service 응답 데이터: {response_data}")
