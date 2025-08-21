@@ -9,7 +9,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/tcfdreport", tags=["tcfdreport"])
 
 # TCFD Report Service URL 가져오기
-TCFD_REPORT_SERVICE_URL = os.getenv("TCFD_REPORT_SERVICE_URL", "http://tcfd-report-service:8004")
+def get_service_url():
+    """환경에 따른 서비스 URL 반환"""
+    if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+        return os.getenv("RAILWAY_TCFD_REPORT_SERVICE_URL", "")
+    return "http://tcfd-report-service:8004"
+
+TCFD_REPORT_SERVICE_URL = get_service_url()
 
 @router.get("/health")
 async def health_check(request: Request):
@@ -176,8 +182,9 @@ async def create_tcfd_input(request: Request, data: dict):
             logger.info(f"📤 요청 데이터: {data}")
             logger.info(f"📤 요청 헤더: {headers}")
             
-            # 환경 변수에서 URL 가져오기
-            url = f"{TCFD_REPORT_SERVICE_URL}/api/v1/tcfdreport/inputs"
+            # Railway 환경이면 Railway URL 사용, 아니면 Service Discovery URL 사용
+            final_url = TCFD_REPORT_SERVICE_URL if os.getenv("RAILWAY_ENVIRONMENT") == "true" else f"{host}"
+            url = f"{final_url}/api/v1/tcfdreport/inputs"
             logger.info(f"📤 최종 요청 URL: {url}")
             
             response = await client.post(
