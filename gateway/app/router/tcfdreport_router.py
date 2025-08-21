@@ -54,7 +54,7 @@ async def health_check(request: Request):
         port = tcfdreport_service.port
         
         # Docker 환경에서는 직접 연결, Railway 환경에서는 Service Discovery 사용
-        if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+        if os.getenv("RAILWAY_ENVIRONMENT") == "production":
             # Railway 환경: Service Discovery에서 가져온 host 사용
             final_url = host
         else:
@@ -97,7 +97,7 @@ async def get_company_financial_data(request: Request, company_name: str):
         port = tcfdreport_service.port
         
         # Docker 환경에서는 직접 연결, Railway 환경에서는 Service Discovery 사용
-        if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+        if os.getenv("RAILWAY_ENVIRONMENT") == "production":
             # Railway 환경: Service Discovery에서 가져온 host 사용
             final_url = host
         else:
@@ -143,7 +143,7 @@ async def get_tcfd_standards(request: Request):
         port = tcfdreport_service.port
         
         # Docker 환경에서는 직접 연결, Railway 환경에서는 Service Discovery 사용
-        if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+        if os.getenv("RAILWAY_ENVIRONMENT") == "production":
             # Railway 환경: Service Discovery에서 가져온 host 사용
             final_url = host
         else:
@@ -173,6 +173,10 @@ async def create_tcfd_input(request: Request, data: dict):
     try:
         logger.info("🔍 TCFD Report Service - TCFD 입력 데이터 생성 요청 시작")
         
+        # 환경변수 상태 확인
+        railway_env = os.getenv("RAILWAY_ENVIRONMENT", "false")
+        logger.info(f"🌍 RAILWAY_ENVIRONMENT: {railway_env}")
+        
         # Service Discovery를 통해 TCFD Report Service 인스턴스 가져오기
         service_discovery: ServiceDiscovery = request.app.state.service_discovery
         tcfdreport_service = service_discovery.get_service_instance("tcfdreport-service")
@@ -181,17 +185,22 @@ async def create_tcfd_input(request: Request, data: dict):
             logger.error("❌ TCFD Report Service를 찾을 수 없습니다")
             raise HTTPException(status_code=503, detail="TCFD Report Service를 찾을 수 없습니다")
         
+        # Service Discovery 정보 로깅
+        logger.info(f"🔍 Service Discovery 결과: host={tcfdreport_service.host}, port={tcfdreport_service.port}")
+        
         # TCFD Report Service로 요청 전달
         host = tcfdreport_service.host
         port = tcfdreport_service.port
         
         # Docker 환경에서는 직접 연결, Railway 환경에서는 Service Discovery 사용
-        if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+        if railway_env == "production":
             # Railway 환경: Service Discovery에서 가져온 host 사용
             final_url = host
+            logger.info(f"🚂 Railway 환경 감지: {final_url} 사용")
         else:
             # Docker 환경: 직접 연결 시도
             final_url = get_docker_service_url()
+            logger.info(f"🐳 Docker 환경 감지: {final_url} 사용")
         
         url = f"{final_url}/api/v1/tcfdreport/inputs"
         logger.info(f"📤 최종 요청 URL: {url}")
@@ -246,7 +255,7 @@ async def get_tcfd_inputs(request: Request):
         port = tcfdreport_service.port
         
         # Docker 환경에서는 직접 연결, Railway 환경에서는 Service Discovery 사용
-        if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+        if os.getenv("RAILWAY_ENVIRONMENT") == "production":
             # Railway 환경: Service Discovery에서 가져온 host 사용
             final_url = host
         else:
