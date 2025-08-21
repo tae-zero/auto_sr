@@ -62,12 +62,23 @@ export const useAuthStore = create<AuthState>((set) => ({
             isInitialized: true,
             user: JSON.parse(userData)
           });
-        } catch (error) {
-          // 토큰이 만료되었다면 갱신 시도
-          const refreshed = await useAuthStore.getState().refreshToken();
-          if (!refreshed) {
-            // 갱신 실패시 로그아웃
-            await useAuthStore.getState().logout();
+        } catch (error: any) {
+          // 401 에러인 경우에만 토큰 갱신 시도
+          if (error.response?.status === 401) {
+            // 토큰이 만료되었다면 갱신 시도
+            const refreshed = await useAuthStore.getState().refreshToken();
+            if (!refreshed) {
+              // 갱신 실패시에만 로그아웃
+              await useAuthStore.getState().logout();
+            }
+          } else {
+            // 네트워크 오류 등은 인증 상태 유지
+            console.log('⚠️ 네트워크 오류로 인한 인증 확인 실패, 인증 상태 유지');
+            set({ 
+              isAuthenticated: true, 
+              isInitialized: true,
+              user: JSON.parse(userData)
+            });
           }
         }
       } else {
@@ -79,11 +90,23 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
     } catch (error) {
       console.error('인증 상태 확인 중 오류:', error);
-      set({ 
-        isAuthenticated: false, 
-        isInitialized: true,
-        user: null
-      });
+      // 네트워크 오류 등으로 인한 실패는 기존 인증 상태 유지
+      const token = localStorage.getItem('auth_token');
+      const userData = localStorage.getItem('user_data');
+      
+      if (token && userData) {
+        set({ 
+          isAuthenticated: true, 
+          isInitialized: true,
+          user: JSON.parse(userData)
+        });
+      } else {
+        set({ 
+          isAuthenticated: false, 
+          isInitialized: true,
+          user: null
+        });
+      }
     }
   },
 

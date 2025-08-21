@@ -353,7 +353,7 @@ export default function TcfdSrPage() {
     loadCompanies();
   }, []);
 
-  // 인증 상태 확인 (강화된 버전)
+  // 인증 상태 확인 (개선된 버전)
   useEffect(() => {
     // 클라이언트 사이드에서만 인증 확인
     if (typeof window !== 'undefined') {
@@ -384,7 +384,8 @@ export default function TcfdSrPage() {
           } catch (authError: any) {
             console.log('⚠️ 인증 상태 확인 실패, 토큰 갱신 시도:', authError);
             
-                                      // 토큰 갱신 시도
+            // 401 에러가 아닌 경우에만 토큰 갱신 시도
+            if (authError.response?.status === 401) {
               try {
                 const refreshResponse = await apiClient.post('/api/v1/auth/refresh');
                 console.log('✅ 토큰 갱신 성공:', refreshResponse.data);
@@ -401,27 +402,70 @@ export default function TcfdSrPage() {
                   throw new Error('토큰 갱신 실패');
                 }
                 
-              } catch (refreshError) {
-              console.error('❌ 토큰 갱신 실패:', refreshError);
-              // 인증 실패 시 로그인 페이지로 이동
-              alert('인증이 만료되었습니다. 다시 로그인해주세요.');
-              localStorage.removeItem('auth_token');
-              router.push('/login');
+              } catch (refreshError: any) {
+                console.error('❌ 토큰 갱신 실패:', refreshError);
+                // 토큰 갱신 실패 시에만 로그아웃 처리
+                if (refreshError.response?.status === 401) {
+                  alert('인증이 만료되었습니다. 다시 로그인해주세요.');
+                  localStorage.removeItem('auth_token');
+                  router.push('/login');
+                } else {
+                  // 네트워크 오류 등으로 인한 갱신 실패는 인증 상태 유지
+                  console.log('⚠️ 네트워크 오류로 인한 토큰 갱신 실패, 인증 상태 유지');
+                  setIsAuthenticated(true);
+                  // 기존 토큰으로 TCFD 데이터 로드 시도
+                  try {
+                    await fetchTcfdStandards();
+                  } catch (dataError) {
+                    console.log('⚠️ TCFD 데이터 로드 실패, 나중에 재시도 가능');
+                  }
+                }
+              }
+            } else {
+              // 401이 아닌 다른 오류는 네트워크 문제일 수 있으므로 인증 상태 유지
+              console.log('⚠️ 네트워크 오류로 인한 인증 확인 실패, 인증 상태 유지');
+              setIsAuthenticated(true);
+              // 기존 토큰으로 TCFD 데이터 로드 시도
+              try {
+                await fetchTcfdStandards();
+              } catch (dataError) {
+                console.log('⚠️ TCFD 데이터 로드 실패, 나중에 재시도 가능');
+              }
             }
           }
           
-        } catch (error) {
+        } catch (error: any) {
           console.error('❌ 인증 확인 실패:', error);
-          // 인증 실패 시 로그인 페이지로 이동
-          alert('인증 확인에 실패했습니다. 다시 로그인해주세요.');
-          localStorage.removeItem('auth_token');
-          router.push('/login');
+          // 네트워크 오류 등으로 인한 실패는 인증 상태 유지
+          if (error.response?.status === 401) {
+            alert('인증 확인에 실패했습니다. 다시 로그인해주세요.');
+            localStorage.removeItem('auth_token');
+            router.push('/login');
+          } else {
+            console.log('⚠️ 네트워크 오류로 인한 인증 확인 실패, 인증 상태 유지');
+            setIsAuthenticated(true);
+          }
         }
       };
 
       checkAuth();
     }
   }, [router]);
+
+  // 페이지 포커스 시 인증 상태 재확인 (선택적)
+  useEffect(() => {
+    const handleFocus = () => {
+      // 페이지가 포커스될 때 간단한 토큰 존재 여부만 확인
+      const token = localStorage.getItem('auth_token');
+      if (token && !isAuthenticated) {
+        console.log('🔍 페이지 포커스 시 인증 상태 복원');
+        setIsAuthenticated(true);
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [isAuthenticated]);
 
   // 인증되지 않은 경우 로딩 화면 표시
   if (!isAuthenticated) {

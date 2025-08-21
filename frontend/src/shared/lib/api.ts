@@ -244,8 +244,10 @@ apiClient.interceptors.response.use(
         console.error('토큰 갱신 실패:', refreshError);
       }
 
-      // 토큰 갱신 실패시 로그아웃
-      await useAuthStore.getState().logout();
+      // 토큰 갱신 실패시에만 로그아웃 (네트워크 오류 등은 제외)
+      if (error.response?.status === 401) {
+        await useAuthStore.getState().logout();
+      }
     }
 
     return Promise.reject(error);
