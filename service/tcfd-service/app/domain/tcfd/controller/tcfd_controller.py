@@ -8,8 +8,8 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Q
 from typing import Dict, Any, Optional, List
 import logging
 import json
-from sqlalchemy.ext.asyncio import AsyncSession
 from app.common.database.database import get_db
+import os
 
 from app.domain.tcfd.service.tcfd_service import TCFDService
 from app.domain.tcfd.model.tcfd_model import (
@@ -28,7 +28,7 @@ tcfd_service = TCFDService()
 # TCFD 표준 정보 조회 엔드포인트 추가 (인증 필요)
 @router.get("/standards", response_model=TCFDStandardsListResponse, summary="TCFD 표준 정보 전체 조회")
 async def get_tcfd_standards(
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     """TCFD 표준 정보 전체를 조회합니다. (인증 필요)"""
@@ -55,7 +55,7 @@ async def get_tcfd_standards(
 @router.get("/standards/{category}", response_model=TCFDStandardsListResponse, summary="카테고리별 TCFD 표준 정보 조회")
 async def get_tcfd_standards_by_category(
     category: str, 
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     """특정 카테고리의 TCFD 표준 정보를 조회합니다. (인증 필요)"""

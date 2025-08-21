@@ -28,16 +28,44 @@ class TCFDService:
         # self.report_service = None
         # self.risk_assessment_service = None
     
-    # TCFD 표준 정보 조회 메서드 추가 (비동기)
-    async def get_tcfd_standards(self, db: AsyncSession) -> List[TCFDStandard]:
+    # TCFD 표준 정보 조회 메서드 (환경별 처리)
+    async def get_tcfd_standards(self, db) -> List[TCFDStandard]:
         """TCFD 표준 정보 전체 조회"""
-        result = await db.execute(select(TCFDStandard))
-        return result.scalars().all()
+        import os
+        
+        if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+            # Railway 환경: 비동기 처리
+            result = await db.execute(select(TCFDStandard))
+            return result.scalars().all()
+        else:
+            # Docker 환경: 동기 처리
+            from sqlalchemy.orm import Session
+            if isinstance(db, Session):
+                result = db.execute(select(TCFDStandard))
+                return result.scalars().all()
+            else:
+                # 비동기 세션인 경우
+                result = await db.execute(select(TCFDStandard))
+                return result.scalars().all()
     
-    async def get_tcfd_standards_by_category(self, db: AsyncSession, category: str) -> List[TCFDStandard]:
+    async def get_tcfd_standards_by_category(self, db, category: str) -> List[TCFDStandard]:
         """카테고리별 TCFD 표준 정보 조회"""
-        result = await db.execute(select(TCFDStandard).where(TCFDStandard.category == category))
-        return result.scalars().all()
+        import os
+        
+        if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+            # Railway 환경: 비동기 처리
+            result = await db.execute(select(TCFDStandard).where(TCFDStandard.category == category))
+            return result.scalars().all()
+        else:
+            # Docker 환경: 동기 처리
+            from sqlalchemy.orm import Session
+            if isinstance(db, Session):
+                result = db.execute(select(TCFDStandard).where(TCFDStandard.category == category))
+                return result.scalars().all()
+            else:
+                # 비동기 세션인 경우
+                result = await db.execute(select(TCFDStandard).where(TCFDStandard.category == category))
+                return result.scalars().all()
     
     async def get_company_financial_data(self, company_name: str) -> Dict[str, Any]:
         """특정 회사의 재무정보 조회"""

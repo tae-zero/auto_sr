@@ -17,6 +17,11 @@ def get_service_url():
 
 TCFD_REPORT_SERVICE_URL = get_service_url()
 
+# Docker 환경에서 직접 연결 시도
+def get_docker_service_url():
+    """Docker 환경에서 직접 서비스 연결"""
+    return "http://tcfd-report-service:8004"
+
 @router.get("/health")
 async def health_check(request: Request):
     """TCFD Report Service 헬스 체크"""
@@ -188,8 +193,13 @@ async def create_tcfd_input(request: Request, data: dict):
             logger.info(f"📤 요청 데이터: {data}")
             logger.info(f"📤 요청 헤더: {headers}")
             
-            # Railway 환경이면 Railway URL 사용, 아니면 Service Discovery URL 사용
-            final_url = TCFD_REPORT_SERVICE_URL if os.getenv("RAILWAY_ENVIRONMENT") == "true" else f"{host}"
+            # Docker 환경에서는 직접 연결, Railway 환경에서는 Service Discovery 사용
+            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+                final_url = TCFD_REPORT_SERVICE_URL
+            else:
+                # Docker 환경: 직접 연결 시도
+                final_url = get_docker_service_url()
+            
             url = f"{final_url}/api/v1/tcfdreport/inputs"
             logger.info(f"📤 최종 요청 URL: {url}")
             
