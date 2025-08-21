@@ -59,8 +59,12 @@ async def get_tcfd_standards(request: Request):
             auth_header = request.headers.get("Authorization")
             headers = {"Authorization": auth_header} if auth_header else {}
             
-            # 포트가 있는 경우에만 포트 추가
-            url = f"{host}:{port}/api/v1/tcfd/standards" if port else f"{host}/api/v1/tcfd/standards"
+            # HTTPS URL에는 포트를 추가하지 않음 (Railway는 기본 443 포트 사용)
+            if host.startswith("https://"):
+                url = f"{host}/api/v1/tcfd/standards"
+            else:
+                # HTTP URL에만 포트 추가 (Docker 환경)
+                url = f"{host}:{port}/api/v1/tcfd/standards" if port else f"{host}/api/v1/tcfd/standards"
             logger.info(f"📤 최종 요청 URL: {url}")
             logger.info(f"📤 요청 헤더: {headers}")
             

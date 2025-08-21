@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ClimateScenarioModal, TCFDDetailModal } from '@/ui/molecules';
 import { Header } from '@/ui/organisms';
 import { apiClient, tcfdReportAPI, tcfdAPI, authService } from '@/shared/lib';
+import { useAuthStore } from '@/shared/state/auth.store';
 import axios from 'axios';
 
 // TCFD 표준 데이터 타입 정의
@@ -349,14 +350,48 @@ export default function TcfdSrPage() {
   useEffect(() => {
     // 클라이언트 사이드에서만 인증 확인
     if (typeof window !== 'undefined') {
-      if (!authService.isAuthenticated()) {
-        router.push('/login');
-        return;
-      }
-      
-      setIsAuthenticated(true);
-      // TCFD 표준 데이터 로드
-      fetchTcfdStandards();
+      const checkAuth = async () => {
+        try {
+          // localStorage에서 토큰 확인
+          const token = localStorage.getItem('auth_token');
+          if (!token) {
+            console.log('❌ 인증 토큰이 없습니다');
+            router.push('/login');
+            return;
+          }
+
+          // 토큰 유효성 확인 (API 호출)
+          try {
+            await apiClient.get('/api/v1/auth/verify');
+            console.log('✅ 인증 토큰이 유효합니다');
+            setIsAuthenticated(true);
+            // TCFD 표준 데이터 로드
+            fetchTcfdStandards();
+          } catch (error: any) {
+            if (error.response?.status === 401) {
+              console.log('❌ 인증 토큰이 만료되었습니다');
+              // 토큰 갱신 시도
+              const refreshed = await useAuthStore.getState().refreshToken();
+              if (refreshed) {
+                console.log('✅ 토큰이 갱신되었습니다');
+                setIsAuthenticated(true);
+                fetchTcfdStandards();
+              } else {
+                console.log('❌ 토큰 갱신 실패');
+                router.push('/login');
+              }
+            } else {
+              console.log('❌ 인증 확인 중 오류 발생');
+              router.push('/login');
+            }
+          }
+        } catch (error) {
+          console.error('❌ 인증 확인 실패:', error);
+          router.push('/login');
+        }
+      };
+
+      checkAuth();
     }
   }, [router]);
 
