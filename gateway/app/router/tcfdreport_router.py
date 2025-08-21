@@ -170,11 +170,16 @@ async def create_tcfd_input(request: Request, data: dict):
         host = tcfdreport_service.host
         port = tcfdreport_service.port
         
-        # 환경에 따른 URL 생성
-        final_url = build_service_url(host, port, os.getenv("RAILWAY_ENVIRONMENT", "false"))
+        # Docker 환경에서는 직접 연결, Railway 환경에서는 Service Discovery 사용
+        if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+            # Railway 환경: Service Discovery에서 가져온 host 사용
+            final_url = host
+        else:
+            # Docker 환경: 직접 연결 시도
+            final_url = get_docker_service_url()
         
-        logger.info(f"🌐 TCFD Report Service URL: {final_url}")
-        logger.info(f"📤 요청 엔드포인트: {final_url}/api/v1/tcfdreport/inputs")
+        url = f"{final_url}/api/v1/tcfdreport/inputs"
+        logger.info(f"📤 최종 요청 URL: {url}")
         
         async with httpx.AsyncClient(timeout=60.0) as client:
             # 요청 헤더에서 인증 토큰 가져오기
@@ -189,9 +194,6 @@ async def create_tcfd_input(request: Request, data: dict):
             
             logger.info(f"📤 요청 데이터: {data}")
             logger.info(f"📤 요청 헤더: {headers}")
-            
-            url = f"{final_url}/api/v1/tcfdreport/inputs"
-            logger.info(f"📤 최종 요청 URL: {url}")
             
             response = await client.post(
                 url,
