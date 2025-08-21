@@ -25,6 +25,15 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     try:
         logger.info(f"🔍 JWT 토큰 검증 시작: {credentials.credentials[:20]}...")
         logger.info(f"🔐 사용 중인 SECRET_KEY: {SECRET_KEY[:20]}...")
+        logger.info(f"🔐 SECRET_KEY 전체 길이: {len(SECRET_KEY)}")
+        logger.info(f"🔐 ALGORITHM: {ALGORITHM}")
+        
+        # 토큰 헤더 확인 (디버깅용)
+        try:
+            token_header = jwt.get_unverified_header(credentials.credentials)
+            logger.info(f"🔍 토큰 헤더 정보: {token_header}")
+        except Exception as e:
+            logger.warning(f"⚠️ 토큰 헤더 확인 실패: {str(e)}")
         
         # 토큰 디코딩
         payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
@@ -60,6 +69,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         )
     except InvalidTokenError as e:
         logger.error(f"❌ JWT 토큰 검증 실패: {str(e)}")
+        logger.error(f"❌ 토큰 내용: {credentials.credentials}")
+        logger.error(f"❌ SECRET_KEY: {SECRET_KEY}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="토큰을 검증할 수 없습니다",
@@ -67,6 +78,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         )
     except Exception as e:
         logger.error(f"❌ JWT 토큰 처리 중 예상치 못한 오류: {str(e)}")
+        logger.error(f"❌ 오류 타입: {type(e).__name__}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="토큰 처리 중 오류가 발생했습니다",
