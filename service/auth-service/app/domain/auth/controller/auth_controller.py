@@ -123,6 +123,44 @@ async def get_profile(session_token: str = None):
         logger.error(f"프로필 조회 오류: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/refresh", response_model=AuthResponse)
+async def refresh_token(request: Request):
+    """토큰 갱신 처리"""
+    try:
+        # 요청 본문에서 토큰 읽기
+        data = await request.json()
+        token = data.get('token')
+        
+        if not token:
+            raise HTTPException(status_code=400, detail="토큰이 필요합니다")
+        
+        from app.domain.auth.utils.jwt_utils import verify_token, create_token
+        
+        # 토큰 검증
+        result = verify_token(token)
+        
+        if not result.get('valid'):
+            raise HTTPException(status_code=401, detail=result.get('message', '토큰이 유효하지 않습니다'))
+        
+        # 새 토큰 생성
+        user_info = result.get('user_info', {})
+        new_token = create_token(user_info)
+        
+        return AuthResponse(
+            success=True,
+            message="토큰이 갱신되었습니다",
+            token=new_token,
+            email=user_info.get('email'),
+            name=user_info.get('name'),
+            company_id=user_info.get('company_id')
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"토큰 갱신 처리 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/logout", response_model=LogoutResponse)
 async def logout(session_token: str = None):
     """로그아웃 처리"""

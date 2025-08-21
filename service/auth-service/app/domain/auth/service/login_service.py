@@ -26,24 +26,16 @@ class LoginService:
 
             logger.info(f"✅ 로그인 성공: {user.email} (ID: {user.id})")
             # JWT 토큰 생성
-            import jwt
-            import os
-            from datetime import datetime, timedelta
-
-            # JWT 시크릿 키
-            secret_key = os.getenv("JWT_SECRET_KEY", "esg-mate-super-secret-key-2025-railway-deployment-2025")
-
-            # 토큰 페이로드
-            payload = {
+            from app.domain.auth.utils.jwt_utils import create_token
+            
+            user_data = {
                 "user_id": str(user.id),
                 "email": user.email,
                 "name": user.name,
-                "company_id": user.company_id,
-                "exp": datetime.utcnow() + timedelta(days=1)  # 토큰 만료: 1일
+                "company_id": user.company_id
             }
-
-            # 토큰 생성
-            token = jwt.encode(payload, secret_key, algorithm="HS256")
+            
+            token = create_token(user_data)
 
             return {
                 "success": True,
