@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import apiClient from '../lib/api';
 
 // 사용자 데이터 타입 정의
 interface UserData {
@@ -102,7 +103,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         user: finalUserData
       });
     } catch (error) {
-      console.error('로그인 중 오류:', error);
+      console.error('로그인 중 오류가 발생했습니다.');
       throw error;
     }
   },

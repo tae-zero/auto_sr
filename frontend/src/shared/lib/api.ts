@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '../state/auth.store';
 
 // 타입 정의
 interface SignupData {

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Header } from '@/ui/organisms';
 
 interface ClimateImage {
@@ -233,9 +234,11 @@ export default function ClimateScenariosPage() {
                 onClick={() => handleImageClick(image)}
               >
                 <div className="aspect-w-16 aspect-h-9 bg-gray-100">
-                  <img
+                  <Image
                     src={image.path}
                     alt={image.title}
+                    width={640}
+                    height={360}
                     className="w-full h-48 object-cover"
                   />
                 </div>
@@ -267,9 +270,11 @@ export default function ClimateScenariosPage() {
               </div>
               
               <div className="mb-4">
-                <img
+                <Image
                   src={selectedImage.path}
                   alt={selectedImage.title}
+                  width={1024}
+                  height={576}
                   className="w-full h-auto rounded-lg"
                 />
               </div>

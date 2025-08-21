@@ -12,7 +12,7 @@ const isValidUrl = (urlString: string) => {
   try {
     new URL(urlString);
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 };
@@ -87,7 +87,7 @@ export default function LoginPage() {
       console.error('Login failed:', error);
       
       if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError<any>;
+        const axiosError = error as AxiosError<{ message?: string; detail?: string }>;
         if (axiosError.response?.data) {
           alert(`❌ 로그인 실패: ${axiosError.response.data.message || axiosError.response.data.detail || '알 수 없는 오류'}`);
         } else {
