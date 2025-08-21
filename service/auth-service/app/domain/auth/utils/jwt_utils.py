@@ -1,8 +1,12 @@
 """JWT 관련 유틸리티 함수"""
 import os
 import jwt
+import logging
 from datetime import datetime, timedelta
 from typing import Dict, Any
+
+# 로깅 설정
+logger = logging.getLogger(__name__)
 
 def create_token(user_data: Dict[str, Any], expires_in_days: int = 30) -> str:
     """JWT 토큰 생성
@@ -17,6 +21,10 @@ def create_token(user_data: Dict[str, Any], expires_in_days: int = 30) -> str:
     # JWT 시크릿 키
     secret_key = os.getenv("JWT_SECRET_KEY", "esg-mate-super-secret-key-2025-railway-deployment-2025")
     
+    # JWT Secret 키 로깅 (디버깅용)
+    logger.info(f"🔐 Auth Service JWT_SECRET_KEY 로드: {secret_key[:20]}...")
+    logger.info(f"🔐 Auth Service JWT_SECRET_KEY 전체 길이: {len(secret_key)}")
+    
     # 토큰 페이로드
     payload = {
         "user_id": str(user_data.get("user_id")),
@@ -27,7 +35,9 @@ def create_token(user_data: Dict[str, Any], expires_in_days: int = 30) -> str:
     }
     
     # 토큰 생성
-    return jwt.encode(payload, secret_key, algorithm="HS256")
+    token = jwt.encode(payload, secret_key, algorithm="HS256")
+    logger.info(f"✅ JWT 토큰 생성 완료: {token[:20]}...")
+    return token
 
 def verify_token(token: str) -> Dict[str, Any]:
     """JWT 토큰 검증
