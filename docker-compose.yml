@@ -8,17 +8,19 @@ services:
       dockerfile: Dockerfile.dev
     container_name: frontend
     ports:
-      - "3001:3000"
+      - "${FRONTEND_PORT:-3001}:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
       - /app/.pnpm-store
+    env_file: .env
     environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://gateway:8080
-      - WATCHPACK_POLLING=true
-      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=${NODE_ENV:-development}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://gateway:8080/api}
+      - NEXT_PUBLIC_GATEWAY_URL=${NEXT_PUBLIC_GATEWAY_URL:-http://gateway:8080}
+      - WATCHPACK_POLLING=${WATCHPACK_POLLING:-true}
+      - CHOKIDAR_USEPOLLING=${CHOKIDAR_USEPOLLING:-true}
     restart: always
     depends_on:
       gateway:
@@ -31,40 +33,41 @@ services:
     build: ./gateway
     container_name: gateway
     ports:
-      - "8080:8080"
+      - "${GATEWAY_PORT:-8080}:8080"
     volumes:
       - ./gateway:/app
+    env_file: .env
     environment:
-      - PYTHONUNBUFFERED=1
-      - PORT=8080
-      - LOG_LEVEL=INFO
-      - GATEWAY_HOST=0.0.0.0
-      - GATEWAY_PORT=8080
-      - GATEWAY_RELOAD=false
-      - SERVICE_DISCOVERY_TYPE=static
-      - LOAD_BALANCER_TYPE=round_robin
-      - REQUEST_TIMEOUT=30
-      - HEALTH_CHECK_INTERVAL=30
-      - CORS_ORIGINS=["*"]
-      - CORS_ALLOW_CREDENTIALS=true
-      - CORS_ALLOW_METHODS=["*"]
-      - CORS_ALLOW_HEADERS=["*"]
-      - INIT_DATABASE=true
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
+      - PORT=${GATEWAY_PORT:-8080}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - GATEWAY_HOST=${GATEWAY_HOST:-0.0.0.0}
+      - GATEWAY_PORT=${GATEWAY_PORT:-8080}
+      - GATEWAY_RELOAD=${GATEWAY_RELOAD:-false}
+      - SERVICE_DISCOVERY_TYPE=${SERVICE_DISCOVERY_TYPE:-static}
+      - LOAD_BALANCER_TYPE=${LOAD_BALANCER_TYPE:-round_robin}
+      - REQUEST_TIMEOUT=${REQUEST_TIMEOUT:-30}
+      - HEALTH_CHECK_INTERVAL=${HEALTH_CHECK_INTERVAL:-30}
+      - CORS_ORIGINS=${CORS_ORIGINS:-["*"]}
+      - CORS_ALLOW_CREDENTIALS=${CORS_ALLOW_CREDENTIALS:-true}
+      - CORS_ALLOW_METHODS=${CORS_ALLOW_METHODS:-["*"]}
+      - CORS_ALLOW_HEADERS=${CORS_ALLOW_HEADERS:-["*"]}
+      - INIT_DATABASE=${INIT_DATABASE:-true}
       # JWT 설정
-      - JWT_SECRET_KEY=esg-mate-super-secret-key-2025-railway-deployment-2025
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       # Docker 로컬 환경 설정
-      - RAILWAY_ENVIRONMENT=false
-      - USE_RAILWAY_TCFD=false
-      - USE_LOCAL_AUTH=true
-      - USE_LOCAL_CHATBOT=true
+      - RAILWAY_ENVIRONMENT=${RAILWAY_ENVIRONMENT:-false}
+      - USE_RAILWAY_TCFD=${USE_RAILWAY_TCFD:-false}
+      - USE_LOCAL_AUTH=${USE_LOCAL_AUTH:-true}
+      - USE_LOCAL_CHATBOT=${USE_LOCAL_CHATBOT:-true}
       # Docker Service URLs 설정 (ServiceDiscovery 사용)
-      - AUTH_SERVICE_URL=http://auth-service:8008
-      - TCFD_SERVICE_URL=http://tcfd-service:8005
-      - TCFD_REPORT_SERVICE_URL=http://tcfdreport-service:8004
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL:-http://auth-service:8008}
+      - TCFD_SERVICE_URL=${TCFD_SERVICE_URL:-http://tcfd-service:8005}
+      - TCFD_REPORT_SERVICE_URL=${TCFD_REPORT_SERVICE_URL:-http://tcfdreport-service:8004}
       # Railway PostgreSQL 연결 (Public Network URL)
-      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
+      - DATABASE_URL=${DATABASE_URL}
       # AI 및 LangChain 설정
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4}
       - OPENAI_MAX_TOKENS=${OPENAI_MAX_TOKENS:-2000}
       - OPENAI_TEMPERATURE=${OPENAI_TEMPERATURE:-0.3}
@@ -101,14 +104,15 @@ services:
       dockerfile: Dockerfile
     container_name: chatbot-service
     ports:
-      - "8001:8001"
+      - "${CHATBOT_SERVICE_PORT:-8001}:8001"
     volumes:
       - ./service/chatbot-service:/app
+    env_file: .env
     environment:
-      - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8001
-      - LOG_LEVEL=INFO
-      - PYTHONUNBUFFERED=1
+      - SERVICE_HOST=${SERVICE_HOST:-0.0.0.0}
+      - SERVICE_PORT=${CHATBOT_SERVICE_PORT:-8001}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
     restart: always
     depends_on:
       - redis
@@ -128,17 +132,18 @@ services:
       dockerfile: Dockerfile
     container_name: tcfd-service
     ports:
-      - "8005:8005"
+      - "${TCFD_SERVICE_PORT:-8005}:8005"
     volumes:
       - ./service/tcfd-service:/app
+    env_file: .env
     environment:
-      - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8005
-      - LOG_LEVEL=INFO
-      - PYTHONUNBUFFERED=1
-      - JWT_SECRET_KEY=esg-mate-super-secret-key-2025-railway-deployment-2025
+      - SERVICE_HOST=${SERVICE_HOST:-0.0.0.0}
+      - SERVICE_PORT=${TCFD_SERVICE_PORT:-8005}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       # Railway PostgreSQL 연결 (Public Network URL)
-      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
+      - DATABASE_URL=${DATABASE_URL}
     restart: always
     depends_on:
       - redis
@@ -158,21 +163,22 @@ services:
       dockerfile: Dockerfile
     container_name: tcfdreport-service
     ports:
-      - "8004:8004"
+      - "${TCFD_REPORT_SERVICE_PORT:-8004}:8004"
     volumes:
       - ./service/tcfdreport-service:/app
       - tcfd_chroma_data:/app/chroma_db
+    env_file: .env
     environment:
-      - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8004
-      - LOG_LEVEL=INFO
-      - PYTHONUNBUFFERED=1
+      - SERVICE_HOST=${SERVICE_HOST:-0.0.0.0}
+      - SERVICE_PORT=${TCFD_REPORT_SERVICE_PORT:-8004}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
       # JWT 설정
-      - JWT_SECRET_KEY=esg-mate-super-secret-key-2025-railway-deployment-2025
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       # 데이터베이스 설정 추가
-      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
+      - DATABASE_URL=${DATABASE_URL}
       # AI 및 LangChain 설정
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4}
       - OPENAI_MAX_TOKENS=${OPENAI_MAX_TOKENS:-2000}
       - OPENAI_TEMPERATURE=${OPENAI_TEMPERATURE:-0.3}
@@ -199,17 +205,18 @@ services:
       dockerfile: Dockerfile
     container_name: gri-service
     ports:
-      - "8006:8006"
+      - "${GRI_SERVICE_PORT:-8006}:8006"
     volumes:
       - ./service/gri-service:/app
+    env_file: .env
     environment:
-      - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8006
-      - LOG_LEVEL=INFO
-      - PYTHONUNBUFFERED=1
-      - INIT_DATABASE=true
+      - SERVICE_HOST=${SERVICE_HOST:-0.0.0.0}
+      - SERVICE_PORT=${GRI_SERVICE_PORT:-8006}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
+      - INIT_DATABASE=${INIT_DATABASE:-true}
       # Railway PostgreSQL 연결
-      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
+      - DATABASE_URL=${DATABASE_URL}
       - SECRET_KEY=${SECRET_KEY}
     restart: always
     depends_on:
@@ -230,17 +237,18 @@ services:
       dockerfile: Dockerfile
     container_name: materiality-service
     ports:
-      - "8007:8007"
+      - "${MATERIALITY_SERVICE_PORT:-8007}:8007"
     volumes:
       - ./service/materiality-service:/app
+    env_file: .env
     environment:
-      - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8007
-      - LOG_LEVEL=INFO
-      - PYTHONUNBUFFERED=1
-      - INIT_DATABASE=true
+      - SERVICE_HOST=${SERVICE_HOST:-0.0.0.0}
+      - SERVICE_PORT=${MATERIALITY_SERVICE_PORT:-8007}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
+      - INIT_DATABASE=${INIT_DATABASE:-true}
       # Railway PostgreSQL 연결
-      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
+      - DATABASE_URL=${DATABASE_URL}
       - SECRET_KEY=${SECRET_KEY}
     restart: always
     depends_on:
@@ -261,19 +269,20 @@ services:
       dockerfile: Dockerfile
     container_name: auth-service
     ports:
-      - "8008:8008"
+      - "${AUTH_SERVICE_PORT:-8008}:8008"
     volumes:
       - ./service/auth-service:/app
+    env_file: .env
     environment:
-      - SERVICE_HOST=0.0.0.0
-      - SERVICE_PORT=8008
-      - LOG_LEVEL=INFO
-      - PYTHONUNBUFFERED=1
-      - INIT_DATABASE=true
+      - SERVICE_HOST=${SERVICE_HOST:-0.0.0.0}
+      - SERVICE_PORT=${AUTH_SERVICE_PORT:-8008}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
+      - INIT_DATABASE=${INIT_DATABASE:-true}
       # JWT 설정
-      - JWT_SECRET_KEY=esg-mate-super-secret-key-2025-railway-deployment-2025
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       # Railway PostgreSQL 연결 (Public Network URL)
-      - DATABASE_URL=postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@gondola.proxy.rlwy.net:46735/railway
+      - DATABASE_URL=${DATABASE_URL}
     restart: always
     depends_on:
       - redis
@@ -291,7 +300,7 @@ services:
     image: redis:7-alpine
     container_name: redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     networks:
       - app-network
     restart: always

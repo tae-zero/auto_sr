@@ -26,13 +26,13 @@ if os.getenv("RAILWAY_ENVIRONMENT") != "true":
     load_dotenv()
 
 # Railway 환경변수 처리
-PORT = os.getenv("PORT", "8008")
+PORT = os.getenv("PORT", os.getenv("SERVICE_PORT", "8008"))
 if not PORT.isdigit():
     PORT = "8008"
 
 # 로깅 설정
 logging.basicConfig(
-    level=logging.INFO,
+    level=getattr(logging, os.getenv("LOG_LEVEL", "INFO")),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[logging.StreamHandler(sys.stdout)]
 )
@@ -75,7 +75,7 @@ async def lifespan(app: FastAPI):
 
 # FastAPI 앱 생성
 app = FastAPI(
-    title="Auth Service",
+    title=os.getenv("SERVICE_NAME", "Auth Service"),
     description="Authentication and Authorization Service - MSV Pattern with Layered Architecture",
     version="0.1.0",
     lifespan=lifespan

@@ -10,8 +10,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 # JWT 시크릿 키 (환경변수에서 가져오거나 기본값 사용)
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "esg-mate-super-secret-key-2025-railway-deployment-2025")
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-super-secret-jwt-key-here")
+ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 
 # JWT Secret 키 로깅 (디버깅용)
 logger.info(f"🔐 TCFD Report Service JWT_SECRET_KEY 로드: {SECRET_KEY[:20]}...")

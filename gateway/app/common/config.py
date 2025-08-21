@@ -6,12 +6,12 @@ class Settings(BaseSettings):
     """애플리케이션 설정"""
     
     # Database Configuration
-    DATABASE_URL: str = "postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@postgres.railway.internal:5432/railway"
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://username:password@localhost:5432/database_name")
     
     # Gateway 설정
-    GATEWAY_HOST: str = "0.0.0.0"
+    GATEWAY_HOST: str = os.getenv("GATEWAY_HOST", "0.0.0.0")
     GATEWAY_PORT: int = int(os.getenv("GATEWAY_PORT", "8080"))
-    GATEWAY_RELOAD: bool = True
+    GATEWAY_RELOAD: bool = os.getenv("GATEWAY_RELOAD", "false").lower() == "true"
     
     # Railway Service URLs (프로덕션 환경)
     RAILWAY_AUTH_SERVICE_URL: str = os.getenv("RAILWAY_AUTH_SERVICE_URL", "")
@@ -36,28 +36,28 @@ class Settings(BaseSettings):
     
     # 문서 처리 설정
     MAX_FILE_SIZE: int = int(os.getenv("MAX_FILE_SIZE", "10485760"))  # 10MB
-    SUPPORTED_FILE_TYPES: List[str] = ["txt", "pdf", "docx", "md"]
+    SUPPORTED_FILE_TYPES: List[str] = os.getenv("SUPPORTED_FILE_TYPES", "txt,pdf,docx,md").split(",")
     
-    # 서비스 디스커버리 설정
-    SERVICE_DISCOVERY_TYPE: str = "static"  # static, consul, eureka
-    CONSUL_HOST: str = "localhost"
-    CONSUL_PORT: int = 8500
+    # 서비스 디스컴버리 설정
+    SERVICE_DISCOVERY_TYPE: str = os.getenv("SERVICE_DISCOVERY_TYPE", "static")  # static, consul, eureka
+    CONSUL_HOST: str = os.getenv("CONSUL_HOST", "localhost")
+    CONSUL_PORT: int = int(os.getenv("CONSUL_PORT", "8500"))
     
     # 로드 밸런서 설정
-    LOAD_BALANCER_TYPE: str = "round_robin"  # round_robin, least_connections, random
+    LOAD_BALANCER_TYPE: str = os.getenv("LOAD_BALANCER_TYPE", "round_robin")  # round_robin, least_connections, random
     
     # 타임아웃 설정
-    REQUEST_TIMEOUT: int = 30
-    HEALTH_CHECK_INTERVAL: int = 30
+    REQUEST_TIMEOUT: int = int(os.getenv("REQUEST_TIMEOUT", "30"))
+    HEALTH_CHECK_INTERVAL: int = int(os.getenv("HEALTH_CHECK_INTERVAL", "30"))
     
     # 로깅 설정
-    LOG_LEVEL: str = "INFO"
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     
     # CORS 설정
-    CORS_ORIGINS: List[str] = ["*"]
-    CORS_ALLOW_CREDENTIALS: bool = True
-    CORS_ALLOW_METHODS: List[str] = ["*"]
-    CORS_ALLOW_HEADERS: List[str] = ["*"]
+    CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", '["*"]').replace("'", '"').replace('"', '"').split(",")
+    CORS_ALLOW_CREDENTIALS: bool = os.getenv("CORS_ALLOW_CREDENTIALS", "true").lower() == "true"
+    CORS_ALLOW_METHODS: List[str] = os.getenv("CORS_ALLOW_METHODS", '["*"]').replace("'", '"').replace('"', '"').split(",")
+    CORS_ALLOW_HEADERS: List[str] = os.getenv("CORS_ALLOW_HEADERS", '["*"]').replace("'", '"').replace('"', '"').split(",")
     
     class Config:
         env_file = ".env"

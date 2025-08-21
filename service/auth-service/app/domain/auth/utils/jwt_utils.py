@@ -19,7 +19,7 @@ def create_token(user_data: Dict[str, Any], expires_in_days: int = 30) -> str:
         str: JWT 토큰
     """
     # JWT 시크릿 키
-    secret_key = os.getenv("JWT_SECRET_KEY", "esg-mate-super-secret-key-2025-railway-deployment-2025")
+    secret_key = os.getenv("JWT_SECRET_KEY", "your-super-secret-jwt-key-here")
     
     # JWT Secret 키 로깅 (디버깅용)
     logger.info(f"🔐 Auth Service JWT_SECRET_KEY 로드: {secret_key[:20]}...")
@@ -50,7 +50,7 @@ def verify_token(token: str) -> Dict[str, Any]:
     """
     try:
         # JWT 시크릿 키
-        secret_key = os.getenv("JWT_SECRET_KEY", "esg-mate-super-secret-key-2025-railway-deployment-2025")
+        secret_key = os.getenv("JWT_SECRET_KEY", "your-super-secret-jwt-key-here")
         
         # 토큰 디코드 및 검증
         payload = jwt.decode(token, secret_key, algorithms=["HS256"])

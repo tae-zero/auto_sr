@@ -9,7 +9,7 @@ from app.common.models import Base
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="GRI Report Service",
+    title=os.getenv("SERVICE_NAME", "GRI Report Service"),
     description="GRI 기준 지속가능성 보고서 생성 서비스",
     version="1.0.0"
 )
@@ -28,9 +28,9 @@ app.include_router(gri_router.router, prefix="/api/v1/gri")
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "gri-report-service"}
+    return {"status": "healthy", "service": os.getenv("SERVICE_NAME", "gri-report-service")}
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 8006))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    port = int(os.getenv("SERVICE_PORT", os.getenv("PORT", "8006")))
+    uvicorn.run(app, host=os.getenv("SERVICE_HOST", "0.0.0.0"), port=port)

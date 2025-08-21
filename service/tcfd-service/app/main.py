@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # JWT Secret 키 로깅 (디버깅용)
-jwt_secret = os.getenv("JWT_SECRET_KEY", "esg-mate-super-secret-key-2025-railway-deployment-2025")
+jwt_secret = os.getenv("JWT_SECRET_KEY", "your-super-secret-jwt-key-here")
 logger.info(f"🔐 TCFD Service main.py JWT_SECRET_KEY: {jwt_secret[:20]}...")
 
 @asynccontextmanager
@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
     logger.info("🛑 TCFD Service 종료")
 
 app = FastAPI(
-    title="TCFD Service",
+    title=os.getenv("SERVICE_NAME", "TCFD Service"),
     description="재무정보 처리 및 분석 서비스 - MSV Pattern with Layered Architecture",
     version="0.1.0",
     lifespan=lifespan
@@ -85,5 +85,5 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("SERVICE_PORT", 8005))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    port = int(os.getenv("SERVICE_PORT", os.getenv("PORT", "8005")))
+    uvicorn.run(app, host=os.getenv("SERVICE_HOST", "0.0.0.0"), port=port)

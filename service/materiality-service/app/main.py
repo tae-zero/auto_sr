@@ -9,7 +9,7 @@ from app.common.models import Base
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="Materiality Service",
+    title=os.getenv("SERVICE_NAME", "Materiality Service"),
     description="Materiality 분석 서비스",
     version="1.0.0"
 )
@@ -28,9 +28,9 @@ app.include_router(materiality_router.router, prefix="/api/v1/materiality")
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "materiality-service"}
+    return {"status": "healthy", "service": os.getenv("SERVICE_NAME", "materiality-service")}
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 8007))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    port = int(os.getenv("SERVICE_PORT", os.getenv("PORT", "8007")))
+    uvicorn.run(app, host=os.getenv("SERVICE_HOST", "0.0.0.0"), port=port)

@@ -13,9 +13,9 @@ logger = logging.getLogger("auth_service_db")
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     logger.warning("⚠️ DATABASE_URL 환경변수가 설정되지 않았습니다.")
-    # Railway에서 기본값 설정
-    DATABASE_URL = "postgresql://postgres:YgIQJWEaQShbuQhRsAdVaeBUZatEgrQO@postgres.railway.internal:5432/railway"
-    logger.info("ℹ️ 기본 Railway PostgreSQL URL을 사용합니다.")
+    # 기본값 설정
+    DATABASE_URL = "postgresql://username:password@localhost:5432/database_name"
+    logger.info("ℹ️ 기본 데이터베이스 URL을 사용합니다.")
 
 # Railway PostgreSQL URL을 asyncpg용으로 변환
 if DATABASE_URL.startswith("postgres://"):
