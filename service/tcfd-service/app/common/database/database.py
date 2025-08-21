@@ -10,6 +10,19 @@ if os.getenv("RAILWAY_ENVIRONMENT") != "true":
 # DATABASE_URL 가져오기
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/tcfd_db")
 
+# URL 디버깅
+print(f"Original DATABASE_URL: {DATABASE_URL}")
+
+# URL이 올바른 형식인지 확인하고 수정
+if not DATABASE_URL.startswith(("postgresql://", "postgresql+asyncpg://")):
+    # URL이 잘못된 형식으로 들어온 경우 (postgres://로 시작하거나 스키마가 누락된 경우)
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL[len("postgres://"):]
+    else:
+        DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL
+
+print(f"Final DATABASE_URL: {DATABASE_URL}")
+
 # 비동기 엔진 생성
 engine = create_async_engine(
     DATABASE_URL,
