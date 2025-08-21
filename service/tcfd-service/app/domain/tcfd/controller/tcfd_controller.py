@@ -35,7 +35,11 @@ async def get_tcfd_standards(
     try:
         logger.info("🔍 TCFD 표준 정보 조회 시작")
         logger.info(f"🔍 데이터베이스 세션: {db}")
-        logger.info(f"🔍 인증된 사용자: {current_user.get('email', 'unknown')}")
+        logger.info(f"🔍 인증된 사용자: {current_user}")
+        logger.info(f"🔍 사용자 ID: {current_user.get('user_id', 'unknown')}")
+        logger.info(f"🔍 사용자 이메일: {current_user.get('email', 'unknown')}")
+        logger.info(f"🔍 사용자 이름: {current_user.get('name', 'unknown')}")
+        logger.info(f"🔍 회사 ID: {current_user.get('company_id', 'unknown')}")
         
         standards = await tcfd_service.get_tcfd_standards(db)
         logger.info(f"✅ TCFD 표준 정보 조회 성공: {len(standards)}개 레코드")
