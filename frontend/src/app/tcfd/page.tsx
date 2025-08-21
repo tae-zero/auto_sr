@@ -273,21 +273,28 @@ export default function TcfdSrPage() {
     setSelectedTcfdCategory(null);
   };
 
-  // TCFD 표준 데이터 불러오기 (apiClient 사용)
+    // TCFD 표준 데이터 불러오기 (apiClient 사용)
   const fetchTcfdStandards = async () => {
     setIsLoadingTcfd(true);
     setTcfdError(null);
     try {
-                 // 환경에 따라 다른 API 사용
+      // 인증 토큰 확인
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        throw new Error('인증 토큰이 없습니다');
+      }
+      
+      console.log('🔍 TCFD 표준 데이터 로드 시작 (토큰 존재)');
+      
       // Gateway를 통해 TCFD 표준 정보 조회
       const response = await tcfdAPI.getTcfdStandards();
-       console.log('🔍 TCFD 응답 전체:', response.data);
-       
-       // 응답 구조에 맞게 data 추출
-       const responseData = response.data;
-       const data: TCFDStandardData[] = responseData.data || [];
-       
-       console.log('🔍 TCFD 데이터 배열:', data);
+      console.log('🔍 TCFD 응답 전체:', response.data);
+      
+      // 응답 구조에 맞게 data 추출
+      const responseData = response.data;
+      const data: TCFDStandardData[] = responseData.data || [];
+      
+      console.log('🔍 TCFD 데이터 배열:', data);
 
       // 데이터를 카테고리별로 그룹화하고 TCFD 프레임워크에 맞게 구성
       const frameworkData: TCFDFrameworkData = {
@@ -346,7 +353,7 @@ export default function TcfdSrPage() {
     loadCompanies();
   }, []);
 
-  // 인증 상태 확인 (더 관대하게)
+  // 인증 상태 확인 (강화된 버전)
   useEffect(() => {
     // 클라이언트 사이드에서만 인증 확인
     if (typeof window !== 'undefined') {
@@ -360,21 +367,54 @@ export default function TcfdSrPage() {
             return;
           }
 
-          // 토큰이 있으면 일단 인증된 것으로 간주
-          console.log('✅ 인증 토큰이 존재합니다');
-          setIsAuthenticated(true);
+          // 토큰이 있으면 실제 API로 인증 상태 확인
+          console.log('🔍 토큰 존재, API로 인증 상태 확인 중...');
           
-          // TCFD 표준 데이터 로드 시도
           try {
+            // 인증 상태 확인 API 호출
+            console.log('🔍 /api/v1/auth/verify API 호출 시작...');
+            const response = await apiClient.get('/api/v1/auth/verify');
+            console.log('✅ 인증 상태 확인 성공:', response.data);
+            setIsAuthenticated(true);
+            
+            // 인증 성공 후에만 TCFD 표준 데이터 로드
+            console.log('🔍 TCFD 표준 데이터 로드 시작...');
             await fetchTcfdStandards();
-          } catch (error) {
-            console.log('⚠️ TCFD 표준 데이터 로드 실패, 하지만 인증은 유지:', error);
+            
+          } catch (authError: any) {
+            console.log('⚠️ 인증 상태 확인 실패, 토큰 갱신 시도:', authError);
+            
+            // 토큰 갱신 시도
+            try {
+              const refreshResponse = await apiClient.post('/api/v1/auth/refresh');
+              console.log('✅ 토큰 갱신 성공:', refreshResponse.data);
+              
+              // 새 토큰을 localStorage에 저장
+              if (refreshResponse.data.access_token) {
+                localStorage.setItem('auth_token', refreshResponse.data.access_token);
+                setIsAuthenticated(true);
+                
+                // 토큰 갱신 성공 후 TCFD 표준 데이터 로드
+                console.log('🔍 토큰 갱신 후 TCFD 표준 데이터 로드 시작...');
+                await fetchTcfdStandards();
+              } else {
+                throw new Error('토큰 갱신 실패');
+              }
+              
+            } catch (refreshError) {
+              console.error('❌ 토큰 갱신 실패:', refreshError);
+              // 인증 실패 시 로그인 페이지로 이동
+              alert('인증이 만료되었습니다. 다시 로그인해주세요.');
+              localStorage.removeItem('auth_token');
+              router.push('/login');
+            }
           }
           
         } catch (error) {
           console.error('❌ 인증 확인 실패:', error);
-          // 인증 실패 시에도 바로 로그아웃하지 않고 사용자에게 알림
+          // 인증 실패 시 로그인 페이지로 이동
           alert('인증 확인에 실패했습니다. 다시 로그인해주세요.');
+          localStorage.removeItem('auth_token');
           router.push('/login');
         }
       };
