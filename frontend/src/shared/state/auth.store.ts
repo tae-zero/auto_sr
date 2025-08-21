@@ -16,6 +16,7 @@ interface AuthState {
   login: (username: string, userData?: UserData, token?: string) => Promise<void>;
   logout: () => Promise<void>;
   setUserData: (userData: UserData) => void;
+  refreshToken: () => Promise<boolean>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -23,19 +24,51 @@ export const useAuthStore = create<AuthState>((set) => ({
   isInitialized: false,
   user: null,
 
+  refreshToken: async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        return false;
+      }
+
+      // 토큰 갱신 API 호출
+      const response = await apiClient.post('/api/v1/auth/refresh', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.token) {
+        localStorage.setItem('auth_token', response.data.token);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('토큰 갱신 중 오류:', error);
+      return false;
+    }
+  },
+
   checkAuthStatus: async () => {
     try {
-      // TODO: API 호출로 실제 인증 상태 확인
-      // 임시로 localStorage에서 토큰 확인
       const token = localStorage.getItem('auth_token');
       const userData = localStorage.getItem('user_data');
 
       if (token && userData) {
-        set({ 
-          isAuthenticated: true, 
-          isInitialized: true,
-          user: JSON.parse(userData)
-        });
+        // 토큰 유효성 검사 API 호출
+        try {
+          await apiClient.get('/api/v1/auth/verify');
+          set({ 
+            isAuthenticated: true, 
+            isInitialized: true,
+            user: JSON.parse(userData)
+          });
+        } catch (error) {
+          // 토큰이 만료되었다면 갱신 시도
+          const refreshed = await useAuthStore.getState().refreshToken();
+          if (!refreshed) {
+            // 갱신 실패시 로그아웃
+            await useAuthStore.getState().logout();
+          }
+        }
       } else {
         set({ 
           isAuthenticated: false, 

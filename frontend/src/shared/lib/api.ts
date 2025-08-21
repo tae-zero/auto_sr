@@ -206,8 +206,7 @@ export const tcfdReportAPI = {
 
 // 요청 인터셉터
 apiClient.interceptors.request.use(
-  (config) => {
-    // 토큰이 있다면 헤더에 추가
+  async (config) => {
     const token = localStorage.getItem('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -224,11 +223,30 @@ apiClient.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
-    // 401 에러 시 토큰 제거
-    if (error.response?.status === 401) {
-      localStorage.removeItem('auth_token');
+  async (error) => {
+    const originalRequest = error.config;
+
+    // 401 에러이고 토큰 갱신을 시도하지 않은 요청인 경우
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        // 토큰 갱신 시도
+        const refreshed = await useAuthStore.getState().refreshToken();
+        if (refreshed) {
+          // 토큰 갱신 성공시 원래 요청 재시도
+          const token = localStorage.getItem('auth_token');
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return apiClient(originalRequest);
+        }
+      } catch (refreshError) {
+        console.error('토큰 갱신 실패:', refreshError);
+      }
+
+      // 토큰 갱신 실패시 로그아웃
+      await useAuthStore.getState().logout();
     }
+
     return Promise.reject(error);
   }
 );
