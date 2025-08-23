@@ -33,6 +33,7 @@ export default function RootLayout({
   return (
     <html lang="ko" className="dark">
       <head>
+        <link rel="icon" type="image/jpeg" href="/pixeliota-b2KQFw0tsJY-unsplash.jpg" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
