@@ -160,7 +160,7 @@ export default function Home() {
         {/* 텍스트 오버레이 */}
         <div className="relative z-10 text-center text-white px-4">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-          안되면 되게하라<br />
+          자연으로 돌아가라<br />
             하고자 하는 일에 후회하지 않도록 최선을 다하자
           </h1>
 
