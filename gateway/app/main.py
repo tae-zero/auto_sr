@@ -57,7 +57,7 @@ async def lifespan(app: FastAPI):
         logger.error(f"❌ 서비스 초기화 실패: {str(e)}")
         # 기본값으로 설정
         app.state.settings = None
-        app.state.service_discovery = None
+        app.state.service_discovery = ServiceDiscovery()  # None 대신 새 인스턴스 생성
         use_railway_tcfd = False
         use_local_auth = True
         use_local_chatbot = True
