@@ -9,6 +9,18 @@ class Settings(BaseSettings):
     GATEWAY_PORT: int = 8080
     GATEWAY_RELOAD: bool = True
     
+    # 환경변수 설정
+    DEPLOYMENT_ENV: str = "development"
+    RAILWAY_ENVIRONMENT: bool = False
+    USE_RAILWAY_TCFD: bool = False
+    USE_LOCAL_AUTH: bool = True
+    USE_LOCAL_CHATBOT: bool = True
+    
+    # JWT 설정
+    JWT_SECRET_KEY: str = "your-super-secret-jwt-key-here"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRES_IN_DAYS: int = 30
+    
     # 로깅 설정
     LOG_LEVEL: str = "INFO"
     

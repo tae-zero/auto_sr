@@ -17,8 +17,8 @@ services:
     env_file: .env
     environment:
       - NODE_ENV=${NODE_ENV:-development}
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://gateway:8080/api}
-      - NEXT_PUBLIC_GATEWAY_URL=${NEXT_PUBLIC_GATEWAY_URL:-http://gateway:8080}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8080/api}
+      - NEXT_PUBLIC_GATEWAY_URL=${NEXT_PUBLIC_GATEWAY_URL:-http://localhost:8080}
       - WATCHPACK_POLLING=${WATCHPACK_POLLING:-true}
       - CHOKIDAR_USEPOLLING=${CHOKIDAR_USEPOLLING:-true}
     restart: always
@@ -64,7 +64,7 @@ services:
       - AUTH_SERVICE_URL=${AUTH_SERVICE_URL:-http://auth-service:8008}
       - TCFD_SERVICE_URL=${TCFD_SERVICE_URL:-http://tcfd-service:8005}
       - TCFD_REPORT_SERVICE_URL=${TCFD_REPORT_SERVICE_URL:-http://tcfdreport-service:8004}
-      # Railway PostgreSQL 연결 (Public Network URL)
+      # 데이터베이스 연결
       - DATABASE_URL=${DATABASE_URL}
       # AI 및 LangChain 설정
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -85,9 +85,6 @@ services:
         condition: service_healthy
       tcfdreport-service:
         condition: service_healthy
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
     networks:
       - app-network
     healthcheck:
@@ -142,11 +139,12 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      # Railway PostgreSQL 연결 (Public Network URL)
+      # 데이터베이스 연결
       - DATABASE_URL=${DATABASE_URL}
     restart: always
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
@@ -175,7 +173,7 @@ services:
       - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
       # JWT 설정
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      # 데이터베이스 설정 추가
+      # 데이터베이스 설정
       - DATABASE_URL=${DATABASE_URL}
       # AI 및 LangChain 설정
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -188,7 +186,8 @@ services:
       - SUPPORTED_FILE_TYPES=${SUPPORTED_FILE_TYPES:-txt,pdf,docx,md}
     restart: always
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
@@ -215,12 +214,13 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
       - INIT_DATABASE=${INIT_DATABASE:-true}
-      # Railway PostgreSQL 연결
+      # 데이터베이스 연결
       - DATABASE_URL=${DATABASE_URL}
-      - SECRET_KEY=${SECRET_KEY}
+      - SECRET_KEY=${SECRET_KEY:-esg-mate-secret-key}
     restart: always
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
@@ -247,12 +247,13 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
       - INIT_DATABASE=${INIT_DATABASE:-true}
-      # Railway PostgreSQL 연결
+      # 데이터베이스 연결
       - DATABASE_URL=${DATABASE_URL}
-      - SECRET_KEY=${SECRET_KEY}
+      - SECRET_KEY=${SECRET_KEY:-esg-mate-secret-key}
     restart: always
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
@@ -281,19 +282,20 @@ services:
       - INIT_DATABASE=${INIT_DATABASE:-true}
       # JWT 설정
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      # Railway PostgreSQL 연결 (Public Network URL)
+      # Database 설정
       - DATABASE_URL=${DATABASE_URL}
     restart: always
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   # Redis (캐싱 및 세션 저장)
   redis:

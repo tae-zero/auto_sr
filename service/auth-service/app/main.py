@@ -7,7 +7,7 @@ import sys
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 # SQLAlchemy AsyncSession 강제 import
@@ -22,7 +22,7 @@ except ImportError as e:
     print("✅ AsyncSession 대체 import 성공")
 
 # 환경 변수 로드
-if os.getenv("RAILWAY_ENVIRONMENT") != "true":
+if not os.getenv("RAILWAY_ENVIRONMENT"):
     load_dotenv()
 
 # Railway 환경변수 처리
@@ -43,35 +43,42 @@ from app.common.database.database import get_db, create_tables, test_connection
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("🚀 Auth Service 시작")
-
-    # Railway PostgreSQL 연결 대기 (시간 단축)
-    import asyncio
-    await asyncio.sleep(2)  # 연결 대기 시간 증가
-
-    # Railway 데이터베이스 연결 테스트
+    """애플리케이션 생명주기 관리"""
     try:
-        db_connected = await test_connection()
-        if db_connected:
-            # 환경변수로 초기화 제어 (기본값: False - Railway에서는 처음에 false로 설정)
-            should_init_db = os.getenv("INIT_DATABASE", "false").lower() == "true"
-            if should_init_db:
-                # 테이블 생성
-                await create_tables()
-                logger.info("✅ Railway 데이터베이스 초기화 완료")
+        logger.info("🚀 Auth Service 시작")
+
+        # Railway PostgreSQL 연결 대기 (시간 단축)
+        import asyncio
+        await asyncio.sleep(2)  # 연결 대기 시간 증가
+
+        # Railway 데이터베이스 연결 테스트
+        try:
+            db_connected = await test_connection()
+            if db_connected:
+                # 환경변수로 초기화 제어 (기본값: False - Railway에서는 처음에 false로 설정)
+                should_init_db = os.getenv("INIT_DATABASE", "false").lower() == "true"
+                if should_init_db:
+                    # 테이블 생성
+                    await create_tables()
+                    logger.info("✅ Railway 데이터베이스 초기화 완료")
+                else:
+                    logger.info("ℹ️ Railway 데이터베이스 초기화가 비활성화되었습니다.")
             else:
-                logger.info("ℹ️ Railway 데이터베이스 초기화가 비활성화되었습니다.")
-        else:
-            logger.warning("⚠️ Railway 데이터베이스 연결 실패 - 서비스는 계속 실행됩니다")
+                logger.warning("⚠️ Railway 데이터베이스 연결 실패 - 서비스는 계속 실행됩니다")
+        except Exception as e:
+            logger.warning(f"⚠️ 데이터베이스 초기화 중 오류 (서비스는 계속 실행): {str(e)}")
+            logger.warning("⚠️ 데이터베이스 연결 없이 서비스가 시작됩니다")
+        
+        # 서비스 시작 완료 로그
+        logger.info("✅ Auth Service 시작 완료 - Health endpoint 사용 가능")
+        
+        yield
+        logger.info("🛑 Auth Service 종료")
+        
     except Exception as e:
-        logger.warning(f"⚠️ 데이터베이스 초기화 중 오류 (서비스는 계속 실행): {str(e)}")
-        logger.warning("⚠️ 데이터베이스 연결 없이 서비스가 시작됩니다")
-    
-    # 서비스 시작 완료 로그
-    logger.info("✅ Auth Service 시작 완료 - Health endpoint 사용 가능")
-    
-    yield
-    logger.info("🛑 Auth Service 종료")
+        logger.error(f"❌ Auth Service 생명주기 관리 오류: {e}")
+        logger.info("⚠️ 서비스는 계속 실행됩니다")
+        yield
 
 # FastAPI 앱 생성
 app = FastAPI(
@@ -100,43 +107,49 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
-    expose_headers=["*"],
-    max_age=86400,  # CORS preflight 캐시 시간 (24시간)
 )
 
-# ✅ MSV 패턴의 Auth 도메인 컨트롤러 사용
-from app.domain.auth.controller.auth_controller import router as auth_router
-app.include_router(auth_router)
+# 라우터 등록
+try:
+    from app.router import auth_router
+    app.include_router(auth_router, prefix="/api/v1/auth")
+    logger.info("✅ Auth 라우터 등록 완료")
+except Exception as e:
+    logger.error(f"❌ Auth 라우터 등록 실패: {e}")
+    logger.info("⚠️ 서비스는 계속 실행됩니다")
 
-# 기본 루트 경로
-@app.get("/")
-async def root():
-    return {
-        "message": "Auth Service", 
-        "version": "0.1.0",
-        "architecture": "MSV Pattern with Layered Architecture",
-        "description": "인증 및 권한 관리 서비스"
-    }
-
-# 루트 레벨 헬스 체크
+# 헬스 체크
 @app.get("/health")
 async def health_check():
-    return {
-        "status": "healthy", 
-        "service": "auth-service",
-        "architecture": "MSV Pattern with Layered Architecture"
-    }
+    try:
+        return {
+            "status": "healthy",
+            "service": "auth-service",
+            "architecture": "MSV Pattern with Layered Architecture",
+            "database": "connected" if hasattr(app.state, 'database') else "disconnected"
+        }
+    except Exception as e:
+        logger.error(f"Health check 오류: {e}")
+        raise HTTPException(status_code=500, detail="Health check 실패")
 
-# 테스트 엔드포인트
-@app.get("/test")
-async def test():
-    return {
-        "message": "Auth Service Test Endpoint", 
-        "status": "success",
-        "architecture": "MSV Pattern with Layered Architecture"
-    }
+# 루트 경로
+@app.get("/")
+async def root():
+    try:
+        return {
+            "message": "Auth Service",
+            "version": "0.1.0",
+            "description": "Authentication and Authorization Service",
+            "architecture": "MSV Pattern with Layered Architecture",
+            "endpoints": [
+                "/health - 서비스 상태 확인",
+                "/api/v1/auth/* - 인증 관련 API"
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Root 엔드포인트 오류: {e}")
+        raise HTTPException(status_code=500, detail="서비스 오류")
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(PORT)
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run(app, host=os.getenv("SERVICE_HOST", "0.0.0.0"), port=int(PORT))

@@ -20,7 +20,8 @@ from app.common.utility.constant.settings import Settings
 from app.common.utility.factory.response_factory import ResponseFactory
 # Gateway는 DB에 직접 접근하지 않음 (MSA 원칙)
 
-if os.getenv("RAILWAY_ENVIRONMENT") != "production":
+# 환경변수 로딩
+if not os.getenv("RAILWAY_ENVIRONMENT"):
     load_dotenv()
 
 logging.basicConfig(
@@ -40,84 +41,54 @@ async def lifespan(app: FastAPI):
     # 서비스 디스커버리 초기화 및 서비스 등록
     app.state.service_discovery = ServiceDiscovery()
     
-    # Auth Service 연결 테스트
-    # Railway 환경에서는 RAILWAY_AUTH_SERVICE_URL 사용, 로컬에서는 Docker 컨테이너 이름 사용
-    auth_service_url = os.getenv("RAILWAY_AUTH_SERVICE_URL")
-    if auth_service_url:
-        # Railway 환경
-        logger.info(f"🚀 Railway 환경에서 Auth Service 연결 시도: {auth_service_url}")
-    else:
-        # 로컬 Docker 환경 또는 Railway에서 환경변수가 설정되지 않은 경우
-        auth_service_url = "http://auth-service:8008"  # Docker 내부 네트워크 사용
-        logger.info(f"🚀 로컬 Docker 환경에서 Auth Service 연결 시도: {auth_service_url}")
-    
-    try:
-        import httpx
-        # 더 긴 타임아웃과 재시도 로직
-        for attempt in range(3):
-            try:
-                async with httpx.AsyncClient(timeout=10.0) as client:
-                    response = await client.get(f"{auth_service_url}/health")
-                    if response.status_code == 200:
-                        logger.info(f"✅ Auth Service 연결 성공: {auth_service_url}")
-                        break
-                    else:
-                        logger.warning(f"⚠️ Auth Service 응답 이상 (시도 {attempt + 1}/3): {response.status_code}")
-            except Exception as e:
-                logger.warning(f"⚠️ Auth Service 연결 시도 {attempt + 1}/3 실패: {str(e)}")
-                if attempt < 2:  # 마지막 시도가 아니면 잠시 대기
-                    await asyncio.sleep(2)
-                else:
-                    logger.warning(f"⚠️ Auth Service 연결 최종 실패 (서비스는 계속 실행): {str(e)}")
-    except Exception as e:
-        logger.warning(f"⚠️ Auth Service 연결 테스트 중 오류 (서비스는 계속 실행): {str(e)}")
-    
-    # 하이브리드 모드: TCFD Service는 Railway, 나머지는 로컬 Docker
-    # 환경변수 처리 (문자열 "true"/"false" 또는 None)
-    use_railway_tcfd_raw = os.getenv("USE_RAILWAY_TCFD")
-    use_local_auth_raw = os.getenv("USE_LOCAL_AUTH")
-    use_local_chatbot_raw = os.getenv("USE_LOCAL_CHATBOT")
-    
-    # 환경변수가 설정되지 않은 경우 기본값 사용
-    use_railway_tcfd_temp = use_railway_tcfd_raw or "true"
-    use_local_auth_temp = use_local_auth_raw or "true"
-    use_local_chatbot_temp = use_local_auth_raw or "true"
-    
-    # 따옴표 제거 후 비교
-    use_railway_tcfd = str(use_railway_tcfd_temp).strip('"').lower() == "true"
-    use_local_auth = str(use_local_auth_temp).strip('"').lower() == "true"
-    use_local_chatbot = str(use_local_chatbot_temp).strip('"').lower() == "true"
+    # Settings에서 환경변수 가져오기
+    settings = app.state.settings
+    use_railway_tcfd = settings.USE_RAILWAY_TCFD
+    use_local_auth = settings.USE_LOCAL_AUTH
+    use_local_chatbot = settings.USE_LOCAL_CHATBOT
+    railway_environment = settings.RAILWAY_ENVIRONMENT
     
     # 환경변수 디버깅
-    logger.info(f"🔍 환경변수 디버깅:")
-    logger.info(f"  - USE_RAILWAY_TCFD 원본값: {os.getenv('USE_RAILWAY_TCFD')}")
-    logger.info(f"  - USE_LOCAL_AUTH 원본값: {os.getenv('USE_LOCAL_AUTH')}")
-    logger.info(f"  - USE_LOCAL_CHATBOT 원본값: {os.getenv('USE_LOCAL_CHATBOT')}")
-    logger.info(f"  - RAILWAY_TCFD_SERVICE_URL: {os.getenv('RAILWAY_TCFD_SERVICE_URL')}")
+    logger.info(f"🔍 환경변수 설정:")
+    logger.info(f"  - USE_RAILWAY_TCFD: {use_railway_tcfd}")
+    logger.info(f"  - USE_LOCAL_AUTH: {use_local_auth}")
+    logger.info(f"  - USE_LOCAL_CHATBOT: {use_local_chatbot}")
+    logger.info(f"  - RAILWAY_ENVIRONMENT: {railway_environment}")
     
-    # 처리된 값 디버깅
-    logger.info(f"🔍 처리된 값:")
-    logger.info(f"  - use_railway_tcfd_raw: {use_railway_tcfd_raw}")
-    logger.info(f"  - use_local_auth_raw: {use_local_auth_raw}")
-    logger.info(f"  - use_local_chatbot_raw: {use_local_chatbot_raw}")
+    # Auth Service 연결 테스트
+    auth_service_url = None
+    if use_local_auth:
+        auth_service_url = "http://auth-service:8008"  # Docker 내부 네트워크 사용
+        logger.info(f"🚀 로컬 Docker 환경에서 Auth Service 연결 시도: {auth_service_url}")
+    else:
+        auth_service_url = os.getenv("RAILWAY_AUTH_SERVICE_URL")
+        if auth_service_url:
+            logger.info(f"🚀 Railway 환경에서 Auth Service 연결 시도: {auth_service_url}")
+        else:
+            logger.warning("⚠️ Railway Auth Service URL이 설정되지 않음")
     
-    # 중간 처리 값 디버깅
-    logger.info(f"🔍 중간 처리 값:")
-    logger.info(f"  - use_railway_tcfd_temp: {use_railway_tcfd_temp}")
-    logger.info(f"  - use_local_auth_temp: {use_local_auth_temp}")
-    logger.info(f"  - use_local_chatbot_temp: {use_local_chatbot_temp}")
-    
-    # 최종 결과 디버깅
-    logger.info("🔍 최종 결과:")
-    logger.info("  - use_railway_tcfd_temp: {}".format(use_railway_tcfd_temp))
-    logger.info("  - use_railway_tcfd_temp.strip('\"'): {}".format(use_railway_tcfd_temp.strip('"')))
-    logger.info("  - use_railway_tcfd_temp.strip('\"').lower(): {}".format(use_railway_tcfd_temp.strip('"').lower()))
-    logger.info("  - use_railway_tcfd_temp.strip('\"').lower() == 'true': {}".format(use_railway_tcfd_temp.strip('"').lower() == 'true'))
-    
-    logger.info(f"🔧 하이브리드 모드 설정:")
-    logger.info(f"  - TCFD Service (Railway): {use_railway_tcfd}")
-    logger.info(f"  - Auth Service (Local): {use_local_auth}")
-    logger.info(f"  - Chatbot Service (Local): {use_local_chatbot}")
+    # Auth Service 연결 테스트
+    if auth_service_url:
+        try:
+            import httpx
+            # 더 긴 타임아웃과 재시도 로직
+            for attempt in range(3):
+                try:
+                    async with httpx.AsyncClient(timeout=10.0) as client:
+                        response = await client.get(f"{auth_service_url}/health")
+                        if response.status_code == 200:
+                            logger.info(f"✅ Auth Service 연결 성공: {auth_service_url}")
+                            break
+                        else:
+                            logger.warning(f"⚠️ Auth Service 응답 이상 (시도 {attempt + 1}/3): {response.status_code}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Auth Service 연결 시도 {attempt + 1}/3 실패: {str(e)}")
+                    if attempt < 2:  # 마지막 시도가 아니면 잠시 대기
+                        await asyncio.sleep(2)
+                    else:
+                        logger.warning(f"⚠️ Auth Service 연결 최종 실패 (서비스는 계속 실행): {str(e)}")
+        except Exception as e:
+            logger.warning(f"⚠️ Auth Service 연결 테스트 중 오류 (서비스는 계속 실행): {str(e)}")
     
     # TCFD Service 등록 (Railway 또는 로컬)
     if use_railway_tcfd:
@@ -140,7 +111,7 @@ async def lifespan(app: FastAPI):
             load_balancer_type="round_robin"
         )
     
-    # 로컬 서비스 등록 (하이브리드 모드)
+    # 로컬 서비스 등록
     if use_local_chatbot:
         app.state.service_discovery.register_service(
             service_name="chatbot-service",
@@ -149,7 +120,7 @@ async def lifespan(app: FastAPI):
         )
         logger.info("✅ 로컬 Chatbot Service 등록 완료")
     
-    # Auth Service 등록 (로컬 또는 Railway, 중복 방지)
+    # Auth Service 등록
     if use_local_auth:
         app.state.service_discovery.register_service(
             service_name="auth-service",
@@ -157,34 +128,27 @@ async def lifespan(app: FastAPI):
             load_balancer_type="round_robin"
         )
         logger.info("✅ 로컬 Auth Service 등록 완료")
-    elif os.getenv("RAILWAY_ENVIRONMENT") == "production" and auth_service_url:
-        # Railway 환경에서만 Auth Service 등록
+    elif auth_service_url and not use_local_auth:
+        # Railway Auth Service 등록
         app.state.service_discovery.register_service(
             service_name="auth-service",
             instances=[{"host": auth_service_url, "port": 443, "weight": 1}],
             load_balancer_type="round_robin"
         )
         logger.info(f"✅ Railway Auth Service 등록: {auth_service_url}")
-    elif auth_service_url:
-        # auth_service_url이 있으면 Railway Auth Service 등록
-        app.state.service_discovery.register_service(
-            service_name="auth-service",
-            instances=[{"host": auth_service_url, "port": 443, "weight": 1}],
-            load_balancer_type="round_robin"
-        )
-        logger.info(f"✅ Auth Service 등록 (URL 기반): {auth_service_url}")
-    else:
-        logger.warning("⚠️ Auth Service가 등록되지 않음")
     
     # GRI Service 등록
-    gri_service_url = os.getenv("RAILWAY_GRI_SERVICE_URL", "https://gri-service-production-b925.up.railway.app")
-    if gri_service_url and os.getenv("RAILWAY_ENVIRONMENT") == "production":
-        app.state.service_discovery.register_service(
-            service_name="gri-service",
-            instances=[{"host": gri_service_url, "port": 443, "weight": 1}],
-            load_balancer_type="round_robin"
-        )
-        logger.info(f"✅ Railway GRI Service 등록: {gri_service_url}")
+    if railway_environment:
+        gri_service_url = os.getenv("RAILWAY_GRI_SERVICE_URL")
+        if gri_service_url:
+            app.state.service_discovery.register_service(
+                service_name="gri-service",
+                instances=[{"host": gri_service_url, "port": 443, "weight": 1}],
+                load_balancer_type="round_robin"
+            )
+            logger.info(f"✅ Railway GRI Service 등록: {gri_service_url}")
+        else:
+            logger.warning("⚠️ Railway GRI Service URL이 설정되지 않음")
     else:
         app.state.service_discovery.register_service(
             service_name="gri-service",
@@ -194,17 +158,18 @@ async def lifespan(app: FastAPI):
         logger.info("✅ 로컬 GRI Service 등록 완료")
     
     # Materiality Service 등록
-    materiality_service_url = os.getenv("RAILWAY_MATERIALITY_SERVICE_URL", "https://materiality-service-production-9a40.up.railway.app")
-    if materiality_service_url and os.getenv("RAILWAY_ENVIRONMENT") == "production":
-        # Railway 환경에서 Materiality Service 등록
-        app.state.service_discovery.register_service(
-            service_name="materiality-service",
-            instances=[{"host": materiality_service_url, "port": 443, "weight": 1}],
-            load_balancer_type="round_robin"
-        )
-        logger.info(f"✅ Railway Materiality Service 등록: {materiality_service_url}")
+    if railway_environment:
+        materiality_service_url = os.getenv("RAILWAY_MATERIALITY_SERVICE_URL")
+        if materiality_service_url:
+            app.state.service_discovery.register_service(
+                service_name="materiality-service",
+                instances=[{"host": materiality_service_url, "port": 443, "weight": 1}],
+                load_balancer_type="round_robin"
+            )
+            logger.info(f"✅ Railway Materiality Service 등록: {materiality_service_url}")
+        else:
+            logger.warning("⚠️ Railway Materiality Service URL이 설정되지 않음")
     else:
-        # 로컬 Docker 환경에서 Materiality Service 등록
         app.state.service_discovery.register_service(
             service_name="materiality-service",
             instances=[{"host": "materiality-service", "port": 8007, "weight": 1}],
@@ -213,17 +178,18 @@ async def lifespan(app: FastAPI):
         logger.info("✅ 로컬 Materiality Service 등록 완료")
     
     # TCFD Report Service 등록
-    tcfdreport_service_url = os.getenv("RAILWAY_TCFDREPORT_SERVICE_URL", "https://tcfdreport-service-production-3020.up.railway.app")
-    if tcfdreport_service_url and os.getenv("RAILWAY_ENVIRONMENT") == "production":
-        # Railway 환경에서 TCFD Report Service 등록
-        app.state.service_discovery.register_service(
-            service_name="tcfdreport-service",
-            instances=[{"host": tcfdreport_service_url, "port": 443, "weight": 1}],
-            load_balancer_type="round_robin"
-        )
-        logger.info(f"✅ Railway TCFD Report Service 등록: {tcfdreport_service_url}")
+    if railway_environment:
+        tcfdreport_service_url = os.getenv("RAILWAY_TCFDREPORT_SERVICE_URL")
+        if tcfdreport_service_url:
+            app.state.service_discovery.register_service(
+                service_name="tcfdreport-service",
+                instances=[{"host": tcfdreport_service_url, "port": 443, "weight": 1}],
+                load_balancer_type="round_robin"
+            )
+            logger.info(f"✅ Railway TCFD Report Service 등록: {tcfdreport_service_url}")
+        else:
+            logger.warning("⚠️ Railway TCFD Report Service URL이 설정되지 않음")
     else:
-        # 로컬 Docker 환경에서 TCFD Report Service 등록
         app.state.service_discovery.register_service(
             service_name="tcfdreport-service",
             instances=[{"host": "tcfdreport-service", "port": 8004, "weight": 1}],
@@ -231,6 +197,7 @@ async def lifespan(app: FastAPI):
         )
         logger.info("✅ 로컬 TCFD Report Service 등록 완료")
     
+    logger.info("✅ 모든 서비스 등록 완료")
     yield
     logger.info("🛑 Gateway API 서비스 종료")
 

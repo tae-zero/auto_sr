@@ -1,12 +1,17 @@
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-httpx==0.25.2
+fastapi==0.103.1
+uvicorn==0.23.2
+sqlalchemy==2.0.20
+psycopg2-binary==2.9.7
 python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
-pydantic==2.5.0
+PyJWT==2.8.0
+httpx==0.24.1
 python-dotenv==1.0.0
-pandas==2.1.4
+pydantic==2.3.0
+pydantic-settings==2.0.3
+pandas==2.0.3
 openpyxl==3.1.2
+asyncpg==0.29.0
+passlib[bcrypt]==1.7.4
+# 로깅 및 예외 처리
+structlog==23.1.0

@@ -28,7 +28,7 @@ EXPOSE 8005
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 ENV SERVICE_HOST=0.0.0.0
-
+ENV PORT=8005
 # Railway의 PORT 환경변수를 사용하여 애플리케이션 실행
 # Railway의 PORT 환경변수를 우선 사용하고, 없으면 8005 사용
-CMD ["sh", "-c", "echo 'Starting TCFD service on port ${PORT:-8005}' && python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8005} --log-level info"]
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8005"]

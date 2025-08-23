@@ -1,38 +1,41 @@
-from fastapi import HTTPException, Depends
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from app.domain.auth.auth_service import AuthService
-import logging
+import jwt
+import os
+from typing import Optional
 
-logger = logging.getLogger(__name__)
 security = HTTPBearer()
-auth_service = AuthService()
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+# JWT 설정
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-super-secret-jwt-key-here")
+ALGORITHM = "HS256"
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+    """JWT 토큰 검증 및 사용자 정보 반환"""
     try:
         token = credentials.credentials
-        payload = auth_service.verify_token(token)
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         
-        if payload is None:
+        if not payload:
             raise HTTPException(
-                status_code=401,
-                detail="유효하지 않은 토큰입니다.",
-                headers={"WWW-Authenticate": "Bearer"},
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
             )
+            
+        return payload
         
-        user_id = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(
-                status_code=401,
-                detail="토큰에 사용자 정보가 없습니다.",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        
-        return {"user_id": int(user_id)}
-        
-    except Exception as e:
-        logger.error(f"토큰 검증 실패: {str(e)}")
+    except jwt.ExpiredSignatureError:
         raise HTTPException(
-            status_code=401,
-            detail="토큰 검증에 실패했습니다.",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+        )
+    except jwt.JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
         )
