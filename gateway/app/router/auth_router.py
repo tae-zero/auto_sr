@@ -22,6 +22,47 @@ def get_auth_service_url():
 
 
 
+@router.post("/signup")
+async def signup(auth_data: dict):
+    """회원가입 엔드포인트"""
+    max_retries = 3
+    retry_delay = 1.0
+    
+    for attempt in range(max_retries):
+        try:
+            auth_service_url = get_auth_service_url()
+            
+            logger.info(f"🔍 Auth Service로 회원가입 요청 (시도 {attempt + 1}/{max_retries}): {auth_service_url}/api/v1/auth/signup")
+            logger.info(f"📤 요청 데이터: {auth_data}")
+            
+            # Auth Service로 회원가입 요청
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    f"{auth_service_url}/api/v1/auth/signup",
+                    json=auth_data
+                )
+                
+                if response.status_code == 200:
+                    logger.info("✅ 회원가입 성공")
+                    return response.json()
+                else:
+                    logger.error(f"❌ 회원가입 실패: {response.status_code}")
+                    raise HTTPException(status_code=response.status_code, detail="회원가입 실패")
+                    
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ 회원가입 처리 오류 (시도 {attempt + 1}/{max_retries}): {str(e)}")
+            
+            if attempt < max_retries - 1:
+                logger.info(f"⏳ {retry_delay}초 후 재시도...")
+                import asyncio
+                await asyncio.sleep(retry_delay)
+                retry_delay *= 2  # 지수 백오프
+            else:
+                logger.error("❌ 모든 재시도 실패")
+                raise HTTPException(status_code=500, detail="회원가입 중 오류가 발생했습니다")
+
 @router.post("/login")
 async def login(auth_data: dict):
     """로그인 엔드포인트"""
