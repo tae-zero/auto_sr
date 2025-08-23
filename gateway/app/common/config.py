@@ -13,6 +13,12 @@ class Settings(BaseSettings):
     GATEWAY_PORT: int = int(os.getenv("GATEWAY_PORT", "8080"))
     GATEWAY_RELOAD: bool = os.getenv("GATEWAY_RELOAD", "false").lower() == "true"
     
+    # Railway 환경 설정
+    RAILWAY_ENVIRONMENT: bool = os.getenv("RAILWAY_ENVIRONMENT", "false").lower() == "true"
+    USE_LOCAL_AUTH: bool = os.getenv("USE_LOCAL_AUTH", "true").lower() == "true"
+    USE_LOCAL_CHATBOT: bool = os.getenv("USE_LOCAL_CHATBOT", "true").lower() == "true"
+    USE_RAILWAY_TCFD: bool = os.getenv("USE_RAILWAY_TCFD", "false").lower() == "true"
+    
     # Railway Service URLs (프로덕션 환경)
     RAILWAY_AUTH_SERVICE_URL: str = os.getenv("RAILWAY_AUTH_SERVICE_URL", "")
     RAILWAY_CHATBOT_SERVICE_URL: str = os.getenv("RAILWAY_CHATBOT_SERVICE_URL", "")
@@ -38,7 +44,7 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE: int = int(os.getenv("MAX_FILE_SIZE", "10485760"))  # 10MB
     SUPPORTED_FILE_TYPES: List[str] = os.getenv("SUPPORTED_FILE_TYPES", "txt,pdf,docx,md").split(",")
     
-    # 서비스 디스컴버리 설정
+    # 서비스 디스커버리 설정
     SERVICE_DISCOVERY_TYPE: str = os.getenv("SERVICE_DISCOVERY_TYPE", "static")  # static, consul, eureka
     CONSUL_HOST: str = os.getenv("CONSUL_HOST", "localhost")
     CONSUL_PORT: int = int(os.getenv("CONSUL_PORT", "8500"))
@@ -72,8 +78,8 @@ settings = Settings()
 # 서비스 레지스트리 설정 (Railway 환경 감지)
 def get_service_registry():
     """Railway 환경인지 확인하고 적절한 서비스 레지스트리 반환"""
-    railway_env = os.getenv("RAILWAY_ENVIRONMENT")
-    if railway_env in ["true", "production"]:  # "production"도 인식
+    railway_env = os.getenv("RAILWAY_ENVIRONMENT", "false").lower() == "true"
+    if railway_env:  # boolean 값으로 직접 확인
         # Railway 프로덕션 환경
         return {
             "auth-service": {

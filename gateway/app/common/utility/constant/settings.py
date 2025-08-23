@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import List
+import os
 
 class Settings(BaseSettings):
     """애플리케이션 설정"""
@@ -11,10 +12,23 @@ class Settings(BaseSettings):
     
     # 환경변수 설정
     DEPLOYMENT_ENV: str = "development"
-    RAILWAY_ENVIRONMENT: bool = False
-    USE_RAILWAY_TCFD: bool = False
-    USE_LOCAL_AUTH: bool = True
-    USE_LOCAL_CHATBOT: bool = True
+    RAILWAY_ENVIRONMENT: bool = os.getenv("RAILWAY_ENVIRONMENT", "false").lower() == "true"
+    USE_RAILWAY_TCFD: bool = os.getenv("USE_RAILWAY_TCFD", "false").lower() == "true"
+    USE_LOCAL_AUTH: bool = os.getenv("USE_LOCAL_AUTH", "true").lower() == "true"
+    USE_LOCAL_CHATBOT: bool = os.getenv("USE_LOCAL_CHATBOT", "true").lower() == "true"
+    
+    # Railway Service URLs (프로덕션 환경)
+    RAILWAY_AUTH_SERVICE_URL: str = os.getenv("RAILWAY_AUTH_SERVICE_URL", "")
+    RAILWAY_CHATBOT_SERVICE_URL: str = os.getenv("RAILWAY_CHATBOT_SERVICE_URL", "")
+    RAILWAY_TCFD_SERVICE_URL: str = os.getenv("RAILWAY_TCFD_SERVICE_URL", "")
+    RAILWAY_TCFD_REPORT_SERVICE_URL: str = os.getenv("RAILWAY_TCFD_REPORT_SERVICE_URL", "")
+    RAILWAY_GRI_SERVICE_URL: str = os.getenv("RAILWAY_GRI_SERVICE_URL", "")
+    RAILWAY_MATERIALITY_SERVICE_URL: str = os.getenv("RAILWAY_MATERIALITY_SERVICE_URL", "")
+    
+    # Service Ports (로컬 개발 환경)
+    AUTH_SERVICE_PORT: int = int(os.getenv("AUTH_SERVICE_PORT", "8008"))
+    CHATBOT_SERVICE_PORT: int = int(os.getenv("CHATBOT_SERVICE_PORT", "8001"))
+    TCFD_SERVICE_PORT: int = int(os.getenv("TCFD_SERVICE_PORT", "8005"))
     
     # JWT 설정
     JWT_SECRET_KEY: str = "your-super-secret-jwt-key-here"

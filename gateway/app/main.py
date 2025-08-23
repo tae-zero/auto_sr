@@ -35,18 +35,34 @@ logger = logging.getLogger("gateway_api")
 async def lifespan(app: FastAPI):
     logger.info("🚀 Gateway API 서비스 시작")
 
-    # Settings 초기화 및 앱 state에 등록
-    app.state.settings = Settings()
-    
-    # 서비스 디스커버리 초기화 및 서비스 등록
-    app.state.service_discovery = ServiceDiscovery()
-    
-    # Settings에서 환경변수 가져오기
-    settings = app.state.settings
-    use_railway_tcfd = settings.USE_RAILWAY_TCFD
-    use_local_auth = settings.USE_LOCAL_AUTH
-    use_local_chatbot = settings.USE_LOCAL_CHATBOT
-    railway_environment = settings.RAILWAY_ENVIRONMENT
+    try:
+        # Settings 초기화 및 앱 state에 등록
+        app.state.settings = Settings()
+        logger.info("✅ Settings 초기화 성공")
+        
+        # 서비스 디스커버리 초기화 및 서비스 등록
+        app.state.service_discovery = ServiceDiscovery()
+        logger.info("✅ Service Discovery 초기화 성공")
+        
+        # Settings에서 환경변수 가져오기
+        settings = app.state.settings
+        use_railway_tcfd = settings.USE_RAILWAY_TCFD
+        use_local_auth = settings.USE_LOCAL_AUTH
+        use_local_chatbot = settings.USE_LOCAL_CHATBOT
+        railway_environment = settings.RAILWAY_ENVIRONMENT
+        
+        logger.info("✅ 환경변수 로드 성공")
+        
+    except Exception as e:
+        logger.error(f"❌ 서비스 초기화 실패: {str(e)}")
+        # 기본값으로 설정
+        app.state.settings = None
+        app.state.service_discovery = None
+        use_railway_tcfd = False
+        use_local_auth = True
+        use_local_chatbot = True
+        railway_environment = False
+        logger.warning("⚠️ 기본값으로 서비스 실행 계속")
     
     # 환경변수 디버깅
     logger.info(f"🔍 환경변수 설정:")
