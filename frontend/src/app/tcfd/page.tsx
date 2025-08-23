@@ -8,6 +8,60 @@ import { apiClient, tcfdReportAPI, tcfdAPI, authService } from '@/shared/lib';
 import { useAuthStore } from '@/shared/state/auth.store';
 import axios from 'axios';
 
+// 컬럼명 한국어 매핑 객체
+const COLUMN_LABELS: { [key: string]: string } = {
+  // 1️⃣ 전체기업 정보
+  'Id': '아이디',
+  'Stock_code': '종목코드',
+  'Companyname': '회사명',
+  'Market': '시장',
+  'Dart_code': 'DART 고유 코드',
+  
+  // 2️⃣ 재무 정보
+  'Debt': '부채',
+  'Debt_ratio': '부채비율',
+  'Liability': '총부채',
+  'Netdebt': '순부채',
+  'Netdebt_ratio': '순부채비율',
+  'Capital_stock': '자본금',
+  'Equity': '자본총계',
+  'Asset': '자산총계',
+  'Long-Term Debt': '장기부채',
+  'Total Debt': '총부채',
+  'Cash': '현금',
+  'Year': '연도',
+  
+  // 3️⃣ 임원 정보
+  'Corp_code': '법인코드',
+  'Nm': '성명',
+  'Sexdstn': '성별',
+  'Birth Ym': '생년월',
+  'Ofcps': '직위(직책)',
+  'Rgist Exctv At': '등기임원 여부',
+  'Fte At': '상근 여부',
+  'Chrg Job': '담당업무',
+  'Main Career': '주요 경력',
+  'Mxxm Shrholdr Relate': '최대주주와의 관계',
+  'Hffc Pd': '재임 기간',
+  'Tenure End On': '임기 종료일',
+  
+  // 4️⃣ 노동·급여 정보
+  'Fo Bbm': '외국인 이사 수',
+  'Rgllbr Co': '정규직 근로자 수',
+  'Rgllbr_abacpt_labrr_co': '정규직 외 수탁/용역 근로자 수',
+  'Cnttk Co': '계약직 근로자 수',
+  'Cnttk_abacpt_labrr_co': '계약직 외 수탁/용역 근로자 수',
+  'Sm': '소속 노동조합 조합원 수',
+  'Avrg Cnwk Sdytrn': '평균 근속연수',
+  'Fyer Salary Totamt': '연간 급여 총액',
+  'Jan Salary Am': '1인당 평균 급여액'
+};
+
+// 컬럼명을 한국어로 변환하는 함수
+const getKoreanLabel = (englishLabel: string): string => {
+  return COLUMN_LABELS[englishLabel] || englishLabel;
+};
+
 // TCFD 표준 데이터 타입 정의
 export interface TCFDStandardData {
   // id 필드 제거 (실제 DB에 없음)
@@ -500,122 +554,123 @@ export default function TcfdSrPage() {
     console.log(`✅ ${title}: ${data.length}개 레코드`);
 
     const columns = Object.keys(data[0] || {});
+    console.log(`🔍 ${title} 컬럼명:`, columns);
 
-    // 재무상태, 전체기업 정보, 직원정보, 임원정보는 세로형태로 표시
-    if (title === '재무상태' || title === '전체기업 정보' || title === '직원 정보' || title === '임원 정보') {
-      const showAll = showAllStates[title] || false;
-      const displayData = showAll ? data : data.slice(0, 6);
-      const hasMore = data.length > 6;
+         // 재무상태, 전체기업 정보, 직원정보, 임원정보는 세로형태로 표시
+     if (title === '재무상태' || title === '전체기업 정보' || title === '직원 정보' || title === '임원 정보') {
+       const showAll = showAllStates[title] || false;
+       const displayData = showAll ? data : data.slice(0, 6);
+       const hasMore = data.length > 6;
 
-      return (
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3 text-blue-600">{title}</h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {displayData.map((row, index) => {
-              // 레코드 이름을 의미있게 생성
-              let recordName = `레코드 ${index + 1}`;
-              
-              if (title === '재무상태' && row.companyname) {
-                recordName = String(row.companyname);
-              } else if (title === '전체기업 정보' && row.companyname) {
-                recordName = String(row.companyname);
-              } else if (title === '직원 정보' && row.name) {
-                recordName = String(row.name);
-              } else if (title === '임원 정보' && row.name) {
-                recordName = String(row.name);
-              } else if (row.id) {
-                recordName = `ID: ${String(row.id)}`;
-              }
+       return (
+         <div className="mb-6">
+           <h3 className="text-lg font-semibold mb-3 text-primary-600">{title}</h3>
+           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+             {displayData.map((row, index) => {
+               // 레코드 이름을 의미있게 생성
+               let recordName = `레코드 ${index + 1}`;
+               
+               if (title === '재무상태' && row.companyname) {
+                 recordName = String(row.companyname);
+               } else if (title === '전체기업 정보' && row.companyname) {
+                 recordName = String(row.companyname);
+               } else if (title === '직원 정보' && row.name) {
+                 recordName = String(row.name);
+               } else if (title === '임원 정보' && row.name) {
+                 recordName = String(row.name);
+               } else if (row.id) {
+                 recordName = `ID: ${String(row.id)}`;
+               }
 
-              return (
-                <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-900 mb-3 text-sm">{recordName}</h4>
-                  <div className="space-y-2">
-                    {columns.map((column) => (
-                      <div key={column} className="flex justify-between">
-                        <span className="text-xs font-medium text-gray-600 capitalize">
-                          {column.replace(/_/g, ' ')}:
-                        </span>
-                        <span className="text-sm text-gray-900 text-right break-words max-w-[200px]">
-                          {typeof row[column] === 'number' 
-                            ? row[column].toLocaleString() 
-                            : String(row[column] || '-')}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
-          {/* 더보기 버튼 */}
-          {hasMore && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => setShowAllStates(prev => ({ ...prev, [title]: !showAll }))}
-                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                {showAll ? '접기' : `더보기 (${data.length - 6}개 더)`}
-              </button>
-            </div>
-          )}
-        </div>
-      );
-    }
+               return (
+                 <div key={index} className="bg-gray-100 border border-gray-300 rounded-brand p-4 shadow-soft">
+                   <h4 className="font-medium text-gray-900 mb-3 text-sm">{recordName}</h4>
+                   <div className="space-y-2">
+                     {columns.map((column) => (
+                       <div key={column} className="flex justify-between">
+                         <span className="text-xs font-medium text-gray-600 capitalize">
+                           {getKoreanLabel(column)}:
+                         </span>
+                         <span className="text-sm text-gray-900 text-right break-words max-w-[200px]">
+                           {typeof row[column] === 'number' 
+                             ? row[column].toLocaleString() 
+                             : String(row[column] || '-')}
+                         </span>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               );
+             })}
+           </div>
+           
+           {/* 더보기 버튼 */}
+           {hasMore && (
+             <div className="mt-4 text-center">
+               <button
+                 onClick={() => setShowAllStates(prev => ({ ...prev, [title]: !showAll }))}
+                 className="px-6 py-2 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100"
+               >
+                 {showAll ? '접기' : `더보기 (${data.length - 6}개 더)`}
+               </button>
+             </div>
+           )}
+         </div>
+       );
+     }
 
-    // 손익계산만 기존 테이블 형태로 표시
-    return (
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-3 text-blue-600">{title}</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-            <thead className="bg-gray-50">
-              <tr>
-                {columns.map((column) => (
-                  <th key={column} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
-                    {column}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {data.map((row, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  {columns.map((column) => (
-                    <td key={column} className="px-4 py-3 text-sm text-gray-900 border-b">
-                      {typeof row[column] === 'number' 
-                        ? row[column].toLocaleString() 
-                        : String(row[column] || '-')}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
+         // 손익계산만 기존 테이블 형태로 표시
+     return (
+       <div className="mb-6">
+         <h3 className="text-lg font-semibold mb-3 text-primary-600">{title}</h3>
+         <div className="overflow-x-auto">
+           <table className="min-w-full bg-white border border-gray-300 rounded-brand shadow-soft">
+             <thead className="bg-gray-100">
+               <tr>
+                 {columns.map((column) => (
+                   <th key={column} className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b border-gray-300">
+                     {getKoreanLabel(column)}
+                   </th>
+                 ))}
+               </tr>
+             </thead>
+             <tbody className="divide-y divide-gray-300">
+               {data.map((row, index) => (
+                 <tr key={index} className="hover:bg-gray-100">
+                   {columns.map((column) => (
+                     <td key={column} className="px-4 py-2 text-sm text-gray-900 border-b border-gray-300">
+                       {typeof row[column] === 'number' 
+                         ? row[column].toLocaleString() 
+                         : String(row[column] || '-')}
+                     </td>
+                   ))}
+                 </tr>
+               ))}
+             </tbody>
+           </table>
+         </div>
+       </div>
+     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
       <Header />
       <div className="pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-section">
           {/* 헤더 */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-primary-600 mb-2">
               TCFD 기준으로 SR 작성
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-700">
               기후 관련 재무 공시를 위한 지속가능보고서 작성 도구
             </p>
           </div>
 
         {/* 탭 네비게이션 */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-          <div className="border-b border-gray-200">
+        <div className="bg-white rounded-brand shadow-soft border border-gray-300 mb-6">
+          <div className="border-b border-gray-300">
             <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
               {[
                 { id: 1, name: '회사정보', icon: '🏢' },
@@ -628,10 +683,10 @@ export default function TcfdSrPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
-                    py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap
+                    py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors
                     ${activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-primary-600 text-primary-600'
+                      : 'border-transparent text-gray-500 hover:text-primary-600 hover:border-primary-300'
                     }
                   `}
                 >
@@ -644,55 +699,55 @@ export default function TcfdSrPage() {
         </div>
 
         {/* 탭 컨텐츠 */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          {/* 탭 1: 회사정보 */}
-          {activeTab === 1 && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">🏢 회사정보</h2>
-              
-              {/* 회사 검색 */}
-              <div className="mb-6">
-                <div className="flex gap-4 items-end">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      회사명 검색
-                    </label>
-                    <input
-                      type="text"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="회사명을 입력하세요 (예: 한온시스템, 현대모비스, 만도)"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-500 bg-white"
-                      onKeyPress={(e) => e.key === 'Enter' && handleCompanySearch()}
-                    />
-                  </div>
-                  <button
-                    onClick={handleCompanySearch}
-                    disabled={!companyName.trim() || isLoadingCompany}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoadingCompany ? '검색 중...' : '검색'}
-                  </button>
-                </div>
+        <div className="bg-white rounded-brand shadow-soft border border-gray-300 p-6">
+                     {/* 탭 1: 회사정보 */}
+           {activeTab === 1 && (
+             <div>
+               <h2 className="text-2xl font-bold text-primary-600 mb-6">🏢 회사정보</h2>
+               
+               {/* 회사 검색 */}
+               <div className="mb-6">
+                 <div className="flex gap-4 items-end">
+                   <div className="flex-1">
+                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                       회사명 검색
+                     </label>
+                     <input
+                       type="text"
+                       value={companyName}
+                       onChange={(e) => setCompanyName(e.target.value)}
+                       placeholder="회사명을 입력하세요 (예: 한온시스템, 현대모비스, 만도)"
+                       className="w-full px-4 py-2 border border-gray-300 rounded-brand focus:border-primary-600 focus:ring-2 focus:ring-primary-100 text-gray-900 placeholder-gray-500 bg-white transition-colors"
+                       onKeyPress={(e) => e.key === 'Enter' && handleCompanySearch()}
+                     />
+                   </div>
+                   <button
+                     onClick={handleCompanySearch}
+                     disabled={!companyName.trim() || isLoadingCompany}
+                     className="px-6 py-2 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100"
+                   >
+                     {isLoadingCompany ? '검색 중...' : '검색'}
+                   </button>
+                 </div>
                 
                 {/* 사용 가능한 회사 목록은 제거됨 */}
               </div>
 
-              {/* 회사별 재무정보 표시 */}
-              {companyFinancialData && (
-                <div className="mt-6">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                      📊 {companyFinancialData.company_name} 재무정보
-                    </h3>
-                                         <p className="text-blue-700">
-                       {companyFinancialData.total_records ? `총 ${companyFinancialData.total_records}개 레코드` : ''}
-                       {companyFinancialData.tables && companyFinancialData.tables.length > 0 
-                         ? `, ${companyFinancialData.tables.join(', ')} 테이블`
-                         : companyFinancialData.found_in_table ? `, ${companyFinancialData.found_in_table} 테이블에서 발견` : ''
-                       }
-                     </p>
-                  </div>
+                             {/* 회사별 재무정보 표시 */}
+               {companyFinancialData && (
+                 <div className="mt-6">
+                   <div className="bg-primary-100 border border-primary-300 rounded-brand p-4 mb-6">
+                     <h3 className="text-lg font-semibold text-primary-700 mb-2">
+                       📊 {companyFinancialData.company_name} 재무정보
+                     </h3>
+                                          <p className="text-primary-600">
+                        {companyFinancialData.total_records ? `총 ${companyFinancialData.total_records}개 레코드` : ''}
+                        {companyFinancialData.tables && companyFinancialData.tables.length > 0 
+                          ? `, ${companyFinancialData.tables.join(', ')} 테이블`
+                          : companyFinancialData.found_in_table ? `, ${companyFinancialData.found_in_table} 테이블에서 발견` : ''
+                        }
+                      </p>
+                   </div>
 
                   {/* 5개 테이블 데이터 표시 */}
                   {renderFinancialTable(companyFinancialData.data?.employee, '직원 정보')}
@@ -703,46 +758,46 @@ export default function TcfdSrPage() {
                 </div>
               )}
 
-              {/* 에러 메시지 */}
-              {companyError && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-red-700">{companyError}</p>
-                </div>
-              )}
+                             {/* 에러 메시지 */}
+               {companyError && (
+                 <div className="mt-4 p-4 bg-danger-50 border border-danger-200 rounded-brand">
+                   <p className="text-danger-700">{companyError}</p>
+                 </div>
+               )}
             </div>
           )}
 
-          {/* 탭 2: 재무정보 */}
-          {activeTab === 2 && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">💰 재무정보</h2>
-              
-              {/* 회사 검색 결과가 없을 때 안내 메시지 */}
-              {!companyFinancialData && (
-                <div className="text-center py-12">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-blue-900 mb-2">회사 검색이 필요합니다</h3>
-                    <p className="text-blue-700 mb-4">
-                      회사정보 탭에서 회사명을 검색하면 해당 회사의 재무정보가 여기에 표시됩니다.
-                    </p>
-                    <button
-                      onClick={() => setActiveTab(1)}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                    >
-                      회사정보 탭으로 이동
-                    </button>
-                  </div>
-                </div>
-              )}
+                     {/* 탭 2: 재무정보 */}
+           {activeTab === 2 && (
+             <div>
+               <h2 className="text-2xl font-bold text-primary-600 mb-6">💰 재무정보</h2>
+               
+               {/* 회사 검색 결과가 없을 때 안내 메시지 */}
+               {!companyFinancialData && (
+                 <div className="text-center py-12">
+                   <div className="bg-primary-100 border border-primary-300 rounded-brand p-6">
+                     <h3 className="text-lg font-semibold text-primary-700 mb-2">회사 검색이 필요합니다</h3>
+                     <p className="text-primary-600 mb-4">
+                       회사정보 탭에서 회사명을 검색하면 해당 회사의 재무정보가 여기에 표시됩니다.
+                     </p>
+                     <button
+                       onClick={() => setActiveTab(1)}
+                       className="px-6 py-2 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100"
+                     >
+                       회사정보 탭으로 이동
+                     </button>
+                   </div>
+                 </div>
+               )}
 
               {/* 회사별 재무정보 표시 */}
               {companyFinancialData && (
                 <div>
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                    <h3 className="text-lg font-semibold text-green-900 mb-2">
+                  <div className="bg-success-50 border border-success-200 rounded-brand p-4 mb-6">
+                    <h3 className="text-lg font-semibold text-success-700 mb-2">
                       📊 {companyFinancialData.company_name} 재무정보
                     </h3>
-                                         <p className="text-green-700">
+                                         <p className="text-success-600">
                        {companyFinancialData.total_records ? `총 ${companyFinancialData.total_records}개 레코드` : ''}
                        {companyFinancialData.tables && companyFinancialData.tables.length > 0 
                          ? `, ${companyFinancialData.tables.join(', ')} 테이블`
@@ -765,7 +820,7 @@ export default function TcfdSrPage() {
           {/* 탭 3: TCFD 프레임워크 */}
           {activeTab === 3 && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">📊 TCFD 프레임워크</h2>
+              <h2 className="text-2xl font-bold text-primary-600 mb-6">📊 TCFD 프레임워크</h2>
               
               {/* TCFD 표준 정보 표시 */}
               <div className="mb-8">
@@ -773,21 +828,21 @@ export default function TcfdSrPage() {
                 
                 {isLoadingTcfd && (
                   <div className="text-center py-8">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <p className="mt-2 text-gray-600">TCFD 표준 정보를 불러오는 중...</p>
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                    <p className="mt-2 text-gray-700">TCFD 표준 정보를 불러오는 중...</p>
                   </div>
                 )}
 
                 {tcfdError && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                    <p className="text-red-700">{tcfdError}</p>
+                  <div className="bg-danger-50 border border-danger-200 rounded-brand p-4 mb-4">
+                    <p className="text-danger-700">{tcfdError}</p>
                   </div>
                 )}
 
-                                 {!isLoadingTcfd && !tcfdError && Object.keys(tcfdStandards).length > 0 && (
+                                                                  {!isLoadingTcfd && !tcfdError && Object.keys(tcfdStandards).length > 0 && (
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      {Object.entries(tcfdStandards).map(([category, data]) => (
-                       <div key={category} className={`${data.bgColor} p-6 rounded-lg shadow-md`}>
+                       <div key={category} className={`${data.bgColor} p-6 rounded-brand shadow-soft`}>
                          <h4 className={`text-xl font-semibold mb-3 ${data.color}`}>{data.title}</h4>
                          <p className={`mb-4 ${data.color}`}>{data.description}</p>
                          
@@ -796,33 +851,33 @@ export default function TcfdSrPage() {
                            <div className="space-y-3">
                              <h5 className="font-medium text-gray-800 mb-2">공개 요구사항 ({data.disclosures.length}개):</h5>
                              {/* 첫 번째 항목만 미리보기로 표시 */}
-                             <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200">
+                             <div className="bg-white p-3 rounded-brand shadow-soft border border-gray-300">
                                <h6 className="font-semibold text-gray-800 mb-1">{data.disclosures[0].disclosure_id}</h6>
                                <p className="text-sm text-gray-700 mb-1">{data.disclosures[0].disclosure_summary}</p>
                                <p className="text-xs text-gray-500">{data.disclosures[0].disclosure_detail}</p>
                              </div>
                              
-                                                           {/* 더 많은 항목이 있을 경우 상세보기 버튼 표시 */}
+                                                            {/* 더 많은 항목이 있을 경우 상세보기 버튼 표시 */}
                               {data.disclosures.length > 1 && (
                                 <div className="text-center pt-2">
                                   <button
                                     onClick={() => handleTcfdDetails(category, data)}
-                                    className={`px-4 py-2 ${data.color.replace('text-', 'bg-').replace('-700', '-600')} text-black rounded-md hover:opacity-90 transition-colors text-sm font-medium shadow-sm border border-gray-300`}
+                                    className={`px-4 py-2 ${data.color.replace('text-', 'bg-').replace('-700', '-600')} text-white rounded-brand shadow-soft hover:opacity-90 transition-colors text-sm font-medium border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-100`}
                                   >
                                     상세보기 ({data.disclosures.length}개 전체)
                                   </button>
                                 </div>
                               )}
-                           </div>
-                         )}
-                         
-                         {data.disclosures.length === 0 && (
-                           <p className="text-gray-500 text-sm">해당 카테고리의 공개 정보가 없습니다.</p>
-                         )}
-                       </div>
-                     ))}
-                   </div>
-                 )}
+                            </div>
+                          )}
+                          
+                          {data.disclosures.length === 0 && (
+                            <p className="text-gray-500 text-sm">해당 카테고리의 공개 정보가 없습니다.</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                 {!isLoadingTcfd && !tcfdError && Object.keys(tcfdStandards).length === 0 && (
                   <div className="text-center py-8">
@@ -831,33 +886,33 @@ export default function TcfdSrPage() {
                 )}
               </div>
 
-              {/* TCFD 표준 상세 정보 */}
-              <div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">TCFD 표준 상세 정보</h3>
-                <div className="space-y-4">
-                  {companyFinancialData ? (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                      <h4 className="text-lg font-semibold text-green-900 mb-2">
-                        📊 {companyFinancialData.company_name} TCFD 분석
-                      </h4>
-                      <p className="text-green-700">
-                        회사 정보와 재무 데이터를 기반으로 TCFD 프레임워크에 따른 분석을 진행할 수 있습니다.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center mb-6">
-                      <h4 className="text-lg font-semibold text-blue-900 mb-2">회사 검색이 필요합니다</h4>
-                      <p className="text-blue-700 mb-4">
-                        회사정보 탭에서 회사명을 검색하면 해당 회사의 TCFD 분석을 진행할 수 있습니다.
-                      </p>
-                      <button
-                        onClick={() => setActiveTab(1)}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                      >
-                        회사정보 탭으로 이동
-                      </button>
-                    </div>
-                  )}
+                             {/* TCFD 표준 상세 정보 */}
+               <div>
+                 <h3 className="text-xl font-semibold text-gray-800 mb-4">TCFD 표준 상세 정보</h3>
+                 <div className="space-y-4">
+                   {companyFinancialData ? (
+                     <div className="bg-success-50 border border-success-200 rounded-brand p-4 mb-6">
+                       <h4 className="text-lg font-semibold text-success-700 mb-2">
+                         📊 {companyFinancialData.company_name} TCFD 분석
+                       </h4>
+                       <p className="text-success-600">
+                         회사 정보와 재무 데이터를 기반으로 TCFD 프레임워크에 따른 분석을 진행할 수 있습니다.
+                       </p>
+                     </div>
+                   ) : (
+                     <div className="bg-primary-100 border border-primary-300 rounded-brand p-6 text-center mb-6">
+                       <h4 className="text-lg font-semibold text-primary-700 mb-2">회사 검색이 필요합니다</h4>
+                       <p className="text-primary-600 mb-4">
+                         회사정보 탭에서 회사명을 검색하면 해당 회사의 TCFD 분석을 진행할 수 있습니다.
+                       </p>
+                       <button
+                         onClick={() => setActiveTab(1)}
+                         className="px-6 py-2 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100"
+                       >
+                         회사정보 탭으로 이동
+                       </button>
+                     </div>
+                   )}
 
                   {/* TCFD 11개 인덱스 입력 폼 */}
                   {companyFinancialData && (
@@ -1085,87 +1140,87 @@ export default function TcfdSrPage() {
             </div>
           )}
 
-          {/* 탭 4: 기후시나리오 */}
-          {activeTab === 4 && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">🌍 기후시나리오</h2>
-              <div className="space-y-4">
-                <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                  <h3 className="text-lg font-semibold text-red-900 mb-2">RCP 8.5 (고탄소 시나리오)</h3>
-                  <p className="text-red-700 mb-4">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
-                  <button 
-                    onClick={() => handleClimateDetails('ssp8.5')}
-                    className="px-4 py-2 bg-red-600 text-black rounded-md hover:bg-red-700 transition-colors text-sm"
-                  >
-                    상세보기
-                  </button>
-                </div>
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-2">RCP 2.6 (극저탄소 시나리오)</h3>
-                  <p className="text-blue-700 mb-4">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
-                  <button 
-                    onClick={() => handleClimateDetails('ssp2.6')}
-                    className="px-4 py-2 bg-blue-600 text-black rounded-md hover:bg-red-700 transition-colors text-sm"
-                  >
-                    상세보기
-                  </button>
-                </div>
-                
-                                 {/* 기후 시나리오 이미지 갤러리로 이동하는 More 버튼 */}
-                 <div className="mt-6 text-center">
-                   <button
-                     onClick={() => {
-                       // 인증 상태 확인 후 이동
-                       const token = localStorage.getItem('auth_token');
-                       if (token) {
-                         router.push('/climate-scenarios');
-                       } else {
-                         alert('로그인이 필요합니다. 먼저 로그인해주세요.');
-                         router.push('/login');
-                       }
-                     }}
-                     className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-lg shadow-md hover:shadow-lg"
+                     {/* 탭 4: 기후시나리오 */}
+           {activeTab === 4 && (
+             <div>
+               <h2 className="text-2xl font-bold text-primary-600 mb-6">🌍 기후시나리오</h2>
+               <div className="space-y-4">
+                 <div className="bg-danger-50 p-4 rounded-brand border border-danger-200">
+                   <h3 className="text-lg font-semibold text-danger-700 mb-2">RCP 8.5 (고탄소 시나리오)</h3>
+                   <p className="text-danger-600 mb-4">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
+                   <button 
+                     onClick={() => handleClimateDetails('ssp8.5')}
+                     className="px-4 py-2 bg-danger-600 text-white rounded-brand shadow-soft hover:bg-danger-700 transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-danger-100"
                    >
-                     🌍 기후 시나리오 이미지 더보기
+                     상세보기
                    </button>
-                   <p className="text-sm text-gray-600 mt-2">
-                     SSP 2.6과 SSP 8.5 시나리오의 상세한 기후 변화 예측 이미지를 확인하세요
-                   </p>
                  </div>
+                 <div className="bg-info-50 p-4 rounded-brand border border-info-200">
+                   <h3 className="text-lg font-semibold text-info-700 mb-2">RCP 2.6 (극저탄소 시나리오)</h3>
+                   <p className="text-info-600 mb-4">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
+                   <button 
+                     onClick={() => handleClimateDetails('ssp2.6')}
+                     className="px-4 py-2 bg-info-600 text-white rounded-brand shadow-soft hover:bg-info-700 transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-info-100"
+                   >
+                     상세보기
+                   </button>
+                 </div>
+                
+                                                   {/* 기후 시나리오 이미지 갤러리로 이동하는 More 버튼 */}
+                  <div className="mt-6 text-center">
+                    <button
+                      onClick={() => {
+                        // 인증 상태 확인 후 이동
+                        const token = localStorage.getItem('auth_token');
+                        if (token) {
+                          router.push('/climate-scenarios');
+                        } else {
+                          alert('로그인이 필요합니다. 먼저 로그인해주세요.');
+                          router.push('/login');
+                        }
+                      }}
+                      className="px-8 py-3 bg-success-600 text-white rounded-brand shadow-soft hover:bg-success-700 transition-colors font-medium text-lg focus:outline-none focus:ring-2 focus:ring-success-100"
+                    >
+                      🌍 기후 시나리오 이미지 더보기
+                    </button>
+                    <p className="text-sm text-gray-700 mt-2">
+                      SSP 2.6과 SSP 8.5 시나리오의 상세한 기후 변화 예측 이미지를 확인하세요
+                    </p>
+                  </div>
               </div>
             </div>
           )}
 
-          {/* 탭 5: AI보고서 초안 */}
-          {activeTab === 5 && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">🤖 AI보고서 초안</h2>
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg border border-purple-200">
-                <h3 className="text-lg font-semibold text-purple-900 mb-4">AI 기반 TCFD 보고서 생성</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                    <span className="text-purple-700">회사 정보 및 재무 데이터 분석</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    <span className="text-blue-700">기후 위험 평가 및 시나리오 분석</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                    <span className="text-green-700">TCFD 프레임워크 기반 보고서 생성</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></span>
-                    <span className="text-yellow-700">지속가능성 지표 및 권장사항 제시</span>
-                  </div>
-                </div>
-                <button className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700">
-                  AI 보고서 생성 시작
-                </button>
-              </div>
-            </div>
-                     )}
+                     {/* 탭 5: AI보고서 초안 */}
+           {activeTab === 5 && (
+             <div>
+               <h2 className="text-2xl font-bold text-primary-600 mb-6">🤖 AI보고서 초안</h2>
+               <div className="bg-gradient-to-r from-primary-50 to-info-50 p-6 rounded-brand border border-primary-300">
+                 <h3 className="text-lg font-semibold text-primary-700 mb-4">AI 기반 TCFD 보고서 생성</h3>
+                 <div className="space-y-3">
+                   <div className="flex items-center">
+                     <span className="w-2 h-2 bg-primary-500 rounded-full mr-3"></span>
+                     <span className="text-primary-700">회사 정보 및 재무 데이터 분석</span>
+                   </div>
+                   <div className="flex items-center">
+                     <span className="w-2 h-2 bg-info-500 rounded-full mr-3"></span>
+                     <span className="text-info-700">기후 위험 평가 및 시나리오 분석</span>
+                   </div>
+                   <div className="flex items-center">
+                     <span className="w-2 h-2 bg-success-500 rounded-full mr-3"></span>
+                     <span className="text-success-700">TCFD 프레임워크 기반 보고서 생성</span>
+                   </div>
+                   <div className="flex items-center">
+                     <span className="w-2 h-2 bg-warning-500 rounded-full mr-3"></span>
+                     <span className="text-warning-700">지속가능성 지표 및 권장사항 제시</span>
+                   </div>
+                 </div>
+                 <button className="mt-6 px-6 py-3 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100">
+                   AI 보고서 생성 시작
+                 </button>
+               </div>
+             </div>
+                      )}
          </div>
        </div>
        
