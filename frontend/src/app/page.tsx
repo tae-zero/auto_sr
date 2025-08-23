@@ -131,7 +131,7 @@ export default function Home() {
                   {item.description}
                 </p>
                                  <div className="text-center">
-                   {item.title === "TCFD 기준으로 SR작성해볼까?" ? (
+                   {item.title === "TCFD SR" ? (
                      <Link href="/tcfd">
                        <button 
                          className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
@@ -139,7 +139,7 @@ export default function Home() {
                          MORE
                        </button>
                      </Link>
-                   ) : item.title === "WHO AM I" ? (
+                   ) : item.title === "who am i?" ? (
                      <Link href="/contact">
                        <button 
                          className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-transform duration-200 font-medium"
@@ -147,7 +147,7 @@ export default function Home() {
                          MORE
                        </button>
                      </Link>
-                   ) : item.title === "지구가 아파한대!!" ? (
+                   ) : item.title === "Climate" ? (
                      <Link href="/climate-scenarios">
                        <button 
                          className="border-2 border-green-400 text-green-600 hover:bg-green-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
@@ -158,17 +158,12 @@ export default function Home() {
                    ) : item.title === "Materiality" ? (
                      <Link href="/materiality">
                        <button 
-                         onClick={() => {
-                           console.log('=== Materiality MORE 버튼 클릭됨 ===');
-                           console.log('현재 페이지:', window.location.href);
-                           console.log('이동할 페이지: /materiality');
-                         }}
                          className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
                        >
                          MORE
                        </button>
                      </Link>
-                   ) : item.title === "나한테 사진 찍힐래?" ? (
+                   ) : item.title === "My Gallery" ? (
                       <Link href="/photo-gallery">
                         <button 
                           className="border-2 border-purple-400 text-purple-600 hover:bg-purple-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
@@ -183,6 +178,22 @@ export default function Home() {
                       >
                         MORE
                       </button>
+                    ) : item.title === "ESG 공시 챗봇" ? (
+                      <Link href="/chatbot">
+                        <button 
+                          className="border-2 border-green-400 text-green-600 hover:bg-green-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                        >
+                          MORE
+                        </button>
+                      </Link>
+                    ) : item.title === "GRI" ? (
+                      <Link href="/gri">
+                        <button 
+                          className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                        >
+                          MORE
+                        </button>
+                      </Link>
                     ) : (
                      <button className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
                        MORE
