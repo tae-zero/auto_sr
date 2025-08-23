@@ -100,133 +100,158 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
       <Header />
-      <div className="flex items-center justify-center p-4 pt-20">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-3xl shadow-2xl px-8 py-12">
-          {/* Signup Title */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-              Sign Up
-            </h1>
-            <p className="text-gray-600 mt-2">회원가입을 진행해주세요</p>
+      <div className="flex items-center justify-center min-h-screen pt-16">
+        <div className="w-full max-w-6xl mx-4">
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div className="flex">
+              {/* Left Side - Background Image */}
+              <div className="hidden lg:block lg:w-1/2 relative">
+                <div 
+                  className="h-full w-full bg-cover bg-center bg-no-repeat"
+                  style={{
+                    backgroundImage: 'url(/markus-spiske-GnxktpZHjcM-unsplash.jpg)'
+                  }}
+                >
+                  {/* Dark overlay for better text readability */}
+                  <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+                  {/* Optional text overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center text-white">
+                      <h2 className="text-4xl font-bold mb-4">Join Us</h2>
+                      <p className="text-xl opacity-90">Start your journey with us today</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Side - Signup Form */}
+              <div className="w-full lg:w-1/2 p-8 lg:p-12">
+                {/* Signup Title */}
+                <div className="text-center mb-8">
+                  <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+                    Sign Up
+                  </h1>
+                  <p className="text-gray-600 mt-2">회원가입을 진행해주세요</p>
+                </div>
+
+                {/* Signup Form */}
+                <form onSubmit={handleSignup} className="space-y-6">
+                  {/* Company ID Input */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="company_id"
+                      value={formData.company_id}
+                      onChange={handleInputChange}
+                      placeholder="회사 ID"
+                      className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
+                      required
+                    />
+                  </div>
+
+                  {/* Industry Input */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="industry"
+                      value={formData.industry}
+                      onChange={handleInputChange}
+                      placeholder="산업"
+                      className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
+                      required
+                    />
+                  </div>
+
+                  {/* Email Input */}
+                  <div className="relative">
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="이메일"
+                      className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
+                      required
+                    />
+                  </div>
+
+                  {/* Name Input */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="이름"
+                      className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
+                      required
+                    />
+                  </div>
+
+                  {/* Age Input */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="age"
+                      value={formData.age}
+                      onChange={handleInputChange}
+                      placeholder="나이"
+                      className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
+                      required
+                    />
+                  </div>
+
+                  {/* Auth ID Input */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="auth_id"
+                      value={formData.auth_id}
+                      onChange={handleInputChange}
+                      placeholder="인증 ID"
+                      className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
+                      required
+                    />
+                  </div>
+
+                  {/* Auth Password Input */}
+                  <div className="relative">
+                    <input
+                      type="password"
+                      name="auth_pw"
+                      value={formData.auth_pw}
+                      onChange={handleInputChange}
+                      placeholder="인증 비밀번호"
+                      className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
+                      required
+                    />
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="space-y-4 pt-4">
+                    {/* Sign Up Button */}
+                    <button
+                      type="submit"
+                      className="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium text-lg shadow-sm"
+                    >
+                      회원가입
+                    </button>
+
+                    {/* Back to Login Button */}
+                    <button
+                      type="button"
+                      onClick={handleBackToLogin}
+                      className="w-full bg-white border-2 border-gray-300 text-gray-800 py-3 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-lg shadow-sm"
+                    >
+                      로그인으로 돌아가기
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>
-
-          {/* Signup Form */}
-          <form onSubmit={handleSignup} className="space-y-6">
-            {/* Company ID Input */}
-            <div className="relative">
-              <input
-                type="text"
-                name="company_id"
-                value={formData.company_id}
-                onChange={handleInputChange}
-                placeholder="회사 ID"
-                className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
-                required
-              />
-            </div>
-
-            {/* Industry Input */}
-            <div className="relative">
-              <input
-                type="text"
-                name="industry"
-                value={formData.industry}
-                onChange={handleInputChange}
-                placeholder="산업"
-                className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
-                required
-              />
-            </div>
-
-            {/* Email Input */}
-            <div className="relative">
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="이메일"
-                className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
-                required
-              />
-            </div>
-
-            {/* Name Input */}
-            <div className="relative">
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="이름"
-                className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
-                required
-              />
-            </div>
-
-            {/* Age Input */}
-            <div className="relative">
-              <input
-                type="text"
-                name="age"
-                value={formData.age}
-                onChange={handleInputChange}
-                placeholder="나이"
-                className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
-                required
-              />
-            </div>
-
-            {/* Auth ID Input */}
-            <div className="relative">
-              <input
-                type="text"
-                name="auth_id"
-                value={formData.auth_id}
-                onChange={handleInputChange}
-                placeholder="인증 ID"
-                className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
-                required
-              />
-            </div>
-
-            {/* Auth Password Input */}
-            <div className="relative">
-              <input
-                type="password"
-                name="auth_pw"
-                value={formData.auth_pw}
-                onChange={handleInputChange}
-                placeholder="인증 비밀번호"
-                className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
-                required
-              />
-            </div>
-
-            {/* Buttons */}
-            <div className="space-y-4 pt-4">
-              {/* Sign Up Button */}
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium text-lg shadow-sm"
-              >
-                회원가입
-              </button>
-
-              {/* Back to Login Button */}
-              <button
-                type="button"
-                onClick={handleBackToLogin}
-                className="w-full bg-white border-2 border-gray-300 text-gray-800 py-3 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium text-lg shadow-sm"
-              >
-                로그인으로 돌아가기
-              </button>
-            </div>
-          </form>
         </div>
       </div>
-    </div>
     </div>
   );
 }

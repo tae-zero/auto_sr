@@ -106,105 +106,116 @@ export default function Home() {
          </div>
       </section>
 
-      {/* 포트폴리오 섹션 */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                     <div className="text-center mb-16 flex flex-col items-center justify-center">
-             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 text-center leading-relaxed">
-               자연으로 돌아가라<br/>
-               하고자 하는 일에 후회하지 않도록 최선을 다하자
-             </h2>
-           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {portfolioItems.map((item, index) => (
-              <div key={index} className="bg-gray-100 rounded-lg p-8 shadow-lg transform hover:scale-105 transition-transform duration-300">
-                <div className="text-center mb-6">
-                  <div className="text-gray-600 mb-4">
-                    {item.icon}
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                    {item.title}
-                  </h3>
-                </div>
-                <p className="text-gray-600 text-sm leading-relaxed mb-6 text-center">
-                  {item.description}
-                </p>
-                                 <div className="text-center">
-                   {item.title === "TCFD SR" ? (
-                     <Link href="/tcfd">
-                       <button 
-                         className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
-                       >
-                         MORE
-                       </button>
-                     </Link>
-                   ) : item.title === "who am i?" ? (
-                     <Link href="/contact">
-                       <button 
-                         className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-transform duration-200 font-medium"
-                       >
-                         MORE
-                       </button>
-                     </Link>
-                   ) : item.title === "Climate" ? (
-                     <Link href="/climate-scenarios">
-                       <button 
-                         className="border-2 border-green-400 text-green-600 hover:bg-green-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
-                       >
-                         MORE
-                       </button>
-                     </Link>
-                   ) : item.title === "Materiality" ? (
-                     <Link href="/materiality">
-                       <button 
-                         className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
-                       >
-                         MORE
-                       </button>
-                     </Link>
-                   ) : item.title === "My Gallery" ? (
-                      <Link href="/photo-gallery">
+                    {/* 포트폴리오 섹션 */}
+       <section className="py-20 bg-white relative">
+         {/* 배경 이미지 - 흐릿하게, 4방향 모두 10% 여백 */}
+         <div 
+           className="absolute inset-[10%] bg-cover bg-center bg-no-repeat opacity-20"
+           style={{
+             backgroundImage: 'url(/daoudi-aissa-absT1BNRDAI-unsplash.jpg)'
+           }}
+         ></div>
+         
+         {/* 내용 오버레이 */}
+         <div className="relative z-10">
+           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+             <div className="text-center mb-16 flex flex-col items-center justify-center">
+               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 text-center leading-relaxed">
+                 자연으로 돌아가라<br/>
+                 하고자 하는 일에 후회하지 않도록 최선을 다하자
+               </h2>
+             </div>
+             
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                               {portfolioItems.map((item, index) => (
+                  <div key={index} className="bg-gray-100/50 backdrop-blur-sm rounded-lg p-8 shadow-lg transform hover:scale-105 transition-transform duration-300">
+                   <div className="text-center mb-6">
+                     <div className="text-gray-600 mb-4">
+                       {item.icon}
+                     </div>
+                     <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                       {item.title}
+                     </h3>
+                   </div>
+                   <p className="text-gray-600 text-sm leading-relaxed mb-6 text-center">
+                     {item.description}
+                   </p>
+                   <div className="text-center">
+                     {item.title === "TCFD SR" ? (
+                       <Link href="/tcfd">
+                         <button 
+                           className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                         >
+                           MORE
+                         </button>
+                       </Link>
+                     ) : item.title === "who am i?" ? (
+                       <Link href="/contact">
+                         <button 
+                           className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-transform duration-200 font-medium"
+                         >
+                           MORE
+                         </button>
+                       </Link>
+                     ) : item.title === "Climate" ? (
+                       <Link href="/climate-scenarios">
+                         <button 
+                           className="border-2 border-green-400 text-green-600 hover:bg-green-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                         >
+                           MORE
+                         </button>
+                       </Link>
+                     ) : item.title === "Materiality" ? (
+                       <Link href="/materiality">
+                         <button 
+                           className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                         >
+                           MORE
+                         </button>
+                       </Link>
+                     ) : item.title === "My Gallery" ? (
+                        <Link href="/photo-gallery">
+                          <button 
+                            className="border-2 border-purple-400 text-purple-600 hover:bg-purple-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                          >
+                            MORE
+                          </button>
+                        </Link>
+                      ) : item.title === "재무대시보드" ? (
                         <button 
-                          className="border-2 border-purple-400 text-purple-600 hover:bg-purple-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
-                        >
-                          MORE
-                        </button>
-                      </Link>
-                    ) : item.title === "재무대시보드" ? (
-                      <button 
-                        onClick={() => window.open('https://finance-dashboard-git-main-jeongtaeyeongs-projects.vercel.app', '_blank')}
-                        className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
-                      >
-                        MORE
-                      </button>
-                    ) : item.title === "ESG 공시 챗봇" ? (
-                      <Link href="/chatbot">
-                        <button 
-                          className="border-2 border-green-400 text-green-600 hover:bg-green-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
-                        >
-                          MORE
-                        </button>
-                      </Link>
-                    ) : item.title === "GRI" ? (
-                      <Link href="/gri">
-                        <button 
+                          onClick={() => window.open('https://finance-dashboard-git-main-jeongtaeyeongs-projects.vercel.app', '_blank')}
                           className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
                         >
                           MORE
                         </button>
-                      </Link>
-                    ) : (
-                     <button className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
-                       MORE
-                     </button>
-                   )}
+                      ) : item.title === "ESG 공시 챗봇" ? (
+                        <Link href="/chatbot">
+                          <button 
+                            className="border-2 border-green-400 text-green-600 hover:bg-green-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                          >
+                            MORE
+                          </button>
+                        </Link>
+                      ) : item.title === "GRI" ? (
+                        <Link href="/gri">
+                          <button 
+                            className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                          >
+                            MORE
+                          </button>
+                        </Link>
+                      ) : (
+                       <button className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
+                         MORE
+                       </button>
+                     )}
+                   </div>
                  </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+               ))}
+             </div>
+           </div>
+         </div>
+       </section>
 
       
 
