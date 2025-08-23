@@ -14,7 +14,7 @@ async def root():
 async def health_check():
     return {"status": "healthy"}
 
-@tcfdreport_router.post("/api/v1/tcfdreport/inputs")
+@tcfdreport_router.post("/inputs")
 async def create_tcfd_inputs(data: Dict[str, Any]):
     """TCFD 입력 데이터 생성"""
     try:
@@ -33,7 +33,7 @@ async def create_tcfd_inputs(data: Dict[str, Any]):
         logger.error(f"TCFD 입력 데이터 생성 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=f"데이터 저장 실패: {str(e)}")
 
-@tcfdreport_router.get("/api/v1/tcfdreport/inputs/{company_name}")
+@tcfdreport_router.get("/inputs/{company_name}")
 async def get_tcfd_inputs(company_name: str):
     """회사별 TCFD 입력 데이터 조회"""
     try:

@@ -143,7 +143,7 @@ async def root():
 # 라우터 등록
 try:
     from app.router import tcfdreport_router
-    app.include_router(tcfdreport_router, prefix="/api/v1/tcfd-report")
+    app.include_router(tcfdreport_router, prefix="/api/v1/tcfdreport")
     logger.info("✅ TCFD Report 라우터 등록 완료")
 except Exception as e:
     logger.error(f"❌ TCFD Report 라우터 등록 실패: {e}")
