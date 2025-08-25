@@ -239,7 +239,7 @@ export default function TcfdSrPage() {
 
       if (data.success === false) {
         throw new Error(data.error || '재무정보를 불러올 수 없습니다');
-        }
+      }
 
       setCompanyFinancialData(data);
       console.log('✅ 데이터 설정 완료:', data);
@@ -476,11 +476,11 @@ export default function TcfdSrPage() {
 
           // 토큰이 있으면 인증 상태 설정
           console.log('🔍 토큰 존재, 인증 상태 설정');
-          setIsAuthenticated(true);
+            setIsAuthenticated(true);
 
           // TCFD 표준 데이터 로드
-          console.log('🔍 TCFD 표준 데이터 로드 시작...');
-          await fetchTcfdStandards();
+            console.log('🔍 TCFD 표준 데이터 로드 시작...');
+            await fetchTcfdStandards();
         } catch (error: any) {
           console.error('❌ 인증 확인 실패:', error);
           if (error.response?.status === 401) {
@@ -637,8 +637,8 @@ export default function TcfdSrPage() {
       <Header />
       <div className="pt-16">
                  <div className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-section">
-                     {/* 헤더 */}
-           <div className="text-center mb-8">
+          {/* 헤더 */}
+          <div className="text-center mb-8">
                                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-brand shadow-soft p-8 max-w-7xl mx-auto relative">
                  <div className="flex justify-between items-start">
                    <div className="flex-1">
@@ -664,7 +664,7 @@ export default function TcfdSrPage() {
                     </button>
                  </div>
                </div>
-           </div>
+          </div>
 
           {/* 탭 네비게이션과 컨텐츠를 가로로 배치 */}
                      <div className="flex gap-8">
@@ -692,12 +692,12 @@ export default function TcfdSrPage() {
                   </button>
                 ))}
               </nav>
-            </div>
+          </div>
 
             {/* 오른쪽 탭 컨텐츠 */}
                          <div className="flex-1 bg-white rounded-brand shadow-soft border border-gray-300 p-8">
-              {/* 탭 1: 회사정보 */}
-              {activeTab === 1 && (
+            {/* 탭 1: 회사정보 */}
+            {activeTab === 1 && (
                 <div className="space-y-6">
                                      <div className="flex items-center gap-3 mb-6">
                      <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
@@ -706,11 +706,11 @@ export default function TcfdSrPage() {
                      <h2 className="text-xl font-semibold text-gray-800">회사정보</h2>
                    </div>
 
-                  {/* 회사 검색 */}
+                {/* 회사 검색 */}
                   <div className="space-y-4">
                     <label className="block text-sm font-medium text-gray-700">
-                      회사명 검색
-                    </label>
+                        회사명 검색
+                      </label>
                     {userCompanyName && (
                       <div className="bg-blue-50 border border-blue-200 rounded-brand p-3">
                         <p className="text-blue-700 text-sm">
@@ -727,13 +727,13 @@ export default function TcfdSrPage() {
                         placeholder={userCompanyName ? `검색할 회사명: ${userCompanyName}` : "회사명을 입력하세요"}
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-brand focus:ring-2 focus:ring-primary-500 focus:border-transparent text-black placeholder-gray-500"
                       />
-                      <button
+                    <button
                         onClick={() => loadCompanyFinancialData(companyName)}
                         disabled={isLoadingCompany || !companyName.trim()}
                         className="px-6 py-2 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isLoadingCompany ? '검색 중...' : '검색'}
-                      </button>
+                    >
+                      {isLoadingCompany ? '검색 중...' : '검색'}
+                    </button>
                     </div>
                   </div>
 
@@ -741,7 +741,7 @@ export default function TcfdSrPage() {
                   {companyError && (
                     <div className="bg-red-50 border border-red-200 rounded-brand p-4">
                       <p className="text-red-700">{companyError}</p>
-                    </div>
+                </div>
                   )}
 
                   {/* 기업개요 정보 표시 */}
@@ -749,7 +749,7 @@ export default function TcfdSrPage() {
                     <div className="bg-success-50 border border-success-200 rounded-brand p-6">
                                              <h3 className="text-lg font-semibold text-black mb-4">
                          ✅ {companyOverview.종목명}
-                       </h3>
+                      </h3>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-3">
@@ -765,13 +765,13 @@ export default function TcfdSrPage() {
                             <span className="font-medium text-gray-700">대표자:</span>
                             <span className="ml-2 text-gray-900">{companyOverview.대표자 || '정보 없음'}</span>
                           </div>
-                        </div>
-                        
+                    </div>
+
                         <div className="space-y-3">
                           <div>
                             <span className="font-medium text-gray-700">주소:</span>
                             <span className="ml-2 text-gray-900">{companyOverview.주소 || '정보 없음'}</span>
-                          </div>
+                  </div>
                           <div>
                             <span className="font-medium text-gray-700">전화번호:</span>
                             <span className="ml-2 text-gray-900">{companyOverview.전화번호 || '정보 없음'}</span>
@@ -820,72 +820,72 @@ export default function TcfdSrPage() {
                       >
                         재무정보 탭으로 이동
                       </button>
-                    </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
+            )}
 
-              {/* 탭 2: 재무정보 */}
-              {activeTab === 2 && (
-                <div>
-                  <h2 className="text-2xl font-bold text-primary-600 mb-6">💰 재무정보</h2>
+            {/* 탭 2: 재무정보 */}
+            {activeTab === 2 && (
+              <div>
+                <h2 className="text-2xl font-bold text-primary-600 mb-6">💰 재무정보</h2>
 
-                  {/* 회사 검색 결과가 없을 때 안내 메시지 */}
-                  {!companyFinancialData && (
-                    <div className="text-center py-12">
-                      <div className="bg-primary-100 border border-primary-300 rounded-brand p-6">
+                {/* 회사 검색 결과가 없을 때 안내 메시지 */}
+                {!companyFinancialData && (
+                  <div className="text-center py-12">
+                    <div className="bg-primary-100 border border-primary-300 rounded-brand p-6">
                         <h3 className="text-lg font-semibold text-primary-700 mb-2">회사 검색이 필요합니다</h3>
-                        <p className="text-primary-600 mb-4">
-                          회사정보 탭에서 회사명을 검색하면 해당 회사의 재무정보가 여기에 표시됩니다.
-                        </p>
-                        <button
-                          onClick={() => setActiveTab(1)}
-                          className="px-6 py-2 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100"
-                        >
-                          회사정보 탭으로 이동
-                        </button>
-                      </div>
+                      <p className="text-primary-600 mb-4">
+                        회사정보 탭에서 회사명을 검색하면 해당 회사의 재무정보가 여기에 표시됩니다.
+                      </p>
+                      <button
+                        onClick={() => setActiveTab(1)}
+                        className="px-6 py-2 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100"
+                      >
+                        회사정보 탭으로 이동
+                      </button>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* 회사별 재무정보 표시 */}
-                  {companyFinancialData && (
-                    <div>
-                      {/* 5개 테이블 데이터 표시 - 순서 변경 */}
+                {/* 회사별 재무정보 표시 */}
+                {companyFinancialData && (
+                  <div>
+                    {/* 5개 테이블 데이터 표시 - 순서 변경 */}
                       {renderFinancialTable(
                         companyFinancialData.data?.corporation,
                         '전체기업 정보',
                       )}
-                      {renderFinancialTable(companyFinancialData.data?.financial, '재무상태')}
-                      {renderFinancialTable(companyFinancialData.data?.profit, '손익계산')}
-                      {renderFinancialTable(companyFinancialData.data?.executive, '임원 정보')}
-                      {renderFinancialTable(companyFinancialData.data?.employee, '직원 정보')}
+                    {renderFinancialTable(companyFinancialData.data?.financial, '재무상태')}
+                    {renderFinancialTable(companyFinancialData.data?.profit, '손익계산')}
+                    {renderFinancialTable(companyFinancialData.data?.executive, '임원 정보')}
+                    {renderFinancialTable(companyFinancialData.data?.employee, '직원 정보')}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 탭 3: TCFD 프레임워크 */}
+            {activeTab === 3 && (
+              <div>
+                <h2 className="text-2xl font-bold text-primary-600 mb-6">📊 TCFD 프레임워크</h2>
+
+                {/* TCFD 표준 정보 표시 */}
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">TCFD 표준 권고사항</h3>
+
+                  {isLoadingTcfd && (
+                    <div className="text-center py-8">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
+                      <p className="mt-2 text-gray-700">TCFD 표준 정보를 불러오는 중...</p>
                     </div>
                   )}
-                </div>
-              )}
 
-              {/* 탭 3: TCFD 프레임워크 */}
-              {activeTab === 3 && (
-                <div>
-                  <h2 className="text-2xl font-bold text-primary-600 mb-6">📊 TCFD 프레임워크</h2>
-
-                  {/* TCFD 표준 정보 표시 */}
-                  <div className="mb-8">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-4">TCFD 표준 권고사항</h3>
-
-                    {isLoadingTcfd && (
-                      <div className="text-center py-8">
-                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
-                        <p className="mt-2 text-gray-700">TCFD 표준 정보를 불러오는 중...</p>
-                      </div>
-                    )}
-
-                    {tcfdError && (
-                      <div className="bg-danger-50 border border-danger-200 rounded-brand p-4 mb-4">
-                        <p className="text-danger-700">{tcfdError}</p>
-                      </div>
-                    )}
+                  {tcfdError && (
+                    <div className="bg-danger-50 border border-danger-200 rounded-brand p-4 mb-4">
+                      <p className="text-danger-700">{tcfdError}</p>
+                    </div>
+                  )}
 
                     {!isLoadingTcfd && !tcfdError && Object.keys(tcfdStandards).length > 0 && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -937,386 +937,386 @@ export default function TcfdSrPage() {
                       </div>
                     )}
 
-                    {!isLoadingTcfd && !tcfdError && Object.keys(tcfdStandards).length === 0 && (
-                      <div className="text-center py-8">
-                        <p className="text-gray-500">TCFD 표준 정보가 없습니다.</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* TCFD 11개 인덱스 입력 폼 */}
-                  {companyFinancialData && (
-                    <div className="mt-8">
-                      <h4 className="text-lg font-semibold text-gray-800 mb-4">
-                        TCFD 11개 핵심 인덱스 데이터 입력
-                      </h4>
-
-                      {/* 거버넌스 */}
-                      <div className="mb-6">
-                        <h5 className="text-md font-semibold text-blue-700 mb-3 border-b border-blue-200 pb-2">
-                          거버넌스 (Governance)
-                        </h5>
-                        <div className="space-y-4">
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              G1: 기후 관련 위험과 기회에 대한 이사회 감독
-                            </label>
-                            <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
-                              rows={3}
-                              placeholder="이사회가 기후 관련 위험과 기회를 어떻게 감독하고 있는지 설명하세요..."
-                              value={tcfdInputData.governance_g1}
-                              onChange={(e) => handleTcfdInputChange('governance_g1', e.target.value)}
-                            />
-                            <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                              <p className="text-xs text-blue-700 font-medium mb-1">💡 예시:</p>
-                              <p className="text-xs text-black">
-                                &ldquo;이사회는 기후변화 관련 주요 리스크와 기회를 정기적으로 검토하며, 연 2회 이상 ESG
-                                위원회를 통해 관련 안건을 심의합니다.&rdquo;
-                              </p>
-                            </div>
-                          </div>
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              G2: 기후 관련 위험과 기회에 대한 경영진 역할
-                            </label>
-                            <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
-                              rows={3}
-                              placeholder="경영진이 기후 관련 위험과 기회를 어떻게 관리하는지 설명하세요..."
-                              value={tcfdInputData.governance_g2}
-                              onChange={(e) => handleTcfdInputChange('governance_g2', e.target.value)}
-                            />
-                            <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                              <p className="text-xs text-blue-700 font-medium mb-1">💡 예시:</p>
-                              <p className="text-xs text-black">
-                                &ldquo;경영진은 탄소중립 목표 달성을 위한 실행계획을 수립하고, 각 사업부에 KPI를 배분하여
-                                이행 상황을 모니터링합니다.&rdquo;
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 전략 */}
-                      <div className="mb-6">
-                        <h5 className="text-md font-semibold text-green-700 mb-3 border-b border-green-200 pb-2">
-                          전략 (Strategy)
-                        </h5>
-                        <div className="space-y-4">
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              S1: 기후 관련 위험과 기회의 비즈니스 영향
-                            </label>
-                            <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
-                              rows={3}
-                              placeholder="기후 관련 위험과 기회가 조직의 비즈니스, 전략, 재무 계획에 미치는 영향을 설명하세요..."
-                              value={tcfdInputData.strategy_s1}
-                              onChange={(e) => handleTcfdInputChange('strategy_s1', e.target.value)}
-                            />
-                            <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                              <p className="text-xs text-green-700 font-medium mb-1">💡 예시:</p>
-                              <p className="text-xs text-black">
-                                &ldquo;기후변화로 인한 원자재 가격 변동은 당사 제조원가에 영향을 미칠 수 있으며, 이에 따라
-                                공급망 다변화 전략을 추진하고 있습니다.&rdquo;
-                              </p>
-                            </div>
-                          </div>
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              S2: 전략적 영향의 실제 잠재적 영향
-                            </label>
-                            <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
-                              rows={3}
-                              placeholder="조직의 전략, 비즈니스, 재무 계획에 미치는 기후 관련 위험과 기회의 실제 잠재적 영향을 설명하세요..."
-                              value={tcfdInputData.strategy_s2}
-                              onChange={(e) => handleTcfdInputChange('strategy_s2', e.target.value)}
-                            />
-                            <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                              <p className="text-xs text-green-700 font-medium mb-1">💡 예시:</p>
-                              <p className="text-xs text-black">
-                                &ldquo;탄소중립 정책으로 인한 규제 강화는 당사 제품의 경쟁력을 재정의할 수 있으며, 친환경
-                                기술 개발에 대한 투자를 확대하고 있습니다.&rdquo;
-                              </p>
-                            </div>
-                          </div>
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              S3: 기후 시나리오 분석
-                            </label>
-                            <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
-                              rows={3}
-                              placeholder="조직이 사용하는 기후 시나리오 분석 방법과 결과를 설명하세요..."
-                              value={tcfdInputData.strategy_s3}
-                              onChange={(e) => handleTcfdInputChange('strategy_s3', e.target.value)}
-                            />
-                            <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                              <p className="text-xs text-green-700 font-medium mb-1">💡 예시:</p>
-                              <p className="text-xs text-black">
-                                &ldquo;IPCC RCP 2.6 및 RCP 8.5 시나리오를 기반으로 2030년, 2050년, 2100년까지의 기후 변화
-                                영향을 분석하여 장기 전략을 수립하고 있습니다.&rdquo;
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 리스크 관리 */}
-                      <div className="mb-6">
-                        <h5 className="text-md font-semibold text-yellow-700 mb-3 border-b border-yellow-200 pb-2">
-                          리스크 관리 (Risk Management)
-                        </h5>
-                        <div className="space-y-4">
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              R1: 기후 관련 위험 식별 및 평가 프로세스
-                            </label>
-                            <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
-                              rows={3}
-                              placeholder="조직이 기후 관련 위험을 식별, 평가, 관리하는 프로세스를 설명하세요..."
-                              value={tcfdInputData.risk_management_r1}
-                              onChange={(e) => handleTcfdInputChange('risk_management_r1', e.target.value)}
-                            />
-                            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                              <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
-                              <p className="text-xs text-black">
-                                &ldquo;기후 관련 위험은 분기별 리스크 평가 회의에서 식별하고, 위험도와 영향도를 매트릭스로
-                                평가하여 우선순위를 정하고 있습니다.&rdquo;
-                              </p>
-                            </div>
-                          </div>
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              R2: 위험 관리 프로세스 통합
-                            </label>
-                            <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
-                              rows={3}
-                              placeholder="조직의 전반적인 위험 관리 프로세스에 기후 관련 위험을 통합하는 방법을 설명하세요..."
-                              value={tcfdInputData.risk_management_r2}
-                              onChange={(e) => handleTcfdInputChange('risk_management_r2', e.target.value)}
-                            />
-                            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                              <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
-                              <p className="text-xs text-black">
-                                &ldquo;기후 관련 위험은 기존 ERM(Enterprise Risk Management) 프레임워크에 통합하여 전사적
-                                위험 관리 체계의 일부로 운영하고 있습니다.&rdquo;
-                              </p>
-                            </div>
-                          </div>
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              R3: 기후 관련 위험을 전사적 위험 관리 프로세스에 통합
-                            </label>
-                            <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
-                              rows={3}
-                              placeholder="기후 관련 위험을 조직의 전사적 위험 관리 프로세스에 어떻게 통합하고 있는지 설명하세요..."
-                              value={tcfdInputData.risk_management_r3}
-                              onChange={(e) => handleTcfdInputChange('risk_management_r3', e.target.value)}
-                            />
-                            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                              <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
-                              <p className="text-xs text-black">
-                                &ldquo;기후 관련 위험은 분기별 전사적 위험 평가에 포함되어 있으며, 위험도와 영향도를
-                                정량적으로 평가하여 리스크 매트릭스에 반영하고 있습니다.&rdquo;
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 지표 및 목표 */}
-                      <div className="mb-6">
-                        <h5 className="text-md font-semibold text-purple-700 mb-3 border-b border-purple-200 pb-2">
-                          지표 및 목표 (Metrics and Targets)
-                        </h5>
-                        <div className="space-y-4">
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              M1: 기후 관련 위험 평가 지표
-                            </label>
-                            <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
-                              rows={3}
-                              placeholder="조직이 기후 관련 위험과 기회를 평가하는 데 사용하는 지표를 설명하세요..."
-                              value={tcfdInputData.metrics_targets_m1}
-                              onChange={(e) => handleTcfdInputChange('metrics_targets_m1', e.target.value)}
-                            />
-                            <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                              <p className="text-xs text-purple-700 font-medium mb-1">💡 예시:</p>
-                              <p className="text-xs text-black">
-                                &ldquo;탄소 배출량(tCO2e), 에너지 효율성(단위당 에너지 소비량), 기후 관련 규제 준수율 등을
-                                주요 지표로 사용하고 있습니다.&rdquo;
-                              </p>
-                            </div>
-                          </div>
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              M2: 기후 관련 기회 평가 지표
-                            </label>
-                            <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
-                              rows={3}
-                              placeholder="기후 관련 위험과 기회를 평가하는 데 사용하는 지표를 설명하세요..."
-                              value={tcfdInputData.metrics_targets_m2}
-                              onChange={(e) => handleTcfdInputChange('metrics_targets_m2', e.target.value)}
-                            />
-                            <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                              <p className="text-xs text-purple-700 font-medium mb-1">💡 예시:</p>
-                              <p className="text-xs text-black">
-                                &ldquo;친환경 제품 매출 비중, 재생에너지 사용률, 기후 관련 R&amp;D 투자 비율 등을 기회 평가
-                                지표로 활용하고 있습니다.&rdquo;
-                              </p>
-                            </div>
-                          </div>
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              M3: 기후 관련 목표 설정
-                            </label>
-                            <textarea
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
-                              rows={3}
-                              placeholder="조직이 기후 관련 위험과 기회를 평가하는 데 사용하는 목표를 설명하세요..."
-                              value={tcfdInputData.metrics_targets_m3}
-                              onChange={(e) => handleTcfdInputChange('metrics_targets_m3', e.target.value)}
-                            />
-                            <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                              <p className="text-xs text-purple-700 font-medium mb-1">💡 예시:</p>
-                              <p className="text-xs text-black">
-                                &ldquo;2030년까지 탄소 배출량 30% 감축, 2050년까지 탄소중립 달성, 재생에너지 사용률 50% 달성
-                                등의 목표를 설정하고 있습니다.&rdquo;
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 제출 버튼 */}
-                      <div className="flex justify-center mt-8">
-                        <button
-                          className="px-6 py-3 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-                          onClick={handleTcfdSubmit}
-                          disabled={isSubmitting}
-                        >
-                          {isSubmitting ? '저장 중...' : 'TCFD 분석 시작'}
-                        </button>
-                      </div>
+                  {!isLoadingTcfd && !tcfdError && Object.keys(tcfdStandards).length === 0 && (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">TCFD 표준 정보가 없습니다.</p>
                     </div>
                   )}
                 </div>
-              )}
 
-              {/* 탭 4: 기후시나리오 */}
-              {activeTab === 4 && (
-                <div>
-                  <h2 className="text-2xl font-bold text-primary-600 mb-6">🌍 기후시나리오</h2>
-                  <div className="space-y-4">
-                    <div className="bg-danger-50 p-4 rounded-brand border border-danger-200">
-                      <h3 className="text-lg font-semibold text-black mb-2">SSP 8.5 (고탄소 시나리오)</h3>
-                      <p className="text-black mb-4">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
-                      <button
-                        onClick={() => handleClimateDetails('ssp8.5')}
-                        className="px-4 py-2 bg-danger-600 text-black rounded-brand shadow-soft hover:bg-danger-700 transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-danger-100"
-                      >
-                        상세보기
-                      </button>
+                {/* TCFD 11개 인덱스 입력 폼 */}
+                {companyFinancialData && (
+                  <div className="mt-8">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                      TCFD 11개 핵심 인덱스 데이터 입력
+                    </h4>
+
+                    {/* 거버넌스 */}
+                    <div className="mb-6">
+                      <h5 className="text-md font-semibold text-blue-700 mb-3 border-b border-blue-200 pb-2">
+                        거버넌스 (Governance)
+                      </h5>
+                      <div className="space-y-4">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            G1: 기후 관련 위험과 기회에 대한 이사회 감독
+                          </label>
+                          <textarea
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
+                            rows={3}
+                            placeholder="이사회가 기후 관련 위험과 기회를 어떻게 감독하고 있는지 설명하세요..."
+                            value={tcfdInputData.governance_g1}
+                            onChange={(e) => handleTcfdInputChange('governance_g1', e.target.value)}
+                          />
+                          <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-xs text-blue-700 font-medium mb-1">💡 예시:</p>
+                            <p className="text-xs text-black">
+                              &ldquo;이사회는 기후변화 관련 주요 리스크와 기회를 정기적으로 검토하며, 연 2회 이상 ESG
+                              위원회를 통해 관련 안건을 심의합니다.&rdquo;
+                            </p>
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            G2: 기후 관련 위험과 기회에 대한 경영진 역할
+                          </label>
+                          <textarea
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
+                            rows={3}
+                            placeholder="경영진이 기후 관련 위험과 기회를 어떻게 관리하는지 설명하세요..."
+                            value={tcfdInputData.governance_g2}
+                            onChange={(e) => handleTcfdInputChange('governance_g2', e.target.value)}
+                          />
+                          <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-xs text-blue-700 font-medium mb-1">💡 예시:</p>
+                            <p className="text-xs text-black">
+                              &ldquo;경영진은 탄소중립 목표 달성을 위한 실행계획을 수립하고, 각 사업부에 KPI를 배분하여
+                              이행 상황을 모니터링합니다.&rdquo;
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="bg-info-50 p-4 rounded-brand border border-info-200">
-                      <h3 className="text-lg font-semibold text-black mb-2">SSP 2.6 (극저탄소 시나리오)</h3>
-                      <p className="text-black mb-4">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
-                      <button
-                        onClick={() => handleClimateDetails('ssp2.6')}
-                        className="px-4 py-2 bg-info-600 text-black rounded-brand shadow-soft hover:bg-info-700 transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-info-100"
-                      >
-                        상세보기
-                      </button>
+                    {/* 전략 */}
+                    <div className="mb-6">
+                      <h5 className="text-md font-semibold text-green-700 mb-3 border-b border-green-200 pb-2">
+                        전략 (Strategy)
+                      </h5>
+                      <div className="space-y-4">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            S1: 기후 관련 위험과 기회의 비즈니스 영향
+                          </label>
+                          <textarea
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
+                            rows={3}
+                            placeholder="기후 관련 위험과 기회가 조직의 비즈니스, 전략, 재무 계획에 미치는 영향을 설명하세요..."
+                            value={tcfdInputData.strategy_s1}
+                            onChange={(e) => handleTcfdInputChange('strategy_s1', e.target.value)}
+                          />
+                          <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p className="text-xs text-green-700 font-medium mb-1">💡 예시:</p>
+                            <p className="text-xs text-black">
+                              &ldquo;기후변화로 인한 원자재 가격 변동은 당사 제조원가에 영향을 미칠 수 있으며, 이에 따라
+                              공급망 다변화 전략을 추진하고 있습니다.&rdquo;
+                            </p>
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            S2: 전략적 영향의 실제 잠재적 영향
+                          </label>
+                          <textarea
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
+                            rows={3}
+                            placeholder="조직의 전략, 비즈니스, 재무 계획에 미치는 기후 관련 위험과 기회의 실제 잠재적 영향을 설명하세요..."
+                            value={tcfdInputData.strategy_s2}
+                            onChange={(e) => handleTcfdInputChange('strategy_s2', e.target.value)}
+                          />
+                          <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p className="text-xs text-green-700 font-medium mb-1">💡 예시:</p>
+                            <p className="text-xs text-black">
+                              &ldquo;탄소중립 정책으로 인한 규제 강화는 당사 제품의 경쟁력을 재정의할 수 있으며, 친환경
+                              기술 개발에 대한 투자를 확대하고 있습니다.&rdquo;
+                            </p>
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            S3: 기후 시나리오 분석
+                          </label>
+                          <textarea
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
+                            rows={3}
+                            placeholder="조직이 사용하는 기후 시나리오 분석 방법과 결과를 설명하세요..."
+                            value={tcfdInputData.strategy_s3}
+                            onChange={(e) => handleTcfdInputChange('strategy_s3', e.target.value)}
+                          />
+                          <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p className="text-xs text-green-700 font-medium mb-1">💡 예시:</p>
+                            <p className="text-xs text-black">
+                              &ldquo;IPCC RCP 2.6 및 RCP 8.5 시나리오를 기반으로 2030년, 2050년, 2100년까지의 기후 변화
+                              영향을 분석하여 장기 전략을 수립하고 있습니다.&rdquo;
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* 기후 시나리오 이미지 갤러리로 이동하는 More 버튼 */}
-                    <div className="mt-6 text-center">
+                    {/* 리스크 관리 */}
+                    <div className="mb-6">
+                      <h5 className="text-md font-semibold text-yellow-700 mb-3 border-b border-yellow-200 pb-2">
+                        리스크 관리 (Risk Management)
+                      </h5>
+                      <div className="space-y-4">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            R1: 기후 관련 위험 식별 및 평가 프로세스
+                          </label>
+                          <textarea
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
+                            rows={3}
+                            placeholder="조직이 기후 관련 위험을 식별, 평가, 관리하는 프로세스를 설명하세요..."
+                            value={tcfdInputData.risk_management_r1}
+                            onChange={(e) => handleTcfdInputChange('risk_management_r1', e.target.value)}
+                          />
+                          <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
+                            <p className="text-xs text-black">
+                              &ldquo;기후 관련 위험은 분기별 리스크 평가 회의에서 식별하고, 위험도와 영향도를 매트릭스로
+                              평가하여 우선순위를 정하고 있습니다.&rdquo;
+                            </p>
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            R2: 위험 관리 프로세스 통합
+                          </label>
+                          <textarea
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
+                            rows={3}
+                            placeholder="조직의 전반적인 위험 관리 프로세스에 기후 관련 위험을 통합하는 방법을 설명하세요..."
+                            value={tcfdInputData.risk_management_r2}
+                            onChange={(e) => handleTcfdInputChange('risk_management_r2', e.target.value)}
+                          />
+                          <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
+                            <p className="text-xs text-black">
+                              &ldquo;기후 관련 위험은 기존 ERM(Enterprise Risk Management) 프레임워크에 통합하여 전사적
+                              위험 관리 체계의 일부로 운영하고 있습니다.&rdquo;
+                            </p>
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            R3: 기후 관련 위험을 전사적 위험 관리 프로세스에 통합
+                          </label>
+                          <textarea
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
+                            rows={3}
+                            placeholder="기후 관련 위험을 조직의 전사적 위험 관리 프로세스에 어떻게 통합하고 있는지 설명하세요..."
+                            value={tcfdInputData.risk_management_r3}
+                            onChange={(e) => handleTcfdInputChange('risk_management_r3', e.target.value)}
+                          />
+                          <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
+                            <p className="text-xs text-black">
+                              &ldquo;기후 관련 위험은 분기별 전사적 위험 평가에 포함되어 있으며, 위험도와 영향도를
+                              정량적으로 평가하여 리스크 매트릭스에 반영하고 있습니다.&rdquo;
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 지표 및 목표 */}
+                    <div className="mb-6">
+                      <h5 className="text-md font-semibold text-purple-700 mb-3 border-b border-purple-200 pb-2">
+                        지표 및 목표 (Metrics and Targets)
+                      </h5>
+                      <div className="space-y-4">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            M1: 기후 관련 위험 평가 지표
+                          </label>
+                          <textarea
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
+                            rows={3}
+                            placeholder="조직이 기후 관련 위험과 기회를 평가하는 데 사용하는 지표를 설명하세요..."
+                            value={tcfdInputData.metrics_targets_m1}
+                            onChange={(e) => handleTcfdInputChange('metrics_targets_m1', e.target.value)}
+                          />
+                          <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                            <p className="text-xs text-purple-700 font-medium mb-1">💡 예시:</p>
+                            <p className="text-xs text-black">
+                              &ldquo;탄소 배출량(tCO2e), 에너지 효율성(단위당 에너지 소비량), 기후 관련 규제 준수율 등을
+                              주요 지표로 사용하고 있습니다.&rdquo;
+                            </p>
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            M2: 기후 관련 기회 평가 지표
+                          </label>
+                          <textarea
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
+                            rows={3}
+                            placeholder="기후 관련 위험과 기회를 평가하는 데 사용하는 지표를 설명하세요..."
+                            value={tcfdInputData.metrics_targets_m2}
+                            onChange={(e) => handleTcfdInputChange('metrics_targets_m2', e.target.value)}
+                          />
+                          <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                            <p className="text-xs text-purple-700 font-medium mb-1">💡 예시:</p>
+                            <p className="text-xs text-black">
+                              &ldquo;친환경 제품 매출 비중, 재생에너지 사용률, 기후 관련 R&amp;D 투자 비율 등을 기회 평가
+                              지표로 활용하고 있습니다.&rdquo;
+                            </p>
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            M3: 기후 관련 목표 설정
+                          </label>
+                          <textarea
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
+                            rows={3}
+                            placeholder="조직이 기후 관련 위험과 기회를 평가하는 데 사용하는 목표를 설명하세요..."
+                            value={tcfdInputData.metrics_targets_m3}
+                            onChange={(e) => handleTcfdInputChange('metrics_targets_m3', e.target.value)}
+                          />
+                          <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                            <p className="text-xs text-purple-700 font-medium mb-1">💡 예시:</p>
+                            <p className="text-xs text-black">
+                              &ldquo;2030년까지 탄소 배출량 30% 감축, 2050년까지 탄소중립 달성, 재생에너지 사용률 50% 달성
+                              등의 목표를 설정하고 있습니다.&rdquo;
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 제출 버튼 */}
+                    <div className="flex justify-center mt-8">
                       <button
-                        onClick={() => {
-                          const token = localStorage.getItem('auth_token');
-                          if (token) {
-                            router.push('/climate-scenarios');
-                          } else {
-                            alert('로그인이 필요합니다. 먼저 로그인해주세요.');
-                            router.push('/login');
-                          }
-                        }}
-                                                 className="px-8 py-3 bg-success-600 text-black rounded-brand shadow-soft hover:bg-success-700 transition-colors font-medium text-lg focus:outline-none focus:ring-2 focus:ring-success-100"
+                        className="px-6 py-3 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+                        onClick={handleTcfdSubmit}
+                        disabled={isSubmitting}
                       >
-                        🌍 기후 시나리오 이미지 더보기
+                        {isSubmitting ? '저장 중...' : 'TCFD 분석 시작'}
                       </button>
-                                             <p className="text-sm text-black mt-2">
-                         SSP 2.6과 SSP 8.5 시나리오의 상세한 기후 변화 예측 이미지를 확인하세요
-                       </p>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            )}
 
-              {/* 탭 5: AI보고서 초안 */}
-              {activeTab === 5 && (
-                <div>
-                  <h2 className="text-2xl font-bold text-primary-600 mb-6">🤖 AI보고서 초안</h2>
-                  <div className="bg-gradient-to-r from-primary-50 to-info-50 p-6 rounded-brand border border-primary-300">
-                    <h3 className="text-lg font-semibold text-black mb-4">AI 기반 TCFD 보고서 생성</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center">
-                        <span className="w-2 h-2 bg-primary-500 rounded-full mr-3" />
-                        <span className="text-black">회사 정보 및 재무 데이터 분석</span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="w-2 h-2 bg-info-500 rounded-full mr-3" />
-                        <span className="text-black">기후 위험 평가 및 시나리오 분석</span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="w-2 h-2 bg-success-500 rounded-full mr-3" />
-                        <span className="text-black">TCFD 프레임워크 기반 보고서 생성</span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="w-2 h-2 bg-warning-500 rounded-full mr-3" />
-                        <span className="text-black">지속가능성 지표 및 권장사항 제시</span>
-                      </div>
-                    </div>
-                    <button className="mt-6 px-6 py-3 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100">
-                      AI 보고서 생성 시작
+            {/* 탭 4: 기후시나리오 */}
+            {activeTab === 4 && (
+              <div>
+                <h2 className="text-2xl font-bold text-primary-600 mb-6">🌍 기후시나리오</h2>
+                <div className="space-y-4">
+                  <div className="bg-danger-50 p-4 rounded-brand border border-danger-200">
+                    <h3 className="text-lg font-semibold text-black mb-2">SSP 8.5 (고탄소 시나리오)</h3>
+                    <p className="text-black mb-4">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
+                    <button
+                      onClick={() => handleClimateDetails('ssp8.5')}
+                      className="px-4 py-2 bg-danger-600 text-black rounded-brand shadow-soft hover:bg-danger-700 transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-danger-100"
+                    >
+                      상세보기
                     </button>
                   </div>
+
+                  <div className="bg-info-50 p-4 rounded-brand border border-info-200">
+                    <h3 className="text-lg font-semibold text-black mb-2">SSP 2.6 (극저탄소 시나리오)</h3>
+                    <p className="text-black mb-4">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
+                    <button
+                      onClick={() => handleClimateDetails('ssp2.6')}
+                      className="px-4 py-2 bg-info-600 text-black rounded-brand shadow-soft hover:bg-info-700 transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-info-100"
+                    >
+                      상세보기
+                    </button>
+                  </div>
+
+                  {/* 기후 시나리오 이미지 갤러리로 이동하는 More 버튼 */}
+                  <div className="mt-6 text-center">
+                    <button
+                      onClick={() => {
+                        const token = localStorage.getItem('auth_token');
+                        if (token) {
+                          router.push('/climate-scenarios');
+                        } else {
+                          alert('로그인이 필요합니다. 먼저 로그인해주세요.');
+                          router.push('/login');
+                        }
+                      }}
+                                                 className="px-8 py-3 bg-success-600 text-black rounded-brand shadow-soft hover:bg-success-700 transition-colors font-medium text-lg focus:outline-none focus:ring-2 focus:ring-success-100"
+                    >
+                      🌍 기후 시나리오 이미지 더보기
+                    </button>
+                                             <p className="text-sm text-black mt-2">
+                      SSP 2.6과 SSP 8.5 시나리오의 상세한 기후 변화 예측 이미지를 확인하세요
+                    </p>
+                  </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* 탭 5: AI보고서 초안 */}
+            {activeTab === 5 && (
+              <div>
+                <h2 className="text-2xl font-bold text-primary-600 mb-6">🤖 AI보고서 초안</h2>
+                <div className="bg-gradient-to-r from-primary-50 to-info-50 p-6 rounded-brand border border-primary-300">
+                  <h3 className="text-lg font-semibold text-black mb-4">AI 기반 TCFD 보고서 생성</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center">
+                      <span className="w-2 h-2 bg-primary-500 rounded-full mr-3" />
+                      <span className="text-black">회사 정보 및 재무 데이터 분석</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-2 h-2 bg-info-500 rounded-full mr-3" />
+                      <span className="text-black">기후 위험 평가 및 시나리오 분석</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-2 h-2 bg-success-500 rounded-full mr-3" />
+                      <span className="text-black">TCFD 프레임워크 기반 보고서 생성</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-2 h-2 bg-warning-500 rounded-full mr-3" />
+                      <span className="text-black">지속가능성 지표 및 권장사항 제시</span>
+                    </div>
+                  </div>
+                  <button className="mt-6 px-6 py-3 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100">
+                    AI 보고서 생성 시작
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* 기후시나리오 상세보기 모달 */}
-          {isClimateModalOpen && selectedScenario && (
-            <ClimateScenarioModal
-              isOpen={isClimateModalOpen}
-              scenario={selectedScenario}
-              onClose={closeClimateModal}
-            />
-          )}
+        {/* 기후시나리오 상세보기 모달 */}
+        {isClimateModalOpen && selectedScenario && (
+          <ClimateScenarioModal
+            isOpen={isClimateModalOpen}
+            scenario={selectedScenario}
+            onClose={closeClimateModal}
+          />
+        )}
 
-                     {/* TCFD 상세보기 모달 */}
-           {isTcfdDetailModalOpen && selectedTcfdCategory && (
-             <TCFDDetailModal
-               isOpen={isTcfdDetailModalOpen}
-               onClose={closeTcfdDetailModal}
-               category={selectedTcfdCategory.category}
-               title={selectedTcfdCategory.title}
-               description={selectedTcfdCategory.description}
-               disclosures={selectedTcfdCategory.disclosures}
-               color={selectedTcfdCategory.color}
-               bgColor={selectedTcfdCategory.bgColor}
-             />
-           )}
+        {/* TCFD 상세보기 모달 */}
+        {isTcfdDetailModalOpen && selectedTcfdCategory && (
+          <TCFDDetailModal
+            isOpen={isTcfdDetailModalOpen}
+            onClose={closeTcfdDetailModal}
+            category={selectedTcfdCategory.category}
+            title={selectedTcfdCategory.title}
+            description={selectedTcfdCategory.description}
+            disclosures={selectedTcfdCategory.disclosures}
+            color={selectedTcfdCategory.color}
+            bgColor={selectedTcfdCategory.bgColor}
+          />
+        )}
 
            {/* 이용가이드 박스 */}
            {isGuideOpen && (
