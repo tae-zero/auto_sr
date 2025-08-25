@@ -126,8 +126,23 @@ export default function TcfdSrPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userCompanyName, setUserCompanyName] = useState<string | null>(null); // 사용자 회사이름 추가
   
-  // useAuthStore에서 사용자 정보 가져오기
-  const { user } = useAuthStore();
+  // JWT 토큰에서 사용자 정보 파싱하는 함수
+  const parseUserFromToken = () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return null;
+      
+      // JWT 토큰의 payload 부분 파싱 (base64 디코딩)
+      const payload = token.split('.')[1];
+      if (!payload) return null;
+      
+      const decodedPayload = JSON.parse(atob(payload));
+      return decodedPayload;
+    } catch (error) {
+      console.error('토큰 파싱 오류:', error);
+      return null;
+    }
+  };
 
   // 회사 검색 관련 상태
   const [companyName, setCompanyName] = useState(''); // 빈 문자열로 초기화
@@ -438,11 +453,12 @@ export default function TcfdSrPage() {
 
   // user 정보가 변경될 때 userCompanyName 설정
   useEffect(() => {
-    if (user && user.company_id) {
-      setUserCompanyName(user.company_id);
-      console.log('🏢 Header에서 가져온 사용자 회사이름:', user.company_id);
+    const userData = parseUserFromToken();
+    if (userData && userData.company_id) {
+      setUserCompanyName(userData.company_id);
+      console.log('🏢 JWT에서 파싱한 사용자 회사이름:', userData.company_id);
     }
-  }, [user]);
+  }, []);
 
   // 인증 상태 확인 (개선된 버전)
   useEffect(() => {
