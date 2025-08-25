@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ClimateScenarioModal, TCFDDetailModal } from '@/ui/molecules';
 import { Header } from '@/ui/organisms';
-import { apiClient, tcfdReportAPI, tcfdAPI, authService } from '@/shared/lib';
+import { apiClient, tcfdReportAPI, tcfdAPI } from '@/shared/lib';
 import { useAuthStore } from '@/shared/state/auth.store';
 import axios from 'axios';
 
@@ -118,23 +118,7 @@ interface TableRecord {
   [key: string]: string | number | boolean;
 }
 
-// 5개 테이블 데이터 타입 (TCFD Service 응답 구조와 일치)
-interface CompanyFinancialData {
-  success: boolean;
-  company_name: string;
-  company_id?: string;
-  found_in_table?: string;
-  total_records?: number;
-  tables?: string[];
-  data: {
-    employee: TableRecord[];
-    profit: TableRecord[];
-    executive: TableRecord[];
-    financial: TableRecord[];
-    corporation: TableRecord[];
-  };
-  message: string;
-}
+
 
 export default function TcfdSrPage() {
   const router = useRouter();
@@ -267,12 +251,7 @@ export default function TcfdSrPage() {
     }
   };
 
-  // 회사명 입력 시 재무정보 조회
-  const handleCompanySearch = () => {
-    if (companyName.trim()) {
-      loadCompanyFinancialData(companyName);
-    }
-  };
+
 
   // 상세보기 모달 열기/닫기
   const handleClimateDetails = (scenario: 'ssp2.6' | 'ssp8.5') => {
@@ -719,7 +698,7 @@ export default function TcfdSrPage() {
                     {userCompanyName && (
                       <div className="bg-blue-50 border border-blue-200 rounded-brand p-3">
                         <p className="text-blue-700 text-sm">
-                          ℹ️ 회원가입 시 입력한 회사이름 "{userCompanyName}"만 검색 가능합니다.
+                          ℹ️ 회원가입 시 입력한 회사이름 &ldquo;{userCompanyName}&rdquo;만 검색 가능합니다.
                         </p>
                       </div>
                     )}
