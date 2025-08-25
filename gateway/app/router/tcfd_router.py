@@ -469,14 +469,15 @@ async def get_company_overview(request: Request, company_name: str, authorizatio
         }
         
         async with httpx.AsyncClient(timeout=60.0) as client:
-            # Docker 환경에서는 컨테이너 이름을 사용
+            # Railway 환경에서는 실제 서비스 URL 사용, Docker에서는 컨테이너 이름 사용
             if os.getenv("RAILWAY_ENVIRONMENT") == "true":
-                # Railway 환경에서는 HTTPS 사용
+                # Railway 환경에서는 Service Discovery에서 가져온 실제 URL 사용
                 url = f"{host}/api/v1/tcfd/company-overview"
+                logger.info(f"🔧 Railway 환경에서 TCFD Service URL: {url}")
             else:
                 # Docker 환경에서는 컨테이너 이름과 포트 사용
                 url = f"http://tcfd-service:8005/api/v1/tcfd/company-overview"
-                logger.info(f"🔧 Docker 환경에서 TCFD Service URL 수정: {url}")
+                logger.info(f"🔧 Docker 환경에서 TCFD Service URL: {url}")
             
             logger.info(f"📤 최종 요청 URL: {url}")
             logger.info(f"📤 사용자 정보: {user_params}")

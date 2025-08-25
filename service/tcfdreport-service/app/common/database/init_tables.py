@@ -52,10 +52,10 @@ async def init_tables(database_url: str):
             logger.info("✅ tcfd_inputs 테이블 생성 완료")
         else:
             # 테이블이 존재하면 데이터만 삭제 (테이블 구조는 유지)
-            await conn.execute("DELETE FROM tcfd_inputs;")
+            # await conn.execute("DELETE FROM tcfd_inputs;")
             # 시퀀스도 초기화 (id를 1부터 다시 시작)
-            await conn.execute("ALTER SEQUENCE tcfd_inputs_id_seq RESTART WITH 1;")
-            logger.info("✅ 기존 tcfd_inputs 테이블 데이터 초기화 완료")
+            # await conn.execute("ALTER SEQUENCE tcfd_inputs_id_seq RESTART WITH 1;")
+            logger.info("✅ 기존 tcfd_inputs 테이블 데이터 완료")
         
         # 인덱스가 없으면 생성
         await conn.execute("""
