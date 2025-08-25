@@ -259,3 +259,27 @@ async def get_climate_scenarios():
     except Exception as e:
         logger.error(f"기후 시나리오 조회 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/company-overview")
+async def get_company_overview(company_name: str = Query(...)):
+    """회사별 기업개요 정보 조회"""
+    try:
+        logger.info(f"🔍 회사별 기업개요 정보 조회 요청: {company_name}")
+        
+        # 기업개요 데이터베이스에서 회사 정보 조회
+        result = await tcfd_service.get_company_overview(company_name)
+        
+        if not result:
+            raise HTTPException(status_code=404, detail=f"'{company_name}' 회사의 기업개요 정보를 찾을 수 없습니다")
+        
+        return {
+            "success": True,
+            "company_name": company_name,
+            "overview": result
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"회사별 기업개요 정보 조회 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

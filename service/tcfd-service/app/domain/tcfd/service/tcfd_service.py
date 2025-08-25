@@ -105,6 +105,68 @@ class TCFDService:
             logger.error(f"회사 목록 조회 실패: {str(e)}")
             raise Exception(f"회사 목록 조회 실패: {str(e)}")
     
+    async def get_company_overview(self, company_name: str) -> Optional[Dict]:
+        """회사별 기업개요 정보 조회"""
+        try:
+            logger.info(f"🔍 기업개요 정보 조회 시작: {company_name}")
+            
+            # PostgreSQL 데이터베이스 연결
+            from sqlalchemy import create_engine, text
+            import os
+            
+            # Railway 환경변수에서 데이터베이스 URL 가져오기
+            database_url = os.getenv('DATABASE_URL')
+            if not database_url:
+                logger.error("❌ DATABASE_URL 환경변수가 설정되지 않았습니다")
+                return None
+            
+            # Railway 환경변수 형식을 SQLAlchemy 형식으로 변환
+            if database_url.startswith('postgres://'):
+                database_url = database_url.replace('postgres://', 'postgresql://', 1)
+            
+            engine = create_engine(database_url)
+            
+            with engine.connect() as conn:
+                # 회사명으로 기업개요 정보 조회 (부분 일치)
+                query = text("""
+                    SELECT 종목코드, 종목명, 주소, 설립일, 대표자, 전화번호, 홈페이지
+                    FROM corporation_overview 
+                    WHERE LOWER(종목명) LIKE LOWER(:company_name) 
+                    OR LOWER(종목명) LIKE LOWER(:company_name_part)
+                    LIMIT 1
+                """)
+                
+                result = conn.execute(query, {
+                    "company_name": f"%{company_name}%",
+                    "company_name_part": f"{company_name}%"
+                })
+                
+                row = result.fetchone()
+                
+                if row:
+                    overview = {
+                        "종목코드": row[0],
+                        "종목명": row[1],
+                        "주소": row[2],
+                        "설립일": row[3].isoformat() if row[3] else None,
+                        "대표자": row[4],
+                        "전화번호": row[5],
+                        "홈페이지": row[6]
+                    }
+                    
+                    logger.info(f"✅ 기업개요 정보 조회 성공: {overview['종목명']}")
+                    return overview
+                else:
+                    logger.warning(f"⚠️ 기업개요 정보를 찾을 수 없음: {company_name}")
+                    return None
+                    
+        except Exception as e:
+            logger.error(f"❌ 기업개요 정보 조회 실패: {str(e)}")
+            raise
+        finally:
+            if 'engine' in locals():
+                engine.dispose()
+    
     async def analyze_report(self, file: UploadFile, company_info: Dict[str, Any]) -> Dict[str, Any]:
         """TCFD 보고서 AI 분석 (비활성화)"""
         return {

@@ -138,12 +138,15 @@ export default function SignupPage() {
                 <form onSubmit={handleSignup} className="space-y-6">
                   {/* Company ID Input */}
                   <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      회사이름
+                    </label>
                     <input
                       type="text"
                       name="company_id"
                       value={formData.company_id}
                       onChange={handleInputChange}
-                      placeholder="회사 ID"
+                      placeholder="회사이름을 입력하세요"
                       className="w-full px-4 py-3 text-gray-800 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-300"
                       required
                     />

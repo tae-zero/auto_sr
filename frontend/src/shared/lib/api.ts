@@ -163,6 +163,14 @@ export const tcfdAPI = {
   healthCheck: () => apiClient.get('/api/v1/tcfd/health'),
   getCompanyFinancialData: (companyName: string) => apiClient.get(`/api/v1/tcfd/company-financial-data?company_name=${encodeURIComponent(companyName)}`),
   getCompanyFinancialSummary: (companyName: string) => apiClient.get(`/api/v1/tcfd/company-financial-summary?company_name=${encodeURIComponent(companyName)}`),
+  getCompanyOverview: (companyName: string) => {
+    const token = localStorage.getItem('auth_token');
+    return apiClient.get(`/api/v1/tcfd/company-overview?company_name=${encodeURIComponent(companyName)}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  },
   getAllCompanies: () => apiClient.get('/api/v1/tcfd/companies'),
   getFinancialData: () => apiClient.get('/api/v1/tcfd/financial-data'),
   createFinancialData: (data: Record<string, unknown>) => apiClient.post('/api/v1/tcfd/financial-data', data),

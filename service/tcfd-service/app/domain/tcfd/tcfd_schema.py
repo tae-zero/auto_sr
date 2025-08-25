@@ -98,12 +98,28 @@ class ReportTemplate(BaseModel):
 class ComplianceCheck(BaseModel):
     """준수성 검사 스키마"""
     check_id: str = Field(..., description="검사 ID")
-    regulation: str = Field(..., description="규정")
-    requirement: str = Field(..., description="요구사항")
-    compliance_status: str = Field(..., description="준수 상태")
-    evidence: List[str] = Field(..., description="증거")
-    next_review_date: Optional[datetime] = Field(None, description="다음 검토일")
+    company_name: str = Field(..., description="회사명")
+    compliance_score: float = Field(..., description="준수성 점수")
     check_date: datetime = Field(..., description="검사일")
+    issues: List[str] = Field(..., description="발견된 문제점")
+    recommendations: List[str] = Field(..., description="개선 권장사항")
+
+# 기업개요 정보 스키마 추가
+class CompanyOverview(BaseModel):
+    """기업개요 정보 스키마"""
+    종목코드: str = Field(..., description="주식 종목 코드")
+    종목명: str = Field(..., description="회사명")
+    주소: Optional[str] = Field(None, description="회사 주소")
+    설립일: Optional[str] = Field(None, description="회사 설립일")
+    대표자: Optional[str] = Field(None, description="대표자명")
+    전화번호: Optional[str] = Field(None, description="연락처")
+    홈페이지: Optional[str] = Field(None, description="회사 웹사이트")
+
+class CompanyOverviewResponse(BaseModel):
+    """기업개요 정보 응답 스키마"""
+    success: bool = Field(..., description="성공 여부")
+    company_name: str = Field(..., description="검색한 회사명")
+    overview: CompanyOverview = Field(..., description="기업개요 정보")
 
 class StakeholderEngagement(BaseModel):
     """이해관계자 참여 스키마"""
