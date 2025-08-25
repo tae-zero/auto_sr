@@ -110,8 +110,9 @@ class TCFDService:
         try:
             logger.info(f"🔍 기업개요 정보 조회 시작: {company_name}")
             
-            # PostgreSQL 데이터베이스 연결
-            from sqlalchemy import create_engine, text
+            # PostgreSQL 데이터베이스 연결 (비동기)
+            from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+            from sqlalchemy import text
             import os
             
             # Railway 환경변수에서 데이터베이스 URL 가져오기
@@ -120,13 +121,15 @@ class TCFDService:
                 logger.error("❌ DATABASE_URL 환경변수가 설정되지 않았습니다")
                 return None
             
-            # Railway 환경변수 형식을 SQLAlchemy 형식으로 변환
+            # Railway 환경변수 형식을 SQLAlchemy 비동기 형식으로 변환
             if database_url.startswith('postgres://'):
-                database_url = database_url.replace('postgres://', 'postgresql://', 1)
+                database_url = database_url.replace('postgres://', 'postgresql+asyncpg://', 1)
+            elif database_url.startswith('postgresql://'):
+                database_url = database_url.replace('postgresql://', 'postgresql+asyncpg://', 1)
             
-            engine = create_engine(database_url)
+            engine = create_async_engine(database_url)
             
-            with engine.connect() as conn:
+            async with engine.begin() as conn:
                 # 회사명으로 기업개요 정보 조회 (부분 일치)
                 query = text("""
                     SELECT 종목코드, 종목명, 주소, 설립일, 대표자, 전화번호, 홈페이지
@@ -136,7 +139,7 @@ class TCFDService:
                     LIMIT 1
                 """)
                 
-                result = conn.execute(query, {
+                result = await conn.execute(query, {
                     "company_name": f"%{company_name}%",
                     "company_name_part": f"{company_name}%"
                 })
@@ -165,7 +168,7 @@ class TCFDService:
             raise
         finally:
             if 'engine' in locals():
-                engine.dispose()
+                await engine.dispose()
     
     async def analyze_report(self, file: UploadFile, company_info: Dict[str, Any]) -> Dict[str, Any]:
         """TCFD 보고서 AI 분석 (비활성화)"""
