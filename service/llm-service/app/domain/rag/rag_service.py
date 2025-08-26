@@ -10,9 +10,14 @@ class RAGService:
     """RAG 서비스 - FAISS 인덱스를 통한 정보 검색"""
     
     def __init__(self):
-        self.index_path = os.getenv('FAISS_VOLUME_PATH', '/app/vectordb')
+        self.index_path = os.getenv('FAISS_VOLUME_PATH', '/data')  # Railway 볼륨 경로
         self.index_name = os.getenv('FAISS_INDEX_NAME', 'sr_corpus')
         self.store_name = os.getenv('FAISS_STORE_NAME', 'sr_corpus')
+        
+        logger.info(f"🔧 RAG 서비스 초기화")
+        logger.info(f"  - index_path: {self.index_path}")
+        logger.info(f"  - index_name: {self.index_name}")
+        logger.info(f"  - store_name: {self.store_name}")
         
         # FAISS 인덱스 로딩 상태
         self.is_index_loaded = False
