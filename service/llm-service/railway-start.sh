@@ -43,7 +43,24 @@ if [ -d "/app/vectordb" ]; then
     fi
 else
     echo "  ❌ /app/vectordb 디렉토리: 존재하지 않음"
-    echo "  📁 Dockerfile에서 vectordb 폴더가 복사되어야 합니다"
+    echo "  📁 현재 디렉토리에서 vectordb 폴더 확인 중..."
+    
+    if [ -d "./vectordb" ]; then
+        echo "  ✅ ./vectordb 디렉토리 발견:"
+        ls -la ./vectordb/
+        echo "  📋 ./vectordb를 /app/vectordb로 복사 중..."
+        cp -r ./vectordb /app/vectordb
+        echo "  ✅ 복사 완료"
+        
+        # 복사 후 다시 확인
+        if [ -d "/app/vectordb" ]; then
+            echo "  ✅ /app/vectordb 디렉토리: 복사 후 존재함"
+            echo "  📁 /app/vectordb 내용:"
+            ls -la /app/vectordb/
+        fi
+    else
+        echo "  ❌ ./vectordb 디렉토리도 존재하지 않음"
+    fi
 fi
 
 # Python 의존성 확인
