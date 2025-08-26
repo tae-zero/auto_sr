@@ -1,24 +1,16 @@
-# ✅ FastAPI 및 기본 웹 서버
-fastapi==0.110.0
-uvicorn[standard]==0.29.0
+fastapi==0.104.1
+uvicorn==0.24.0
 python-multipart==0.0.6
 python-dotenv==1.0.1
-
-# ✅ 요청 및 기타 유틸
 requests==2.31.0
 openai==1.12.0
-faiss-cpu==1.7.4
-numpy==1.24.3
-
-# ✅ Pydantic 2.x 기반
+faiss-cpu==1.12.0
+numpy==1.26.4
 pydantic==2.11.7
-
-# ✅ LangChain 최신 버전 (Pydantic 2.x 호환)
-langchain==0.2.15
+langchain==0.3.27
 langchain-core==0.3.74
-langchain-community==0.2.15
-langchain-text-splitters==0.2.6
-
-# ✅ DB 관련
-sqlalchemy==2.0.43
+langchain-community==0.3.27
+langchain-text-splitters==0.3.9
+sqlalchemy==2.0.34
 greenlet==3.2.4
+
