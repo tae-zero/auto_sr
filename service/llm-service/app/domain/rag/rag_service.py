@@ -32,6 +32,13 @@ class RAGService:
             index_file = os.path.join(self.index_path, self.index_name, "index.faiss")
             store_file = os.path.join(self.index_path, self.store_name, "index.pkl")
             
+            logger.info(f"🔍 RAG 서비스 인덱스 로딩 시작")
+            logger.info(f"  - index_path: {self.index_path}")
+            logger.info(f"  - index_name: {self.index_name}")
+            logger.info(f"  - store_name: {self.store_name}")
+            logger.info(f"  - index_file: {index_file}")
+            logger.info(f"  - store_file: {store_file}")
+            
             # 파일 존재 확인
             if not os.path.exists(index_file):
                 logger.warning(f"FAISS 인덱스 파일이 존재하지 않음: {index_file}")
@@ -42,6 +49,15 @@ class RAGService:
                 logger.warning(f"문서 저장소 파일이 존재하지 않음: {store_file}")
                 self.is_index_loaded = False
                 return
+            
+            # 디렉토리 내용 확인
+            index_dir = os.path.dirname(index_file)
+            store_dir = os.path.dirname(store_file)
+            
+            if os.path.exists(index_dir):
+                logger.info(f"📁 인덱스 디렉토리 내용: {os.listdir(index_dir)}")
+            if os.path.exists(store_dir):
+                logger.info(f"📁 저장소 디렉토리 내용: {os.listdir(store_dir)}")
             
             # FAISS 인덱스 로딩
             self.faiss_index = faiss.read_index(index_file)

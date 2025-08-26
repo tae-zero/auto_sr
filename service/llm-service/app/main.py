@@ -43,6 +43,18 @@ async def lifespan(app: FastAPI):
         # 모든 RAG 서비스의 인덱스 로딩
         load_results = rag_manager.load_all_indices()
         logger.info(f"📚 RAG 서비스 인덱스 로딩 결과: {load_results}")
+        
+        # RAG 초기화 후 vectordb 데이터 복사 재시도 (인덱스 로딩 실패 시)
+        if not all(load_results.values()):
+            logger.info("🔄 일부 RAG 인덱스 로딩 실패, vectordb 데이터 복사 재시도")
+            try:
+                copy_vectordb_data()
+                # 복사 완료 후 인덱스 재로딩
+                load_results = rag_manager.load_all_indices()
+                logger.info(f"📚 RAG 서비스 인덱스 재로딩 결과: {load_results}")
+            except Exception as e:
+                logger.warning(f"⚠️ vectordb 데이터 재복사 실패: {e}")
+        
     except Exception as e:
         logger.error(f"❌ RAG 서비스 초기화 실패: {e}")
         rag_manager = None
