@@ -31,7 +31,7 @@ class HuggingFaceRAGService(BaseRAGService):
             logger.warning("Hugging Face API URL이 설정되지 않음")
     
     def load_index(self) -> bool:
-        """FAISS 인덱스만 로드합니다 (문서 스토어 없이)."""
+        """FAISS 인덱스와 문서 저장소를 로드합니다."""
         try:
             if not get_faiss_index_path().exists():
                 logger.warning(f"FAISS 인덱스 파일이 존재하지 않음: {get_faiss_index_path()}")
@@ -41,9 +41,53 @@ class HuggingFaceRAGService(BaseRAGService):
             self.index = faiss.read_index(str(get_faiss_index_path()))
             logger.info(f"FAISS 인덱스 로드 완료: {self.index.ntotal}개 벡터")
             
-            # 문서 스토어 없이도 작동하도록 설정
-            self.doc_store = None
-            logger.info("문서 스토어 없이 FAISS 인덱스만 사용")
+            # 문서 저장소 로딩 시도
+            try:
+                store_path = get_faiss_store_path()
+                logger.info(f"📖 PKL 문서 저장소 로딩 시도: {store_path}")
+                
+                if store_path.exists():
+                    with open(store_path, 'rb') as f:
+                        self.doc_store = pickle.load(f)
+                    logger.info(f"✅ 문서 저장소 로딩 완료: {len(self.doc_store)}개 문서")
+                else:
+                    logger.warning(f"⚠️ 문서 저장소 파일이 존재하지 않음: {store_path}")
+                    self.doc_store = None
+            except Exception as pkl_error:
+                logger.error(f"❌ PKL 파일 로딩 실패: {str(pkl_error)}")
+                
+                # Pydantic 호환성 문제 시도 해결
+                if '__fields_set__' in str(pkl_error):
+                    logger.info("🔄 Pydantic 호환성 문제 감지, 대체 방법 시도")
+                    try:
+                        # pickle5 또는 다른 로더 시도
+                        import pickle5
+                        with open(store_path, 'rb') as f:
+                            self.doc_store = pickle5.load(f)
+                        logger.info(f"✅ pickle5로 문서 저장소 로딩 성공: {len(self.doc_store)}개 문서")
+                    except ImportError:
+                        logger.info("pickle5가 설치되지 않음, 다른 방법 시도")
+                        try:
+                            # 더 낮은 Python 버전 호환성 시도
+                            import sys
+                            if sys.version_info >= (3, 8):
+                                # Python 3.8+ 에서는 protocol 5 지원
+                                with open(store_path, 'rb') as f:
+                                    self.doc_store = pickle.load(f)
+                                logger.info(f"✅ Python 3.8+ 호환성으로 문서 저장소 로딩 성공: {len(self.doc_store)}개 문서")
+                            else:
+                                raise Exception("Python 버전이 너무 낮음")
+                        except Exception as compat_error:
+                            logger.error(f"❌ 호환성 해결 시도 실패: {str(compat_error)}")
+                            self.doc_store = None
+                            logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
+                    except Exception as pkl5_error:
+                        logger.error(f"❌ pickle5 로딩도 실패: {str(pkl5_error)}")
+                        self.doc_store = None
+                        logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
+                else:
+                    self.doc_store = None
+                    logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
             
             # 차원 검증
             if self.index.d != EMBED_DIM:
@@ -51,7 +95,10 @@ class HuggingFaceRAGService(BaseRAGService):
                 return False
             
             self.is_loaded = True
-            logger.info("Hugging Face RAG 서비스 초기화 완료 (FAISS 인덱스만)")
+            if self.doc_store:
+                logger.info("Hugging Face RAG 서비스 초기화 완료 (FAISS 인덱스 + 문서 저장소)")
+            else:
+                logger.info("Hugging Face RAG 서비스 초기화 완료 (FAISS 인덱스만)")
             return True
             
         except Exception as e:

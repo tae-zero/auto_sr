@@ -83,21 +83,31 @@ class RAGService:
                 if '__fields_set__' in str(pkl_error):
                     logger.info("🔄 Pydantic 호환성 문제 감지, 대체 방법 시도")
                     try:
-                        # pickle 프로토콜 버전을 낮춰서 로딩 시도
+                        # pickle5 또는 다른 로더 시도
+                        import pickle5
                         with open(store_file, 'rb') as f:
-                            self.doc_store = pickle.load(f, protocol=4)
-                        logger.info(f"✅ 낮은 프로토콜로 문서 저장소 로딩 성공: {len(self.doc_store)}개 문서")
-                    except Exception as pkl4_error:
-                        logger.error(f"❌ 낮은 프로토콜 로딩도 실패: {str(pkl4_error)}")
-                        # 마지막 시도: 더 낮은 프로토콜
+                            self.doc_store = pickle5.load(f)
+                        logger.info(f"✅ pickle5로 문서 저장소 로딩 성공: {len(self.doc_store)}개 문서")
+                    except ImportError:
+                        logger.info("pickle5가 설치되지 않음, 다른 방법 시도")
                         try:
-                            with open(store_file, 'rb') as f:
-                                self.doc_store = pickle.load(f, protocol=3)
-                            logger.info(f"✅ 프로토콜 3으로 문서 저장소 로딩 성공: {len(self.doc_store)}개 문서")
-                        except Exception as pkl3_error:
-                            logger.error(f"❌ 모든 프로토콜 로딩 실패: {str(pkl3_error)}")
+                            # 더 낮은 Python 버전 호환성 시도
+                            import sys
+                            if sys.version_info >= (3, 8):
+                                # Python 3.8+ 에서는 protocol 5 지원
+                                with open(store_file, 'rb') as f:
+                                    self.doc_store = pickle.load(f)
+                                logger.info(f"✅ Python 3.8+ 호환성으로 문서 저장소 로딩 성공: {len(self.doc_store)}개 문서")
+                            else:
+                                raise Exception("Python 버전이 너무 낮음")
+                        except Exception as compat_error:
+                            logger.error(f"❌ 호환성 해결 시도 실패: {str(compat_error)}")
                             self.doc_store = None
                             logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
+                    except Exception as pkl5_error:
+                        logger.error(f"❌ pickle5 로딩도 실패: {str(pkl5_error)}")
+                        self.doc_store = None
+                        logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
                 else:
                     # 다른 오류의 경우
                     self.doc_store = None
