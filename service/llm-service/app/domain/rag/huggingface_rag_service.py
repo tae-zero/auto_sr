@@ -31,24 +31,19 @@ class HuggingFaceRAGService(BaseRAGService):
             logger.warning("Hugging Face API URL이 설정되지 않음")
     
     def load_index(self) -> bool:
-        """FAISS 인덱스와 문서 스토어를 로드합니다."""
+        """FAISS 인덱스만 로드합니다 (문서 스토어 없이)."""
         try:
             if not FAISS_INDEX_PATH.exists():
                 logger.warning(f"FAISS 인덱스 파일이 존재하지 않음: {FAISS_INDEX_PATH}")
-                return False
-            
-            if not FAISS_STORE_PATH.exists():
-                logger.warning(f"문서 스토어 파일이 존재하지 않음: {FAISS_STORE_PATH}")
                 return False
             
             # FAISS 인덱스 로드
             self.index = faiss.read_index(str(FAISS_INDEX_PATH))
             logger.info(f"FAISS 인덱스 로드 완료: {self.index.ntotal}개 벡터")
             
-            # 문서 스토어 로드
-            with open(FAISS_STORE_PATH, 'rb') as f:
-                self.doc_store = pickle.load(f)
-            logger.info(f"문서 스토어 로드 완료: {len(self.doc_store)}개 문서")
+            # 문서 스토어 없이도 작동하도록 설정
+            self.doc_store = None
+            logger.info("문서 스토어 없이 FAISS 인덱스만 사용")
             
             # 차원 검증
             if self.index.d != EMBED_DIM:
@@ -56,7 +51,7 @@ class HuggingFaceRAGService(BaseRAGService):
                 return False
             
             self.is_loaded = True
-            logger.info("Hugging Face RAG 서비스 초기화 완료")
+            logger.info("Hugging Face RAG 서비스 초기화 완료 (FAISS 인덱스만)")
             return True
             
         except Exception as e:
