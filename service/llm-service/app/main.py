@@ -5,7 +5,7 @@ import logging
 import time
 from typing import Dict, Any
 
-from .common.config import SERVICE_NAME, SERVICE_HOST, SERVICE_PORT, EMBED_DIM
+from .common.config import SERVICE_NAME, SERVICE_HOST, SERVICE_PORT, EMBED_DIM, FAISS_INDEX_PATH
 from .common.schemas import HealthResponse, ErrorResponse
 from .common.utils import generate_request_id, log_request_info, log_response_info
 from .router.rag_router import router as rag_router

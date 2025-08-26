@@ -4,6 +4,7 @@ uvicorn[standard]==0.29.0
 # RAG 및 벡터 검색
 faiss-cpu==1.7.4
 numpy==1.24.3
+langchain-community==0.0.27
 
 # OpenAI API
 openai==1.12.0
