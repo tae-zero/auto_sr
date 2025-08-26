@@ -6,7 +6,7 @@ import requests
 from typing import List, Dict, Any, Tuple, Optional
 from pathlib import Path
 from ...common.config import (
-    FAISS_INDEX_PATH, FAISS_STORE_PATH, 
+    get_faiss_index_path, get_faiss_store_path,
     EMBED_DIM, HF_API_TOKEN, HF_MODEL, HF_API_URL
 )
 from ...common.schemas import SearchHit
@@ -33,12 +33,12 @@ class HuggingFaceRAGService(BaseRAGService):
     def load_index(self) -> bool:
         """FAISS 인덱스만 로드합니다 (문서 스토어 없이)."""
         try:
-            if not FAISS_INDEX_PATH.exists():
-                logger.warning(f"FAISS 인덱스 파일이 존재하지 않음: {FAISS_INDEX_PATH}")
+            if not get_faiss_index_path().exists():
+                logger.warning(f"FAISS 인덱스 파일이 존재하지 않음: {get_faiss_index_path()}")
                 return False
             
             # FAISS 인덱스 로드
-            self.index = faiss.read_index(str(FAISS_INDEX_PATH))
+            self.index = faiss.read_index(str(get_faiss_index_path()))
             logger.info(f"FAISS 인덱스 로드 완료: {self.index.ntotal}개 벡터")
             
             # 문서 스토어 없이도 작동하도록 설정

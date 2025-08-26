@@ -5,7 +5,7 @@ import logging
 from typing import List, Dict, Any, Tuple, Optional
 from pathlib import Path
 from ...common.config import (
-    FAISS_INDEX_PATH, FAISS_STORE_PATH, 
+    get_faiss_index_path, get_faiss_store_path,
     FAISS_VOLUME_PATH, FAISS_INDEX_NAME,
     EMBED_DIM, OPENAI_API_KEY, OPENAI_MODEL,
     OPENAI_MAX_TOKENS, OPENAI_TEMPERATURE
@@ -32,26 +32,26 @@ class OpenAIRAGService(BaseRAGService):
     def load_index(self) -> bool:
         """FAISS 인덱스만 로드합니다 (문서 스토어 없이)."""
         try:
-            logger.info(f"FAISS 인덱스 로딩 시도: {FAISS_INDEX_PATH}")
+            logger.info(f"FAISS 인덱스 로딩 시도: {get_faiss_index_path()}")
             logger.info(f"FAISS_VOLUME_PATH: {FAISS_VOLUME_PATH}")
             logger.info(f"FAISS_INDEX_NAME: {FAISS_INDEX_NAME}")
-            logger.info(f"FAISS_INDEX_PATH 타입: {type(FAISS_INDEX_PATH)}")
-            logger.info(f"FAISS_INDEX_PATH 문자열: {str(FAISS_INDEX_PATH)}")
+            logger.info(f"FAISS_INDEX_PATH 타입: {type(get_faiss_index_path())}")
+            logger.info(f"FAISS_INDEX_PATH 문자열: {str(get_faiss_index_path())}")
             
             # 파일 존재 여부 확인
-            file_exists = FAISS_INDEX_PATH.exists()
+            file_exists = get_faiss_index_path().exists()
             logger.info(f"파일 존재 여부: {file_exists}")
             
             if not file_exists:
-                logger.warning(f"FAISS 인덱스 파일이 존재하지 않음: {FAISS_INDEX_PATH}")
+                logger.warning(f"FAISS 인덱스 파일이 존재하지 않음: {get_faiss_index_path()}")
                 # 디렉토리 내용 확인
-                parent_dir = FAISS_INDEX_PATH.parent
+                parent_dir = get_faiss_index_path().parent
                 if parent_dir.exists():
                     logger.info(f"부모 디렉토리 내용: {list(parent_dir.iterdir())}")
                 return False
             
             # FAISS 인덱스 로드
-            self.index = faiss.read_index(str(FAISS_INDEX_PATH))
+            self.index = faiss.read_index(str(get_faiss_index_path()))
             logger.info(f"FAISS 인덱스 로드 완료: {self.index.ntotal}개 벡터")
             
             # 문서 스토어 없이도 작동하도록 설정

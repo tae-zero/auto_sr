@@ -18,15 +18,37 @@ FAISS_VOLUME_PATH = os.getenv("FAISS_VOLUME_PATH", "/app/vectordb")
 FAISS_INDEX_NAME = os.getenv("FAISS_INDEX_NAME", "sr_corpus")
 FAISS_STORE_NAME = os.getenv("FAISS_STORE_NAME", "sr_corpus")
 
-# FAISS 파일 경로 (지속가능경영보고서)
-# 모든 환경에서 동일한 경로 사용
-FAISS_INDEX_PATH = Path(FAISS_VOLUME_PATH) / FAISS_INDEX_NAME / "index.faiss"
-FAISS_STORE_PATH = Path(FAISS_VOLUME_PATH) / FAISS_STORE_NAME / "index.pkl"
+def get_faiss_index_path():
+    """FAISS 인덱스 파일 경로를 동적으로 생성"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    path = Path(FAISS_VOLUME_PATH) / FAISS_INDEX_NAME / "index.faiss"
+    logger.info(f"FAISS 인덱스 경로 생성: {path}")
+    logger.info(f"  - FAISS_VOLUME_PATH: {FAISS_VOLUME_PATH}")
+    logger.info(f"  - FAISS_INDEX_NAME: {FAISS_INDEX_NAME}")
+    logger.info(f"  - 전체 경로: {path}")
+    logger.info(f"  - 경로 존재 여부: {path.exists()}")
+    
+    return path
 
-# TCFD 기준서 FAISS 파일 경로
-# 모든 환경에서 동일한 경로 사용
-TCFD_INDEX_PATH = Path(FAISS_VOLUME_PATH) / "standards" / "index.faiss"
-TCFD_STORE_PATH = Path(FAISS_VOLUME_PATH) / "standards" / "index.pkl"
+def get_faiss_store_path():
+    """FAISS 문서 저장소 파일 경로를 동적으로 생성"""
+    return Path(FAISS_VOLUME_PATH) / FAISS_STORE_NAME / "index.pkl"
+
+def get_tcfd_index_path():
+    """TCFD 기준서 FAISS 인덱스 파일 경로를 동적으로 생성"""
+    return Path(FAISS_VOLUME_PATH) / "standards" / "index.faiss"
+
+def get_tcfd_store_path():
+    """TCFD 기준서 문서 저장소 파일 경로를 동적으로 생성"""
+    return Path(FAISS_VOLUME_PATH) / "standards" / "index.pkl"
+
+# 기존 경로 변수들 (하위 호환성을 위해 유지)
+FAISS_INDEX_PATH = get_faiss_index_path()
+FAISS_STORE_PATH = get_faiss_store_path()
+TCFD_INDEX_PATH = get_tcfd_index_path()
+TCFD_STORE_PATH = get_tcfd_store_path()
 
 # =============================================================================
 # 🔤 임베딩 모델 설정 (이미 임베딩된 FAISS 사용)
