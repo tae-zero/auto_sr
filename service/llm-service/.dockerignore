@@ -65,6 +65,5 @@ logs/
 tmp/
 temp/
 
-# Railway Volume으로 마운트되는 데이터 폴더
-vectordb/
+# Railway Volume으로 마운트되는 데이터 폴더 (경로 통일로 제거)
 data/

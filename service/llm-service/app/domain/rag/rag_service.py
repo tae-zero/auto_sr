@@ -10,7 +10,7 @@ class RAGService:
     """RAG 서비스 - FAISS 인덱스를 통한 정보 검색"""
     
     def __init__(self):
-        self.index_path = os.getenv('FAISS_VOLUME_PATH', '/data')
+        self.index_path = os.getenv('FAISS_VOLUME_PATH', '/app/vectordb')
         self.index_name = os.getenv('FAISS_INDEX_NAME', 'sr_corpus')
         self.store_name = os.getenv('FAISS_STORE_NAME', 'sr_corpus')
         

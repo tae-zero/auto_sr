@@ -26,29 +26,22 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# 애플리케이션 코드 복사 (vectordb 폴더 제외)
+# 애플리케이션 코드 복사
 COPY app/ ./app/
 COPY railway-start.sh .
 COPY railway.json .
 COPY Procfile .
 COPY runtime.txt .
 
+# vectordb 폴더 복사 (경로 통일을 위해)
+COPY vectordb/ ./vectordb/
+
 # 스크립트 실행 권한 부여
 RUN chmod +x railway-start.sh
-
-# Railway Volume을 위한 vectordb 디렉토리 생성
-RUN mkdir -p /app/vectordb/sr_corpus /app/vectordb/standards
-
-# 포트 설정 (Railway에서 자동으로 PORT 환경변수 사용)
-EXPOSE 8000
 
 # 환경변수 설정
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
-
-# 헬스체크 추가
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
 
 # 애플리케이션 실행
 CMD ["./railway-start.sh"]

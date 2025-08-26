@@ -19,41 +19,31 @@ echo "📁 현재 작업 디렉토리: $(pwd)"
 echo "📁 현재 디렉토리 내용:"
 ls -la
 
-# vectordb 폴더 상태 확인 (Dockerfile에서 복사됨)
+# vectordb 폴더 상태 확인 (모든 환경에서 동일한 경로 사용)
 echo "🔍 vectordb 폴더 상태 확인:"
-if [ -d "/data" ]; then
-    echo "  ✅ /data 디렉토리: 존재함"
-    echo "  📁 /data 내용:"
-    ls -la /data/
+if [ -d "/app/vectordb" ]; then
+    echo "  ✅ /app/vectordb 디렉토리: 존재함"
+    echo "  📁 /app/vectordb 내용:"
+    ls -la /app/vectordb/
     
-    if [ -d "/data/sr_corpus" ]; then
+    if [ -d "/app/vectordb/sr_corpus" ]; then
         echo "  ✅ sr_corpus 디렉토리: 존재함"
         echo "  📁 sr_corpus 내용:"
-        ls -la /data/sr_corpus/
+        ls -la /app/vectordb/sr_corpus/
     else
         echo "  ❌ sr_corpus 디렉토리: 존재하지 않음"
     fi
     
-    if [ -d "/data/standards" ]; then
+    if [ -d "/app/vectordb/standards" ]; then
         echo "  ✅ standards 디렉토리: 존재함"
         echo "  📁 standards 내용:"
-        ls -la /data/standards/
+        ls -la /app/vectordb/standards/
     else
         echo "  ❌ standards 디렉토리: 존재하지 않음"
     fi
 else
-    echo "  ❌ /data 디렉토리: 존재하지 않음"
-    
-    # 로컬 vectordb 폴더 확인 (개발 환경용)
-    if [ -d "./vectordb" ]; then
-        echo "  📁 로컬 vectordb 폴더 발견:"
-        ls -la ./vectordb/
-        
-        # 로컬 vectordb를 /data로 복사
-        echo "  📋 로컬 vectordb를 /data로 복사 중..."
-        cp -r ./vectordb /data
-        echo "  ✅ 복사 완료"
-    fi
+    echo "  ❌ /app/vectordb 디렉토리: 존재하지 않음"
+    echo "  📁 Dockerfile에서 vectordb 폴더가 복사되어야 합니다"
 fi
 
 # Python 의존성 확인
