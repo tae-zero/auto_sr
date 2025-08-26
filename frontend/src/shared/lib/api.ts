@@ -286,6 +286,40 @@ export const llmServiceAPI = {
       })
     });
     return response.json();
+  },
+
+  // TCFD 권고사항별 문장 생성 (OpenAI)
+  generateTCFDRecommendationOpenAI: async (companyName: string, recommendationType: string, userInput: string) => {
+    const response = await fetch('/api/llm/generate-tcfd-recommendation-openai', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        company_name: companyName,
+        recommendation_type: recommendationType,
+        user_input: userInput,
+        llm_provider: 'openai'
+      })
+    });
+    return response.json();
+  },
+
+  // TCFD 권고사항별 문장 생성 (KoAlpaca)
+  generateTCFDRecommendationKoAlpaca: async (companyName: string, recommendationType: string, userInput: string) => {
+    const response = await fetch('/api/llm/generate-tcfd-recommendation-koalpaca', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        company_name: companyName,
+        recommendation_type: recommendationType,
+        user_input: userInput,
+        llm_provider: 'huggingface'
+      })
+    });
+    return response.json();
   }
 };
 

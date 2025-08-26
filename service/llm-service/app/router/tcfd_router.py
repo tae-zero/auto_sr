@@ -4,7 +4,7 @@ from typing import Dict, Any
 import logging
 
 from ..domain.tcfd.tcfd_report_service import TCFDReportService
-from ..domain.tcfd.tcfd_model import TCFDReportRequest, TCFDReportResponse
+from ..domain.tcfd.tcfd_model import TCFDReportRequest, TCFDReportResponse, TCFDRecommendationRequest, TCFDRecommendationResponse
 from ..www.jwt_auth_middleware import verify_token
 
 # 로깅 설정
@@ -58,11 +58,41 @@ async def generate_tcfd_report(request: TCFDReportRequest):
             detail=f"보고서 생성 중 오류가 발생했습니다: {str(e)}"
         )
 
+@tcfd_router.post("/generate-recommendation", response_model=TCFDRecommendationResponse)
+async def generate_tcfd_recommendation(request: TCFDRecommendationRequest):
+    """
+    특정 TCFD 권고사항에 대한 문장 생성
+    
+    Args:
+        request: TCFD 권고사항 문장 생성 요청 데이터
+        
+    Returns:
+        TCFDRecommendationResponse: 생성된 권고사항 문장
+    """
+    try:
+        logger.info(f"TCFD 권고사항 문장 생성 요청: {request.recommendation_type}, {request.llm_provider}")
+        
+        # TCFD 권고사항 문장 생성
+        response = tcfd_service.generate_tcfd_recommendation(request)
+        
+        if response.success:
+            logger.info(f"TCFD 권고사항 문장 생성 성공: {request.recommendation_type}")
+            return response
+        else:
+            logger.error(f"TCFD 권고사항 문장 생성 실패: {response.error_message}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"권고사항 문장 생성 중 오류가 발생했습니다: {response.error_message}"
+            )
+            
+    except Exception as e:
+        logger.error(f"TCFD 권고사항 문장 생성 중 예외 발생: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"권고사항 문장 생성 중 오류가 발생했습니다: {str(e)}"
+        )
+
 @tcfd_router.get("/health")
 async def health_check():
     """TCFD 서비스 상태 확인"""
-    return {
-        "status": "healthy",
-        "service": "tcfd-report-service",
-        "timestamp": "2025-01-26T00:00:00Z"
-    }
+    return {"status": "healthy", "service": "TCFD Report Service"}

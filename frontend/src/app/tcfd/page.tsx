@@ -758,6 +758,71 @@ export default function TcfdSrPage() {
     );
   };
 
+  // TCFD 권고사항별 AI 문장 생성 함수
+  const handleGenerateRecommendation = async (recommendationType: string, llmProvider: string) => {
+    if (!companyFinancialData?.company_name) {
+      alert('회사 정보가 필요합니다. 먼저 회사를 검색해주세요.');
+      return;
+    }
+
+    const userInput = tcfdInputData[`${getRecommendationKey(recommendationType)}` as keyof typeof tcfdInputData];
+    if (!userInput.trim()) {
+      alert('해당 권고사항에 대한 입력 데이터가 필요합니다. 먼저 데이터를 입력해주세요.');
+      return;
+    }
+
+    try {
+      let result;
+      if (llmProvider === 'openai') {
+        result = await llmServiceAPI.generateTCFDRecommendationOpenAI(
+          companyFinancialData.company_name,
+          recommendationType,
+          userInput
+        );
+      } else {
+        result = await llmServiceAPI.generateTCFDRecommendationKoAlpaca(
+          companyFinancialData.company_name,
+          recommendationType,
+          userInput
+        );
+      }
+
+      if (result.success && result.generated_text) {
+        // 생성된 문장을 해당 입력 필드에 자동으로 채우기
+        const fieldKey = getRecommendationKey(recommendationType);
+        setTcfdInputData(prev => ({
+          ...prev,
+          [fieldKey]: result.generated_text
+        }));
+        
+        alert(`${llmProvider === 'openai' ? 'OpenAI' : 'KoAlpaca'}로 생성된 문장이 입력 필드에 적용되었습니다.`);
+      } else {
+        alert(`문장 생성에 실패했습니다: ${result.error_message || '알 수 없는 오류'}`);
+      }
+    } catch (error) {
+      console.error('TCFD 권고사항 문장 생성 실패:', error);
+      alert('문장 생성 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 권고사항 타입을 입력 필드 키로 변환하는 함수
+  const getRecommendationKey = (recommendationType: string): string => {
+    const keyMapping: { [key: string]: string } = {
+      'g1': 'governance_g1',
+      'g2': 'governance_g2',
+      's1': 'strategy_s1',
+      's2': 'strategy_s2',
+      's3': 'strategy_s3',
+      'r1': 'risk_management_r1',
+      'r2': 'risk_management_r2',
+      'r3': 'risk_management_r3',
+      'm1': 'metrics_targets_m1',
+      'm2': 'metrics_targets_m2',
+      'm3': 'metrics_targets_m3'
+    };
+    return keyMapping[recommendationType] || '';
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Header />
@@ -1110,6 +1175,21 @@ export default function TcfdSrPage() {
                               위원회를 통해 관련 안건을 심의합니다.&rdquo;
                             </p>
                           </div>
+                          {/* AI 문장 생성 버튼 */}
+                          <div className="mt-3 flex gap-2">
+                            <button
+                              onClick={() => handleGenerateRecommendation('g1', 'openai')}
+                              className="px-3 py-2 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              🤖 OpenAI로 문장 생성
+                            </button>
+                            <button
+                              onClick={() => handleGenerateRecommendation('g1', 'koalpaca')}
+                              className="px-3 py-2 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                              🚀 KoAlpaca로 문장 생성
+                            </button>
+                          </div>
                         </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1129,7 +1209,23 @@ export default function TcfdSrPage() {
                               이행 상황을 모니터링합니다.&rdquo;
                             </p>
                           </div>
+                          {/* AI 문장 생성 버튼 */}
+                          <div className="mt-3 flex gap-2">
+                            <button
+                              onClick={() => handleGenerateRecommendation('g2', 'openai')}
+                              className="px-3 py-2 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              🤖 OpenAI로 문장 생성
+                            </button>
+                            <button
+                              onClick={() => handleGenerateRecommendation('g2', 'koalpaca')}
+                              className="px-3 py-2 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                              🚀 KoAlpaca로 문장 생성
+                            </button>
+                          </div>
                         </div>
+
                       </div>
                     </div>
 
@@ -1157,6 +1253,21 @@ export default function TcfdSrPage() {
                               공급망 다변화 전략을 추진하고 있습니다.&rdquo;
                             </p>
                           </div>
+                          {/* AI 문장 생성 버튼 */}
+                          <div className="mt-3 flex gap-2">
+                            <button
+                              onClick={() => handleGenerateRecommendation('s1', 'openai')}
+                              className="px-3 py-2 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              🤖 OpenAI로 문장 생성
+                            </button>
+                            <button
+                              onClick={() => handleGenerateRecommendation('s1', 'koalpaca')}
+                              className="px-3 py-2 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                              🚀 KoAlpaca로 문장 생성
+                            </button>
+                          </div>
                         </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1176,6 +1287,21 @@ export default function TcfdSrPage() {
                               기술 개발에 대한 투자를 확대하고 있습니다.&rdquo;
                             </p>
                           </div>
+                          {/* AI 문장 생성 버튼 */}
+                          <div className="mt-3 flex gap-2">
+                            <button
+                              onClick={() => handleGenerateRecommendation('s2', 'openai')}
+                              className="px-3 py-2 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              🤖 OpenAI로 문장 생성
+                            </button>
+                            <button
+                              onClick={() => handleGenerateRecommendation('s2', 'koalpaca')}
+                              className="px-3 py-2 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                              🚀 KoAlpaca로 문장 생성
+                            </button>
+                          </div>
                         </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1194,6 +1320,21 @@ export default function TcfdSrPage() {
                               &ldquo;IPCC RCP 2.6 및 RCP 8.5 시나리오를 기반으로 2030년, 2050년, 2100년까지의 기후 변화
                               영향을 분석하여 장기 전략을 수립하고 있습니다.&rdquo;
                             </p>
+                          </div>
+                          {/* AI 문장 생성 버튼 */}
+                          <div className="mt-3 flex gap-2">
+                            <button
+                              onClick={() => handleGenerateRecommendation('s3', 'openai')}
+                              className="px-3 py-2 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              🤖 OpenAI로 문장 생성
+                            </button>
+                            <button
+                              onClick={() => handleGenerateRecommendation('s3', 'koalpaca')}
+                              className="px-3 py-2 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                              🚀 KoAlpaca로 문장 생성
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -1223,6 +1364,21 @@ export default function TcfdSrPage() {
                               평가하여 우선순위를 정하고 있습니다.&rdquo;
                             </p>
                           </div>
+                          {/* AI 문장 생성 버튼 */}
+                          <div className="mt-3 flex gap-2">
+                            <button
+                              onClick={() => handleGenerateRecommendation('r1', 'openai')}
+                              className="px-3 py-2 bg-yellow-600 text-white text-xs rounded-lg hover:bg-yellow-700 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            >
+                              🤖 OpenAI로 문장 생성
+                            </button>
+                            <button
+                              onClick={() => handleGenerateRecommendation('r1', 'koalpaca')}
+                              className="px-3 py-2 bg-orange-600 text-white text-xs rounded-lg hover:bg-orange-700 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            >
+                              🚀 KoAlpaca로 문장 생성
+                            </button>
+                          </div>
                         </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1242,6 +1398,21 @@ export default function TcfdSrPage() {
                               위험 관리 체계의 일부로 운영하고 있습니다.&rdquo;
                             </p>
                           </div>
+                          {/* AI 문장 생성 버튼 */}
+                          <div className="mt-3 flex gap-2">
+                            <button
+                              onClick={() => handleGenerateRecommendation('r2', 'openai')}
+                              className="px-3 py-2 bg-yellow-600 text-white text-xs rounded-lg hover:bg-yellow-700 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            >
+                              🤖 OpenAI로 문장 생성
+                            </button>
+                            <button
+                              onClick={() => handleGenerateRecommendation('r2', 'koalpaca')}
+                              className="px-3 py-2 bg-orange-600 text-white text-xs rounded-lg hover:bg-orange-700 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            >
+                              🚀 KoAlpaca로 문장 생성
+                            </button>
+                          </div>
                         </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1260,6 +1431,21 @@ export default function TcfdSrPage() {
                               &ldquo;기후 관련 위험은 분기별 전사적 위험 평가에 포함되어 있으며, 위험도와 영향도를
                               정량적으로 평가하여 리스크 매트릭스에 반영하고 있습니다.&rdquo;
                             </p>
+                          </div>
+                          {/* AI 문장 생성 버튼 */}
+                          <div className="mt-3 flex gap-2">
+                            <button
+                              onClick={() => handleGenerateRecommendation('r3', 'openai')}
+                              className="px-3 py-2 bg-yellow-600 text-white text-xs rounded-lg hover:bg-yellow-700 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            >
+                              🤖 OpenAI로 문장 생성
+                            </button>
+                            <button
+                              onClick={() => handleGenerateRecommendation('r3', 'koalpaca')}
+                              className="px-3 py-2 bg-orange-600 text-white text-xs rounded-lg hover:bg-orange-700 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            >
+                              🚀 KoAlpaca로 문장 생성
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -1289,6 +1475,21 @@ export default function TcfdSrPage() {
                               주요 지표로 사용하고 있습니다.&rdquo;
                             </p>
                           </div>
+                          {/* AI 문장 생성 버튼 */}
+                          <div className="mt-3 flex gap-2">
+                            <button
+                              onClick={() => handleGenerateRecommendation('m1', 'openai')}
+                              className="px-3 py-2 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                              🤖 OpenAI로 문장 생성
+                            </button>
+                            <button
+                              onClick={() => handleGenerateRecommendation('m1', 'koalpaca')}
+                              className="px-3 py-2 bg-pink-600 text-white text-xs rounded-lg hover:bg-pink-700 transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500"
+                            >
+                              🚀 KoAlpaca로 문장 생성
+                            </button>
+                          </div>
                         </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1308,6 +1509,21 @@ export default function TcfdSrPage() {
                               지표로 활용하고 있습니다.&rdquo;
                             </p>
                           </div>
+                          {/* AI 문장 생성 버튼 */}
+                          <div className="mt-3 flex gap-2">
+                            <button
+                              onClick={() => handleGenerateRecommendation('m2', 'openai')}
+                              className="px-3 py-2 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                              🤖 OpenAI로 문장 생성
+                            </button>
+                            <button
+                              onClick={() => handleGenerateRecommendation('m2', 'koalpaca')}
+                              className="px-3 py-2 bg-pink-600 text-white text-xs rounded-lg hover:bg-pink-700 transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500"
+                            >
+                              🚀 KoAlpaca로 문장 생성
+                            </button>
+                          </div>
                         </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1326,6 +1542,21 @@ export default function TcfdSrPage() {
                               &ldquo;2030년까지 탄소 배출량 30% 감축, 2050년까지 탄소중립 달성, 재생에너지 사용률 50% 달성
                               등의 목표를 설정하고 있습니다.&rdquo;
                             </p>
+                          </div>
+                          {/* AI 문장 생성 버튼 */}
+                          <div className="mt-3 flex gap-2">
+                            <button
+                              onClick={() => handleGenerateRecommendation('m3', 'openai')}
+                              className="px-3 py-2 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                              🤖 OpenAI로 문장 생성
+                            </button>
+                            <button
+                              onClick={() => handleGenerateRecommendation('m3', 'koalpaca')}
+                              className="px-3 py-2 bg-pink-600 text-white text-xs rounded-lg hover:bg-pink-700 transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500"
+                            >
+                              🚀 KoAlpaca로 문장 생성
+                            </button>
                           </div>
                         </div>
                       </div>

@@ -36,7 +36,7 @@ class TCFDReportRequest(BaseModel):
     company_name: str
     report_year: str
     tcfd_inputs: TCFDInput
-    report_type: str = "draft"  # draft, polished
+    report_type: str = "draft"  # draft, final
     llm_provider: str = "openai"  # openai, huggingface
 
 class TCFDReportResponse(BaseModel):
@@ -47,3 +47,20 @@ class TCFDReportResponse(BaseModel):
     generated_at: datetime
     llm_provider: str
     report_type: str
+
+class TCFDRecommendationRequest(BaseModel):
+    """TCFD 권고사항별 문장 생성 요청 모델"""
+    company_name: str
+    recommendation_type: str  # g1, g2, s1, s2, s3, r1, r2, r3, m1, m2, m3
+    user_input: str  # 사용자가 입력한 해당 권고사항 데이터
+    llm_provider: str = "openai"  # openai, huggingface
+    context: Optional[str] = None  # 추가 컨텍스트 정보
+
+class TCFDRecommendationResponse(BaseModel):
+    """TCFD 권고사항별 문장 생성 응답 모델"""
+    success: bool
+    recommendation_type: str
+    generated_text: Optional[str] = None
+    error_message: Optional[str] = None
+    generated_at: datetime
+    llm_provider: str
