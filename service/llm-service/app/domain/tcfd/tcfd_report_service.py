@@ -168,6 +168,8 @@ class TCFDReportService:
 3. 구체적이고 실행 가능한 내용
 4. 공식적이고 객관적인 톤
 5. 200-300자 내외로 작성
+6. 사용자가 입력한 데이터의 핵심 내용을 반영
+7. TCFD 국제 표준에 부합하는 내용
 
 위의 가이드라인을 따라 전문적인 TCFD 권고사항 문장을 작성해주세요.
 """
@@ -228,8 +230,16 @@ class TCFDReportService:
     
     def _create_recommendation_final_prompt(self, base_prompt: str, rag_context: str, request: TCFDRecommendationRequest) -> str:
         """권고사항별 최종 프롬프트 생성 (RAG 컨텍스트 포함)"""
-        if rag_context:
-            final_prompt = f"{base_prompt}\n\n## 관련 참고 자료\n{rag_context}\n\n위의 참고 자료를 참고하여 더욱 정확하고 전문적인 권고사항 문장을 작성해주세요."
+        if rag_context and rag_context.strip():
+            final_prompt = f"""{base_prompt}
+
+## 관련 참고 자료 (RAG 검색 결과)
+{rag_context}
+
+## 추가 지침
+위의 참고 자료를 참고하여 더욱 정확하고 전문적인 권고사항 문장을 작성해주세요. 
+참고 자료의 내용과 사용자 입력 데이터를 적절히 조합하여 일관성 있는 문장을 만들어주세요.
+"""
         else:
             final_prompt = base_prompt
         

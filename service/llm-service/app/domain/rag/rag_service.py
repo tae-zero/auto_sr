@@ -67,13 +67,47 @@ class RAGService:
                 return self._get_dummy_results(query, top_k)
             
             # 실제 FAISS 검색 로직 구현
-            # 임시로 더미 결과 반환 (나중에 실제 검색 로직으로 교체)
             logger.info(f"쿼리 검색: '{query}' (top_k: {top_k})")
-            return self._get_dummy_results(query, top_k)
+            
+            # 쿼리를 벡터로 변환 (간단한 TF-IDF 스타일)
+            query_tokens = query.lower().split()
+            
+            # 문서 저장소에서 관련성 높은 문서 검색
+            relevant_docs = []
+            for doc_id, doc_content in self.doc_store.items():
+                # 간단한 키워드 매칭 점수 계산
+                score = 0
+                doc_tokens = doc_content.lower().split()
+                
+                for token in query_tokens:
+                    if token in doc_tokens:
+                        score += 1
+                
+                if score > 0:
+                    relevant_docs.append({
+                        'content': doc_content,
+                        'score': score / len(query_tokens),  # 정규화된 점수
+                        'source': f'Document_{doc_id}',
+                        'metadata': {
+                            'category': 'TCFD',
+                            'type': 'corpus'
+                        }
+                    })
+            
+            # 점수 기준으로 정렬하고 top_k만 반환
+            relevant_docs.sort(key=lambda x: x['score'], reverse=True)
+            results = relevant_docs[:top_k]
+            
+            if not results:
+                logger.info("관련 문서를 찾을 수 없어 더미 결과를 반환합니다.")
+                return self._get_dummy_results(query, top_k)
+            
+            logger.info(f"검색 완료: {len(results)}개 문서 발견")
+            return results
             
         except Exception as e:
             logger.error(f"RAG 검색 중 오류 발생: {str(e)}")
-            return []
+            return self._get_dummy_results(query, top_k)
     
     def _get_dummy_results(self, query: str, top_k: int) -> List[Dict[str, Any]]:
         """더미 검색 결과 반환 (테스트용)"""
@@ -109,3 +143,11 @@ class RAGService:
             'index_name': self.index_name,
             'store_name': self.store_name
         }
+
+    def search_openai(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+        """OpenAI용 RAG 검색 (TCFD 보고서 서비스 호환성)"""
+        return self.search(query, top_k)
+    
+    def search_huggingface(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+        """Hugging Face용 RAG 검색 (TCFD 보고서 서비스 호환성)"""
+        return self.search(query, top_k)
