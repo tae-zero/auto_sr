@@ -56,14 +56,14 @@ async def log_requests(request: Request, call_next):
     request.state.request_id = request_id
     
     # 요청 로깅
-    log_request_info(request_id, request.method, str(request.url))
+    log_request_info(request_id, f"{request.method} {request.url}")
     
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time
     
     # 응답 로깅
-    log_response_info(request_id, response.status_code, {"process_time": process_time})
+    log_response_info(request_id, f"Status {response.status_code}", process_time, {"process_time": process_time})
     
     return response
 

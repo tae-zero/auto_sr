@@ -4,7 +4,7 @@ uvicorn[standard]==0.29.0
 # RAG 및 벡터 검색
 faiss-cpu==1.7.4
 numpy==1.24.3
-langchain-community==0.0.27
+langchain-community==0.2.16
 
 # OpenAI API
 openai==1.12.0
@@ -13,7 +13,7 @@ openai==1.12.0
 requests==2.31.0
 
 # 데이터 검증 및 설정
-pydantic==2.7.1
+pydantic==1.10.13
 python-dotenv==1.0.1
 
 # 유틸리티
