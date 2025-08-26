@@ -25,20 +25,27 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
+# vectordb 디렉토리 생성 (Docker Volume 마운트용 - 로컬 개발용)
+RUN mkdir -p /app/vectordb/sr_corpus /app/vectordb/standards
+
 # 애플리케이션 코드 복사
 COPY . .
 
 # 스크립트 실행 권한 부여
 RUN chmod +x railway-start.sh
 
-# vectordb 디렉토리 생성 (Docker Volume 마운트용 - 로컬 개발용)
-RUN mkdir -p /app/vectordb/sr_corpus /app/vectordb/standards
-
-# vectordb 폴더 복사 시도 (Railway 배포용)
-# 오류가 발생해도 빌드 계속 진행
-RUN echo "vectordb 폴더 처리 중..." && \
-    (cp -r vectordb/* /app/vectordb/ 2>/dev/null || echo "vectordb 폴더가 없거나 복사 실패 - 빈 디렉토리로 시작") && \
-    echo "vectordb 디렉토리 준비 완료"
+# vectordb 폴더를 명시적으로 복사 (Railway 배포용)
+RUN echo "vectordb 폴더 복사 중..." && \
+    ls -la && \
+    if [ -d "vectordb" ]; then \
+        echo "vectordb 폴더 발견 - 복사 시작" && \
+        ls -la vectordb/ && \
+        cp -r vectordb/* /app/vectordb/ && \
+        echo "복사 완료" && \
+        ls -la /app/vectordb/; \
+    else \
+        echo "vectordb 폴더가 없습니다 - 빈 디렉토리로 시작"; \
+    fi
 
 # 포트 설정 (Docker Compose에서 8002:8000으로 매핑)
 EXPOSE 8000
