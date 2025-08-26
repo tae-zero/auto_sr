@@ -128,11 +128,12 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# FAISS 인덱스 파일 (큰 파일이므로 제외)
+# FAISS 인덱스 파일 (Railway 배포를 위해 포함)
 # *.faiss
 # *.pkl
 
 # FAISS 인덱스 폴더 (Railway 배포를 위해 포함)
+vectordb/
 data/
 
 # Railway 관련
