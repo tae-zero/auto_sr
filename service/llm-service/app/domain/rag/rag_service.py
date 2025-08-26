@@ -83,39 +83,27 @@ class RAGService:
                 if '__fields_set__' in str(pkl_error):
                     logger.info("🔄 Pydantic v1/v2 호환성 문제 감지, 대체 방법 시도")
                     try:
-                        # pickle5 또는 다른 로더 시도
-                        import pickle5
+                        # Pydantic v1 객체를 v2로 변환하는 시도
                         with open(store_file, 'rb') as f:
-                            self.doc_store = pickle5.load(f)
-                        logger.info(f"✅ pickle5로 문서 저장소 로딩 성공: {len(self.doc_store)}개 문서")
-                    except ImportError:
-                        logger.info("pickle5가 설치되지 않음, Pydantic v2 호환성 처리 시도")
-                        try:
-                            # Pydantic v1 객체를 v2로 변환하는 시도
-                            with open(store_file, 'rb') as f:
-                                raw_data = pickle.load(f)
+                            raw_data = pickle.load(f)
+                        
+                        # v1 객체의 __fields_set__ 문제 해결
+                        if isinstance(raw_data, dict):
+                            # 딕셔너리 형태로 변환 시도
+                            converted_data = {}
+                            for key, value in raw_data.items():
+                                if hasattr(value, '__dict__'):
+                                    # 객체를 딕셔너리로 변환
+                                    converted_data[key] = value.__dict__
+                                else:
+                                    converted_data[key] = value
+                            self.doc_store = converted_data
+                            logger.info(f"✅ Pydantic v1/v2 호환성 처리로 문서 저장소 로딩 성공: {len(self.doc_store)}개 문서")
+                        else:
+                            raise Exception("데이터 형태 변환 실패")
                             
-                            # v1 객체의 __fields_set__ 문제 해결
-                            if isinstance(raw_data, dict):
-                                # 딕셔너리 형태로 변환 시도
-                                converted_data = {}
-                                for key, value in raw_data.items():
-                                    if hasattr(value, '__dict__'):
-                                        # 객체를 딕셔너리로 변환
-                                        converted_data[key] = value.__dict__
-                                    else:
-                                        converted_data[key] = value
-                                self.doc_store = converted_data
-                                logger.info(f"✅ Pydantic v1/v2 호환성 처리로 문서 저장소 로딩 성공: {len(self.doc_store)}개 문서")
-                            else:
-                                raise Exception("데이터 형태 변환 실패")
-                                
-                        except Exception as compat_error:
-                            logger.error(f"❌ Pydantic 호환성 해결 시도 실패: {str(compat_error)}")
-                            self.doc_store = None
-                            logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
-                    except Exception as pkl5_error:
-                        logger.error(f"❌ pickle5 로딩도 실패: {str(pkl5_error)}")
+                    except Exception as compat_error:
+                        logger.error(f"❌ Pydantic 호환성 해결 시도 실패: {str(compat_error)}")
                         self.doc_store = None
                         logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
                 else:
