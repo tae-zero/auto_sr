@@ -64,9 +64,18 @@ class RAGService:
             logger.info(f"FAISS 인덱스 로딩 완료: {self.faiss_index.ntotal}개 문서")
             
             # 문서 저장소 로딩
-            with open(store_file, 'rb') as f:
-                self.doc_store = pickle.load(f)
-            logger.info(f"문서 저장소 로딩 완료: {len(self.doc_store)}개 문서")
+            try:
+                logger.info(f"📖 PKL 파일 로딩 시도: {store_file}")
+                with open(store_file, 'rb') as f:
+                    self.doc_store = pickle.load(f)
+                logger.info(f"✅ 문서 저장소 로딩 완료: {len(self.doc_store)}개 문서")
+            except Exception as pkl_error:
+                logger.error(f"❌ PKL 파일 로딩 실패: {str(pkl_error)}")
+                logger.error(f"  - 파일 경로: {store_file}")
+                logger.error(f"  - 파일 크기: {os.path.getsize(store_file) if os.path.exists(store_file) else '파일 없음'}")
+                # PKL 로딩 실패 시에도 FAISS는 사용 가능하도록 설정
+                self.doc_store = None
+                logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
             
             self.is_index_loaded = True
             logger.info("FAISS 인덱스 로딩 완료")
@@ -82,8 +91,14 @@ class RAGService:
                 logger.warning("FAISS 인덱스가 로딩되지 않았습니다. 더미 결과를 반환합니다.")
                 return self._get_dummy_results(query, top_k)
             
+            # 문서 저장소 확인
+            if self.doc_store is None:
+                logger.warning("⚠️ 문서 저장소(PKL)가 로드되지 않았습니다. 더미 결과를 반환합니다.")
+                return self._get_dummy_results(query, top_k)
+            
             # 실제 FAISS 검색 로직 구현
             logger.info(f"쿼리 검색: '{query}' (top_k: {top_k})")
+            logger.info(f"📚 문서 저장소 상태: {len(self.doc_store)}개 문서")
             
             # 쿼리를 벡터로 변환 (간단한 TF-IDF 스타일)
             query_tokens = query.lower().split()
