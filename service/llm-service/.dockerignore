@@ -19,7 +19,6 @@ nosetests.xml
 coverage.xml
 *.cover
 *.log
-.git
 .mypy_cache
 .pytest_cache
 .hypothesis
@@ -53,15 +52,10 @@ Thumbs.db
 
 # 문서 및 기타
 *.md
-README.md
 docs/
 tests/
 test_*
 *_test.py
-
-# Docker 관련 (Dockerfile은 제외)
-.dockerignore
-docker-compose*.yml
 
 # 로그 파일
 *.log
