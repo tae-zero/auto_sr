@@ -1,8 +1,9 @@
 # =============================================================================
-# 🐳 LLM Service Dockerfile
+# 🐳 LLM Service Dockerfile (Railway 배포용)
 # =============================================================================
-# Docker Compose 및 Railway 배포를 위한 최적화된 Dockerfile
+# Railway 배포를 위한 최적화된 Dockerfile
 # 2개 RAG 시스템 (OpenAI + Hugging Face) 지원
+# vectordb는 Railway Volume으로 마운트됨
 
 # Python 3.11 베이스 이미지 사용
 FROM python:3.11-slim
@@ -25,20 +26,20 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# 애플리케이션 코드 복사 (vectordb 폴더 포함)
-COPY . .
+# 애플리케이션 코드 복사 (vectordb 폴더 제외)
+COPY app/ ./app/
+COPY railway-start.sh .
+COPY railway.json .
+COPY Procfile .
+COPY runtime.txt .
 
 # 스크립트 실행 권한 부여
 RUN chmod +x railway-start.sh
 
-# vectordb 폴더 상태 확인 및 정리
-RUN echo "vectordb 폴더 상태 확인 중..." && \
-    ls -la && \
-    echo "vectordb 폴더 내용:" && \
-    ls -la vectordb/ && \
-    echo "vectordb 디렉토리 준비 완료"
+# Railway Volume을 위한 vectordb 디렉토리 생성
+RUN mkdir -p /app/vectordb/sr_corpus /app/vectordb/standards
 
-# 포트 설정 (Docker Compose에서 8002:8000으로 매핑)
+# 포트 설정 (Railway에서 자동으로 PORT 환경변수 사용)
 EXPOSE 8000
 
 # 환경변수 설정
@@ -49,5 +50,5 @@ ENV PYTHONUNBUFFERED=1
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# 애플리케이션 실행 (Docker Compose 및 Railway 모두 지원)
+# 애플리케이션 실행
 CMD ["./railway-start.sh"]
