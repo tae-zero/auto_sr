@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional, List
 from datetime import datetime
 
 class TCFDInput(BaseModel):
@@ -64,3 +64,21 @@ class TCFDRecommendationResponse(BaseModel):
     error_message: Optional[str] = None
     generated_at: datetime
     llm_provider: str
+
+class TCFDInputData(BaseModel):
+    """TCFD 입력 데이터 모델 (데이터베이스용)"""
+    id: Optional[int] = None
+    company_name: str
+    governance_g1: Optional[str] = None
+    governance_g2: Optional[str] = None
+    strategy_s1: Optional[str] = None
+    strategy_s2: Optional[str] = None
+    strategy_s3: Optional[str] = None
+    risk_management_r1: Optional[str] = None
+    risk_management_r2: Optional[str] = None
+    risk_management_r3: Optional[str] = None
+    metrics_targets_m1: Optional[str] = None
+    metrics_targets_m2: Optional[str] = None
+    metrics_targets_m3: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
