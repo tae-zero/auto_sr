@@ -9,7 +9,7 @@ load_dotenv()
 # =============================================================================
 SERVICE_NAME = os.getenv("SERVICE_NAME", "llm-service")
 SERVICE_HOST = os.getenv("SERVICE_HOST", "0.0.0.0")
-SERVICE_PORT = int(os.getenv("SERVICE_PORT", "8002"))
+SERVICE_PORT = int(os.getenv("PORT", "8000"))  # Docker Compose(8009) 및 Railway에서 자동으로 PORT 환경변수 제공
 
 # =============================================================================
 # 📁 FAISS Volume 설정 (vectordb 구조)

@@ -150,3 +150,6 @@ app.include_router(rag_router)
 app.include_router(faiss_router)
 
 logger.info(f"🎯 {SERVICE_NAME} 서비스 초기화 완료 - 2개 RAG 시스템 지원")
+logger.info(f"🌐 서비스 URL: http://{SERVICE_HOST}:{SERVICE_PORT}")
+logger.info(f"📚 FAISS 경로: {FAISS_INDEX_PATH}")
+logger.info(f"🔍 사용 가능한 RAG 서비스: OpenAI, Hugging Face")

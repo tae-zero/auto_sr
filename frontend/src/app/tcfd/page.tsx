@@ -742,7 +742,7 @@ export default function TcfdSrPage() {
                   { id: 2, name: '재무정보', icon: '💰' },
                   { id: 3, name: 'TCFD 프레임워크', icon: '📊' },
                   { id: 4, name: '기후시나리오', icon: '🌍' },
-                  { id: 5, name: 'AI보고서 초안', icon: '🤖' },
+                  { id: 5, name: 'AI보고서 초안', icon: '🤖', subtitle: 'OpenAI + KoAlpaca' },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -753,8 +753,17 @@ export default function TcfdSrPage() {
                         : 'text-gray-600 hover:bg-gray-100 hover:text-primary-600'
                     }`}
                   >
-                    <span className="mr-3">{tab.icon}</span>
-                    {tab.name}
+                    <div className="flex items-center">
+                      <span className="mr-3">{tab.icon}</span>
+                      <div className="text-left">
+                        <div>{tab.name}</div>
+                        {tab.subtitle && (
+                          <div className="text-xs text-gray-500 mt-1 font-normal">
+                            {tab.subtitle}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </button>
                 ))}
               </nav>
@@ -1334,59 +1343,113 @@ export default function TcfdSrPage() {
                 <h2 className="text-2xl font-bold text-primary-600 mb-6">🤖 AI보고서 초안</h2>
                 
                 {/* AI 보고서 생성 버튼 */}
-                <div className="bg-gradient-to-r from-primary-50 to-info-50 p-6 rounded-brand border border-primary-300 mb-8">
-                  <h3 className="text-lg font-semibold text-black mb-4">AI 기반 TCFD 보고서 생성</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center">
-                      <span className="w-2 h-2 bg-primary-500 rounded-full mr-3" />
-                      <span className="text-black">회사 정보 및 재무 데이터 분석</span>
+                <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-green-50 p-8 rounded-brand border-2 border-primary-300 mb-8 shadow-lg">
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">🤖 AI 기반 TCFD 보고서 생성</h3>
+                    <p className="text-gray-600">두 개의 AI 모델이 동시에 분석하여 비교 가능한 보고서를 생성합니다</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div className="bg-white p-4 rounded-lg border border-blue-200 shadow-sm">
+                      <div className="flex items-center mb-3">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                          <span className="text-white font-bold text-sm">O</span>
+                        </div>
+                        <h4 className="font-semibold text-blue-700">OpenAI GPT-4o-mini</h4>
+                      </div>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• 글로벌 최고 수준 언어 모델</li>
+                        <li>• 정확한 사실 기반 응답</li>
+                        <li>• 전문적인 비즈니스 용어</li>
+                      </ul>
                     </div>
-                    <div className="flex items-center">
-                      <span className="w-2 h-2 bg-info-500 rounded-full mr-3" />
-                      <span className="text-black">기후 위험 평가 및 시나리오 분석</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="w-2 h-2 bg-success-500 rounded-full mr-3" />
-                      <span className="text-black">TCFD 프레임워크 기반 보고서 생성</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="w-2 h-2 bg-warning-500 rounded-full mr-3" />
-                      <span className="text-black">지속가능성 지표 및 권장사항 제시</span>
+                    
+                    <div className="bg-white p-4 rounded-lg border border-purple-200 shadow-sm">
+                      <div className="flex items-center mb-3">
+                        <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3">
+                          <span className="text-white font-bold text-sm">K</span>
+                        </div>
+                        <h4 className="font-semibold text-purple-700">KoAlpaca/RoLA</h4>
+                      </div>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• 한국어 특화 자연스러운 표현</li>
+                        <li>• 한국 기업 문화 이해</li>
+                        <li>• ESG/TCFD 전문 용어</li>
+                      </ul>
                     </div>
                   </div>
-                  <button 
-                    onClick={handleGenerateTCFDReport}
-                    disabled={isGenerating}
-                    className="mt-6 px-6 py-3 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isGenerating ? '생성 중...' : 'AI 보고서 생성 시작'}
-                  </button>
+                  
+                  <div className="text-center">
+                    <button 
+                      onClick={handleGenerateTCFDReport}
+                      disabled={isGenerating}
+                      className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-brand shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
+                    >
+                      {isGenerating ? (
+                        <div className="flex items-center">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                          AI 모델들이 보고서를 생성하고 있습니다...
+                        </div>
+                      ) : (
+                        '🚀 AI 보고서 생성 시작'
+                      )}
+                    </button>
+                    <p className="text-sm text-gray-500 mt-3">
+                      TCFD 프레임워크 탭에서 데이터를 입력한 후 생성할 수 있습니다
+                    </p>
+                  </div>
                 </div>
 
                 {/* RAG 결과 표시 */}
                 {ragResults.openai || ragResults.huggingface ? (
                   <div className="space-y-8">
-                    <h3 className="text-xl font-bold text-gray-800">AI 생성 TCFD 보고서</h3>
+                    <h3 className="text-xl font-bold text-gray-800 mb-6">AI 생성 TCFD 보고서</h3>
+                    
+                    {/* 결과 비교 헤더 */}
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-gray-200">
+                      <h4 className="text-lg font-semibold text-gray-800 mb-2">🤖 AI 모델별 결과 비교</h4>
+                      <p className="text-sm text-gray-600">
+                        OpenAI GPT-4o-mini와 한국어 특화 KoAlpaca/RoLA 모델의 결과를 비교해보세요
+                      </p>
+                    </div>
                     
                     {/* OpenAI RAG 결과 */}
                     {ragResults.openai && (
-                      <div className="border rounded-lg p-6 bg-blue-50">
-                        <h4 className="text-lg font-semibold mb-4 text-blue-600">
-                          🤖 OpenAI RAG 결과
-                        </h4>
+                      <div className="border-2 border-blue-200 rounded-lg p-6 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg">
+                        <div className="flex items-center mb-4">
+                          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                            <span className="text-white font-bold text-lg">O</span>
+                          </div>
+                          <h4 className="text-xl font-bold text-blue-700">
+                            🤖 OpenAI GPT-4o-mini
+                          </h4>
+                          <span className="ml-auto px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-sm font-medium">
+                            GPT-4o-mini
+                          </span>
+                        </div>
                         
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                           <div>
-                            <h5 className="font-medium text-gray-700 mb-2">초안</h5>
-                            <div className="bg-white p-4 rounded-lg border border-blue-200 whitespace-pre-wrap">
-                              {ragResults.openai.draft}
+                            <h5 className="font-semibold text-gray-800 mb-3 flex items-center">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                              📝 초안 생성
+                            </h5>
+                            <div className="bg-white p-5 rounded-lg border border-blue-200 shadow-sm">
+                              <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+                                {ragResults.openai.draft}
+                              </div>
                             </div>
                           </div>
                           
                           <div>
-                            <h5 className="font-medium text-gray-700 mb-2">윤문된 텍스트</h5>
-                            <div className="bg-green-50 p-4 rounded-lg border border-green-200 whitespace-pre-wrap">
-                              {ragResults.openai.polished}
+                            <h5 className="font-semibold text-gray-800 mb-3 flex items-center">
+                              <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                              ✨ 윤문된 텍스트
+                            </h5>
+                            <div className="bg-green-50 p-5 rounded-lg border border-green-200 shadow-sm">
+                              <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+                                {ragResults.openai.polished}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1395,33 +1458,109 @@ export default function TcfdSrPage() {
 
                     {/* Hugging Face RAG 결과 */}
                     {ragResults.huggingface && (
-                      <div className="border rounded-lg p-6 bg-purple-50">
-                        <h4 className="text-lg font-semibold mb-4 text-purple-600">
-                          🚀 Hugging Face RAG 결과 (코알파/RoLA)
-                        </h4>
+                      <div className="border-2 border-purple-200 rounded-lg p-6 bg-gradient-to-br from-purple-50 to-purple-100 shadow-lg">
+                        <div className="flex items-center mb-4">
+                          <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center mr-3">
+                            <span className="text-white font-bold text-lg">K</span>
+                          </div>
+                          <h4 className="text-xl font-bold text-purple-700">
+                            🚀 한국어 특화 KoAlpaca/RoLA
+                          </h4>
+                          <span className="ml-auto px-3 py-1 bg-purple-200 text-purple-800 rounded-full text-sm font-medium">
+                            KoAlpaca 3.8B
+                          </span>
+                        </div>
                         
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                           <div>
-                            <h5 className="font-medium text-gray-700 mb-2">초안</h5>
-                            <div className="bg-white p-4 rounded-lg border border-purple-200 whitespace-pre-wrap">
-                              {ragResults.huggingface.draft}
+                            <h5 className="font-semibold text-gray-800 mb-3 flex items-center">
+                              <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                              📝 초안 생성
+                            </h5>
+                            <div className="bg-white p-5 rounded-lg border border-purple-200 shadow-sm">
+                              <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+                                {ragResults.huggingface.draft}
+                              </div>
                             </div>
                           </div>
                           
                           <div>
-                            <h5 className="font-medium text-gray-700 mb-2">윤문된 텍스트</h5>
-                            <div className="bg-green-50 p-4 rounded-lg border border-green-200 whitespace-pre-wrap">
-                              {ragResults.huggingface.polished}
+                            <h5 className="font-semibold text-gray-800 mb-3 flex items-center">
+                              <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                              ✨ 윤문된 텍스트
+                            </h5>
+                            <div className="bg-green-50 p-5 rounded-lg border border-green-200 shadow-sm">
+                              <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+                                {ragResults.huggingface.polished}
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     )}
+
+                    {/* 결과 요약 및 비교 */}
+                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                      <h4 className="text-lg font-semibold text-gray-800 mb-4">📊 AI 모델별 특징 비교</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-white p-4 rounded-lg border border-blue-200">
+                          <h5 className="font-semibold text-blue-700 mb-2">OpenAI GPT-4o-mini</h5>
+                          <ul className="text-sm text-gray-600 space-y-1">
+                            <li>• 글로벌 최고 수준의 언어 이해력</li>
+                            <li>• 영어 기반 다국어 지원</li>
+                            <li>• 정확한 사실 기반 응답</li>
+                            <li>• 전문적인 비즈니스 용어</li>
+                          </ul>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg border border-purple-200">
+                          <h5 className="font-semibold text-purple-700 mb-2">KoAlpaca/RoLA</h5>
+                          <ul className="text-sm text-gray-600 space-y-1">
+                            <li>• 한국어 특화 자연스러운 표현</li>
+                            <li>• 한국 기업 문화 이해</li>
+                            <li>• ESG/TCFD 전문 용어</li>
+                            <li>• 로컬 컨텍스트 적합성</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ) : (
-                  <div className="text-center py-12 text-gray-500">
-                    <p>AI 보고서 생성을 시작하려면 위의 버튼을 클릭하세요.</p>
-                    <p className="text-sm mt-2">TCFD 프레임워크 탭에서 데이터를 입력한 후 생성할 수 있습니다.</p>
+                  <div className="text-center py-16">
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-lg border border-gray-200 max-w-2xl mx-auto">
+                      <div className="w-20 h-20 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span className="text-white text-3xl">🤖</span>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-800 mb-4">AI 보고서 생성 준비 완료</h3>
+                      <p className="text-gray-600 mb-6">
+                        두 개의 AI 모델이 TCFD 프레임워크 기반으로 보고서를 생성할 준비가 되었습니다.
+                      </p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div className="bg-white p-3 rounded-lg border border-blue-200">
+                          <div className="flex items-center">
+                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-2">
+                              <span className="text-white text-xs font-bold">O</span>
+                            </div>
+                            <span className="text-sm font-medium text-blue-700">OpenAI GPT-4o-mini</span>
+                          </div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border border-purple-200">
+                          <div className="flex items-center">
+                            <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center mr-2">
+                              <span className="text-white text-xs font-bold">K</span>
+                            </div>
+                            <span className="text-sm font-medium text-purple-700">KoAlpaca/RoLA</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <p className="text-sm text-yellow-800">
+                          💡 <strong>다음 단계:</strong> TCFD 프레임워크 탭에서 11개 핵심 인덱스 데이터를 입력한 후, 
+                          위의 "AI 보고서 생성 시작" 버튼을 클릭하세요.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

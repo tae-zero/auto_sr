@@ -85,6 +85,8 @@ services:
         condition: service_healthy
       tcfdreport-service:
         condition: service_healthy
+      llm-service:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
@@ -263,6 +265,62 @@ services:
       retries: 3
       start_period: 15s
 
+  # LLM Service (FastAPI + RAG + AI)
+  llm-service:
+    build:
+      context: ./service/llm-service
+      dockerfile: Dockerfile
+    container_name: llm-service
+    ports:
+      - "${LLM_SERVICE_PORT:-8002}:8000"
+    volumes:
+      - ./service/llm-service:/app
+      - llm_vectordb_data:/app/vectordb
+    env_file: .env
+    environment:
+      - SERVICE_HOST=${SERVICE_HOST:-0.0.0.0}
+      - PORT=${LLM_SERVICE_PORT:-8009}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
+      # FAISS 설정
+      - FAISS_VOLUME_PATH=/app/vectordb
+      - FAISS_INDEX_NAME=sr_corpus
+      - FAISS_STORE_NAME=sr_corpus
+      - EMBED_DIM=${EMBED_DIM:-1536}
+      # OpenAI 설정
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - OPENAI_MAX_TOKENS=${OPENAI_MAX_TOKENS:-2000}
+      - OPENAI_TEMPERATURE=${OPENAI_TEMPERATURE:-0.3}
+      # Hugging Face 설정
+      - HF_API_TOKEN=${HF_API_TOKEN}
+      - HF_MODEL=${HF_MODEL:-EleutherAI/polyglot-ko-3.8b}
+      # 외부 GPU 설정
+      - GENAI_URL=${GENAI_URL}
+      - GENAI_KEY=${GENAI_KEY}
+      # 보안 설정
+      - ADMIN_TOKEN=${ADMIN_TOKEN:-supersecret}
+      # 모니터링 설정
+      - ENABLE_METRICS=${ENABLE_METRICS:-true}
+      - ENABLE_LOGGING=${ENABLE_LOGGING:-true}
+      # 유틸리티 설정
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-20971520}
+      - SUPPORTED_FILE_TYPES=${SUPPORTED_FILE_TYPES:-txt,pdf,docx,md}
+      - DEFAULT_TOP_K=${DEFAULT_TOP_K:-5}
+      - MAX_TOP_K=${MAX_TOP_K:-20}
+    restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
   # Auth Service (FastAPI)
   auth-service:
     build:
@@ -316,6 +374,8 @@ services:
 
 volumes:
   tcfd_chroma_data:
+    driver: local
+  llm_vectordb_data:
     driver: local
 
 networks:
