@@ -132,8 +132,7 @@ dmypy.json
 *.faiss
 *.pkl
 
-# FAISS 인덱스 폴더 (큰 폴더이므로 제외)
-vectordb/
+# FAISS 인덱스 폴더 (Railway 배포를 위해 포함)
 data/
 
 # Railway 관련
