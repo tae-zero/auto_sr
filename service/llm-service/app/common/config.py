@@ -30,7 +30,7 @@ TCFD_STORE_PATH = Path(FAISS_VOLUME_PATH) / "standards" / "index.pkl"
 # 🔤 임베딩 모델 설정 (이미 임베딩된 FAISS 사용)
 # =============================================================================
 # 기존 FAISS 인덱스의 차원 (차원 일치 검증용)
-EMBED_DIM = int(os.getenv("EMBED_DIM", "1536"))
+EMBED_DIM = int(os.getenv("EMBED_DIM", "768"))
 # OpenAI API 키 (텍스트 생성용만)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 

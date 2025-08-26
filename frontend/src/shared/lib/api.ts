@@ -41,6 +41,16 @@ interface AuthResponse {
 const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_URL || 'http://auth-service:8008';
 const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://gateway:8080';
 const CHATBOT_URL = process.env.NEXT_PUBLIC_CHATBOT_URL || 'http://chatbot-service:8001';
+const LLM_SERVICE_URL = process.env.NEXT_PUBLIC_LLM_SERVICE_URL || 'http://localhost:8002';
+
+// 환경변수 검증
+if (!process.env.NEXT_PUBLIC_GATEWAY_URL) {
+  console.warn('⚠️ NEXT_PUBLIC_GATEWAY_URL이 설정되지 않았습니다. 기본값을 사용합니다.');
+}
+
+if (!process.env.NEXT_PUBLIC_LLM_SERVICE_URL) {
+  console.warn('⚠️ NEXT_PUBLIC_LLM_SERVICE_URL이 설정되지 않았습니다. 기본값을 사용합니다.');
+}
 
 // API 클라이언트 설정
 export const apiClient = axios.create({

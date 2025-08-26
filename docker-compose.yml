@@ -285,7 +285,7 @@ services:
       - FAISS_VOLUME_PATH=/app/vectordb
       - FAISS_INDEX_NAME=sr_corpus
       - FAISS_STORE_NAME=sr_corpus
-      - EMBED_DIM=${EMBED_DIM:-1536}
+      - EMBED_DIM=${EMBED_DIM:-768}
       # OpenAI 설정
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
