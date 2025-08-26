@@ -63,7 +63,7 @@ async def log_requests(request: Request, call_next):
     process_time = time.time() - start_time
     
     # 응답 로깅
-    log_response_info(request_id, f"Status {response.status_code}", {"process_time": process_time})햐햐
+    log_response_info(request_id, f"Status {response.status_code}", process_time, process_time=process_time)
     
     return response
 
