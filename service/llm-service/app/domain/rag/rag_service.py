@@ -25,11 +25,33 @@ class RAGService:
     def _load_index(self):
         """FAISS 인덱스와 문서 저장소 로딩"""
         try:
-            # 실제 FAISS 인덱스 로딩은 여기서 구현
-            # 현재는 더미 데이터로 대체
-            logger.info("FAISS 인덱스 로딩 시도")
+            import faiss
+            import pickle
             
-            # 인덱스 로딩 성공으로 간주
+            # FAISS 인덱스 파일 경로
+            index_file = os.path.join(self.index_path, self.index_name, "index.faiss")
+            store_file = os.path.join(self.index_path, self.store_name, "index.pkl")
+            
+            # 파일 존재 확인
+            if not os.path.exists(index_file):
+                logger.warning(f"FAISS 인덱스 파일이 존재하지 않음: {index_file}")
+                self.is_index_loaded = False
+                return
+                
+            if not os.path.exists(store_file):
+                logger.warning(f"문서 저장소 파일이 존재하지 않음: {store_file}")
+                self.is_index_loaded = False
+                return
+            
+            # FAISS 인덱스 로딩
+            self.faiss_index = faiss.read_index(index_file)
+            logger.info(f"FAISS 인덱스 로딩 완료: {self.faiss_index.ntotal}개 문서")
+            
+            # 문서 저장소 로딩
+            with open(store_file, 'rb') as f:
+                self.doc_store = pickle.load(f)
+            logger.info(f"문서 저장소 로딩 완료: {len(self.doc_store)}개 문서")
+            
             self.is_index_loaded = True
             logger.info("FAISS 인덱스 로딩 완료")
             
@@ -44,8 +66,9 @@ class RAGService:
                 logger.warning("FAISS 인덱스가 로딩되지 않았습니다. 더미 결과를 반환합니다.")
                 return self._get_dummy_results(query, top_k)
             
-            # 실제 FAISS 검색 로직은 여기서 구현
-            # 현재는 더미 결과 반환
+            # 실제 FAISS 검색 로직 구현
+            # 임시로 더미 결과 반환 (나중에 실제 검색 로직으로 교체)
+            logger.info(f"쿼리 검색: '{query}' (top_k: {top_k})")
             return self._get_dummy_results(query, top_k)
             
         except Exception as e:
