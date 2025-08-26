@@ -31,8 +31,16 @@ class OpenAIRAGService(BaseRAGService):
     def load_index(self) -> bool:
         """FAISS 인덱스만 로드합니다 (문서 스토어 없이)."""
         try:
+            logger.info(f"FAISS 인덱스 로딩 시도: {FAISS_INDEX_PATH}")
+            logger.info(f"FAISS_VOLUME_PATH: {FAISS_VOLUME_PATH}")
+            logger.info(f"FAISS_INDEX_NAME: {FAISS_INDEX_NAME}")
+            
             if not FAISS_INDEX_PATH.exists():
                 logger.warning(f"FAISS 인덱스 파일이 존재하지 않음: {FAISS_INDEX_PATH}")
+                # 디렉토리 내용 확인
+                parent_dir = FAISS_INDEX_PATH.parent
+                if parent_dir.exists():
+                    logger.info(f"부모 디렉토리 내용: {list(parent_dir.iterdir())}")
                 return False
             
             # FAISS 인덱스 로드
