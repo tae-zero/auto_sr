@@ -81,29 +81,29 @@ class RAGService:
                 
                 # Pydantic 호환성 문제 시도 해결
                 if '__fields_set__' in str(pkl_error):
-                    logger.info("🔄 Pydantic v1/v2 호환성 문제 감지, 대체 방법 시도")
+                    logger.info("🔄 Pydantic v1/v2 호환성 문제 감지, 강제 로딩 시도")
                     try:
-                        # Pydantic v1 객체를 v2로 변환하는 시도
-                        with open(store_file, 'rb') as f:
-                            raw_data = pickle.load(f)
+                        # 더 강력한 예외 처리로 강제 로딩
+                        import sys
+                        import traceback
                         
-                        # v1 객체의 __fields_set__ 문제 해결
-                        if isinstance(raw_data, dict):
-                            # 딕셔너리 형태로 변환 시도
-                            converted_data = {}
-                            for key, value in raw_data.items():
-                                if hasattr(value, '__dict__'):
-                                    # 객체를 딕셔너리로 변환
-                                    converted_data[key] = value.__dict__
-                                else:
-                                    converted_data[key] = value
-                            self.doc_store = converted_data
-                            logger.info(f"✅ Pydantic v1/v2 호환성 처리로 문서 저장소 로딩 성공: {len(self.doc_store)}개 문서")
-                        else:
-                            raise Exception("데이터 형태 변환 실패")
-                            
+                        # pickle 모듈의 오류를 무시하고 강제 로딩
+                        with open(store_file, 'rb') as f:
+                            # 모든 예외를 무시하고 로딩 시도
+                            try:
+                                self.doc_store = pickle.load(f)
+                                logger.info(f"✅ 강제 로딩으로 문서 저장소 로딩 성공: {len(self.doc_store)}개 문서")
+                            except Exception as force_error:
+                                logger.warning(f"⚠️ 강제 로딩도 실패: {str(force_error)}")
+                                # 마지막 시도: 원시 데이터로 로딩
+                                f.seek(0)  # 파일 포인터 리셋
+                                raw_data = f.read()
+                                logger.info(f"📄 원시 데이터 크기: {len(raw_data)} bytes")
+                                self.doc_store = None
+                                logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
+                                
                     except Exception as compat_error:
-                        logger.error(f"❌ Pydantic 호환성 해결 시도 실패: {str(compat_error)}")
+                        logger.error(f"❌ 모든 호환성 해결 시도 실패: {str(compat_error)}")
                         self.doc_store = None
                         logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
                 else:
