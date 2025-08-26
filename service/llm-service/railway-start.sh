@@ -14,26 +14,46 @@ echo "  - FAISS_VOLUME_PATH: $FAISS_VOLUME_PATH"
 echo "  - FAISS_INDEX_NAME: $FAISS_INDEX_NAME"
 echo "  - FAISS_STORE_NAME: $FAISS_STORE_NAME"
 
-# vectordb 디렉토리 생성 (Docker Volume 마운트 지원)
-mkdir -p /app/vectordb/sr_corpus
-mkdir -p /app/vectordb/standards
+# 현재 작업 디렉토리 확인
+echo "📁 현재 작업 디렉토리: $(pwd)"
+echo "📁 현재 디렉토리 내용:"
+ls -la
 
-echo "📁 vectordb 디렉토리 생성 완료"
-
-# FAISS 파일 상태 확인
-echo "🔍 FAISS 파일 상태 확인:"
-if [ -f "/app/vectordb/sr_corpus/index.faiss" ]; then
-    echo "  ✅ sr_corpus/index.faiss: 존재함"
-    ls -la /app/vectordb/sr_corpus/
+# vectordb 폴더 상태 확인 (Dockerfile에서 복사됨)
+echo "🔍 vectordb 폴더 상태 확인:"
+if [ -d "/app/vectordb" ]; then
+    echo "  ✅ /app/vectordb 디렉토리: 존재함"
+    echo "  📁 /app/vectordb 내용:"
+    ls -la /app/vectordb/
+    
+    if [ -d "/app/vectordb/sr_corpus" ]; then
+        echo "  ✅ sr_corpus 디렉토리: 존재함"
+        echo "  📁 sr_corpus 내용:"
+        ls -la /app/vectordb/sr_corpus/
+    else
+        echo "  ❌ sr_corpus 디렉토리: 존재하지 않음"
+    fi
+    
+    if [ -d "/app/vectordb/standards" ]; then
+        echo "  ✅ standards 디렉토리: 존재함"
+        echo "  📁 standards 내용:"
+        ls -la /app/vectordb/standards/
+    else
+        echo "  ❌ standards 디렉토리: 존재하지 않음"
+    fi
 else
-    echo "  ❌ sr_corpus/index.faiss: 존재하지 않음"
-fi
-
-if [ -f "/app/vectordb/standards/index.faiss" ]; then
-    echo "  ✅ standards/index.faiss: 존재함"
-    ls -la /app/vectordb/standards/
-else
-    echo "  ❌ standards/index.faiss: 존재하지 않음"
+    echo "  ❌ /app/vectordb 디렉토리: 존재하지 않음"
+    
+    # 로컬 vectordb 폴더 확인 (개발 환경용)
+    if [ -d "./vectordb" ]; then
+        echo "  📁 로컬 vectordb 폴더 발견:"
+        ls -la ./vectordb/
+        
+        # 로컬 vectordb를 /app/vectordb로 복사
+        echo "  📋 로컬 vectordb를 /app/vectordb로 복사 중..."
+        cp -r ./vectordb /app/vectordb
+        echo "  ✅ 복사 완료"
+    fi
 fi
 
 # Python 의존성 확인

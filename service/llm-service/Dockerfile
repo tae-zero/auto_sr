@@ -31,23 +31,19 @@ COPY . .
 # 스크립트 실행 권한 부여
 RUN chmod +x railway-start.sh
 
-# vectordb 폴더를 임시 디렉토리로 복사 후 이동 (Railway 배포용)
+# vectordb 폴더를 직접 복사 (Railway 배포용)
 RUN echo "vectordb 폴더 복사 중..." && \
     ls -la && \
-    if [ -d "vectordb" ]; then \
-        echo "vectordb 폴더 발견 - 복사 시작" && \
-        ls -la vectordb/ && \
-        mkdir -p /tmp/vectordb_backup && \
-        cp -r vectordb/* /tmp/vectordb_backup/ && \
-        mkdir -p /app/vectordb/sr_corpus /app/vectordb/standards && \
-        cp -r /tmp/vectordb_backup/* /app/vectordb/ && \
-        rm -rf /tmp/vectordb_backup && \
-        echo "복사 완료" && \
-        ls -la /app/vectordb/; \
-    else \
-        echo "vectordb 폴더가 없습니다 - 빈 디렉토리로 시작" && \
-        mkdir -p /app/vectordb/sr_corpus /app/vectordb/standards; \
-    fi
+    echo "현재 디렉토리 내용:" && \
+    ls -la && \
+    echo "vectordb 폴더 확인:" && \
+    ls -la vectordb/ || echo "vectordb 폴더가 없습니다" && \
+    echo "복사 시작..." && \
+    cp -r vectordb /app/vectordb_temp && \
+    mv /app/vectordb_temp /app/vectordb && \
+    echo "복사 완료 - 최종 결과:" && \
+    ls -la /app/vectordb/ && \
+    echo "vectordb 디렉토리 준비 완료"
 
 # 포트 설정 (Docker Compose에서 8002:8000으로 매핑)
 EXPOSE 8000
