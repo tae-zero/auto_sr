@@ -279,7 +279,7 @@ services:
     env_file: .env
     environment:
       - SERVICE_HOST=${SERVICE_HOST:-0.0.0.0}
-      - PORT=${LLM_SERVICE_PORT:-8009}
+      - PORT=${LLM_SERVICE_PORT:-8002}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
       # FAISS 설정
@@ -293,8 +293,10 @@ services:
       - OPENAI_MAX_TOKENS=${OPENAI_MAX_TOKENS:-2000}
       - OPENAI_TEMPERATURE=${OPENAI_TEMPERATURE:-0.3}
       # Hugging Face 설정
+      - HF_API_URL=${HF_API_URL:-https://api-inference.huggingface.co}
       - HF_API_TOKEN=${HF_API_TOKEN}
       - HF_MODEL=${HF_MODEL:-EleutherAI/polyglot-ko-3.8b}
+      - HF_TIMEOUT=${HF_TIMEOUT:-30}
       # 외부 GPU 설정
       - GENAI_URL=${GENAI_URL}
       - GENAI_KEY=${GENAI_KEY}

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ClimateScenarioModal, TCFDDetailModal } from '@/ui/molecules';
 import { Header } from '@/ui/organisms';
 import { apiClient, tcfdReportAPI, tcfdAPI, llmServiceAPI } from '@/shared/lib';
-import { useAuthStore } from '@/shared/state/auth.store';
+
 import axios from 'axios';
 
 // 컬럼명 한국어 매핑 객체
@@ -1557,7 +1557,7 @@ export default function TcfdSrPage() {
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                         <p className="text-sm text-yellow-800">
                           💡 <strong>다음 단계:</strong> TCFD 프레임워크 탭에서 11개 핵심 인덱스 데이터를 입력한 후, 
-                          위의 "AI 보고서 생성 시작" 버튼을 클릭하세요.
+                          위의 &ldquo;AI 보고서 생성 시작&rdquo; 버튼을 클릭하세요.
                         </p>
                       </div>
                     </div>

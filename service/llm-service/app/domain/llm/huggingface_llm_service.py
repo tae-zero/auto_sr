@@ -22,6 +22,11 @@ class HuggingFaceLLMService(BaseLLMService):
     
     def _call_hf_api(self, prompt: str) -> str:
         """Hugging Face API를 호출합니다."""
+        # API 키가 없으면 fallback 메시지 반환
+        if not HF_API_TOKEN:
+            logger.warning("Hugging Face API 토큰이 설정되지 않아 fallback 모드로 동작")
+            return f"[Hugging Face API 미설정] {prompt[:100]}...에 대한 응답을 생성할 수 없습니다. API 토큰을 설정해주세요."
+        
         try:
             headers = {
                 "Authorization": f"Bearer {HF_API_TOKEN}",
@@ -55,11 +60,11 @@ class HuggingFaceLLMService(BaseLLMService):
                     return str(result)
             else:
                 logger.error(f"Hugging Face API 호출 실패: {response.status_code} - {response.text}")
-                raise Exception(f"API 호출 실패: {response.status_code}")
+                return f"[API 오류] Hugging Face API 호출에 실패했습니다. (상태 코드: {response.status_code})"
                 
         except Exception as e:
             logger.error(f"Hugging Face API 호출 중 오류: {e}")
-            raise
+            return f"[연결 오류] Hugging Face API 연결에 실패했습니다: {str(e)}"
     
     def generate_draft_section(self, question: str, context: str, section: str, style_guide: str = "") -> str:
         """섹션별 초안을 생성합니다."""
@@ -72,7 +77,7 @@ class HuggingFaceLLMService(BaseLLMService):
             
         except Exception as e:
             logger.error(f"Hugging Face 초안 생성 실패: {e}")
-            raise
+            return f"[오류] {section} 섹션 초안 생성에 실패했습니다: {str(e)}"
     
     def polish_text(self, text: str, tone: str = "공식적", style_guide: str = "") -> str:
         """텍스트를 윤문합니다."""
@@ -85,4 +90,4 @@ class HuggingFaceLLMService(BaseLLMService):
             
         except Exception as e:
             logger.error(f"Hugging Face 윤문 실패: {e}")
-            raise
+            return f"[오류] 텍스트 윤문에 실패했습니다: {str(e)}"

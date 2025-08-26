@@ -8,14 +8,7 @@ import axios, { AxiosError } from 'axios';
 import { authAPI } from '@/shared/lib';
 
 // URL 유효성 검사 함수
-const isValidUrl = (urlString: string) => {
-  try {
-    new URL(urlString);
-    return true;
-  } catch {
-    return false;
-  }
-};
+
 
 export default function LoginPage() {
   const router = useRouter();
