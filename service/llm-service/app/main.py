@@ -28,6 +28,12 @@ async def lifespan(app: FastAPI):
     # 시작 시
     logger.info(f"🚀 {SERVICE_NAME} 서비스 시작 중...")
     
+    # Railway 볼륨에 vectordb 데이터 복사
+    try:
+        copy_vectordb_data()
+    except Exception as e:
+        logger.warning(f"⚠️ vectordb 데이터 복사 실패 (무시): {e}")
+    
     # RAG 매니저 초기화 (환경변수가 설정된 후)
     try:
         from .domain.rag.rag_manager import RAGManager
@@ -47,6 +53,38 @@ async def lifespan(app: FastAPI):
     
     # 종료 시
     logger.info(f"🛑 {SERVICE_NAME} 서비스 종료 중...")
+
+def copy_vectordb_data():
+    """Railway 볼륨에 vectordb 데이터 복사"""
+    import shutil
+    from pathlib import Path
+    
+    source = Path("/app/vectordb")
+    target = Path("/data")
+    
+    if not source.exists():
+        logger.warning("⚠️ /app/vectordb 소스 디렉토리가 존재하지 않음")
+        return
+    
+    if not target.exists():
+        logger.warning("⚠️ /data 타겟 디렉토리가 존재하지 않음")
+        return
+    
+    # sr_corpus와 standards 폴더 복사
+    for folder_name in ["sr_corpus", "standards"]:
+        source_folder = source / folder_name
+        target_folder = target / folder_name
+        
+        if source_folder.exists():
+            if target_folder.exists():
+                logger.info(f"📁 {folder_name} 폴더가 이미 존재함")
+            else:
+                shutil.copytree(source_folder, target_folder)
+                logger.info(f"✅ {folder_name} 폴더를 /data에 복사 완료")
+        else:
+            logger.warning(f"⚠️ {folder_name} 소스 폴더가 존재하지 않음")
+    
+    logger.info("🎯 vectordb 데이터 복사 작업 완료")
 
 # FastAPI 앱 생성
 app = FastAPI(

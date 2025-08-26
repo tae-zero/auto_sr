@@ -33,6 +33,9 @@ COPY railway.json .
 COPY Procfile .
 COPY runtime.txt .
 
+# vectordb 폴더 복사 (Railway 볼륨에 복사할 소스)
+COPY ../tcfdreport-service/vectordb/ ./vectordb/
+
 # 스크립트 실행 권한 부여
 RUN chmod +x railway-start.sh
 
