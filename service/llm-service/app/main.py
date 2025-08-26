@@ -17,21 +17,29 @@ from .domain.rag.rag_manager import RAGManager
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# RAG 매니저 인스턴스
-rag_manager = RAGManager()
+# RAG 매니저 인스턴스 (lifespan에서 초기화)
+rag_manager = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """애플리케이션 생명주기 관리"""
+    global rag_manager
+    
     # 시작 시
     logger.info(f"🚀 {SERVICE_NAME} 서비스 시작 중...")
     
-    # 모든 RAG 서비스의 인덱스 로딩
+    # RAG 매니저 초기화 (환경변수가 설정된 후)
     try:
+        from .domain.rag.rag_manager import RAGManager
+        rag_manager = RAGManager()
+        logger.info("RAG 매니저 초기화 완료")
+        
+        # 모든 RAG 서비스의 인덱스 로딩
         load_results = rag_manager.load_all_indices()
         logger.info(f"📚 RAG 서비스 인덱스 로딩 결과: {load_results}")
     except Exception as e:
-        logger.error(f"❌ RAG 서비스 인덱스 로딩 실패: {e}")
+        logger.error(f"❌ RAG 서비스 초기화 실패: {e}")
+        rag_manager = None
     
     logger.info(f"✅ {SERVICE_NAME} 서비스 시작 완료")
     
@@ -111,6 +119,19 @@ async def root():
 async def health_check():
     """서비스 헬스 체크"""
     try:
+        # RAG 매니저가 초기화되지 않은 경우
+        if rag_manager is None:
+            return HealthResponse(
+                ok=False,
+                service_name=SERVICE_NAME,
+                version="2.0.0",
+                error="RAG Manager not initialized",
+                rag_services={},
+                all_services_loaded=False,
+                embed_dim=EMBED_DIM,
+                timestamp=time.time()
+            )
+        
         # RAG 서비스 상태 확인
         service_status = rag_manager.get_service_status()
         

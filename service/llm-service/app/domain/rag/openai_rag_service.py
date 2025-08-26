@@ -35,8 +35,14 @@ class OpenAIRAGService(BaseRAGService):
             logger.info(f"FAISS 인덱스 로딩 시도: {FAISS_INDEX_PATH}")
             logger.info(f"FAISS_VOLUME_PATH: {FAISS_VOLUME_PATH}")
             logger.info(f"FAISS_INDEX_NAME: {FAISS_INDEX_NAME}")
+            logger.info(f"FAISS_INDEX_PATH 타입: {type(FAISS_INDEX_PATH)}")
+            logger.info(f"FAISS_INDEX_PATH 문자열: {str(FAISS_INDEX_PATH)}")
             
-            if not FAISS_INDEX_PATH.exists():
+            # 파일 존재 여부 확인
+            file_exists = FAISS_INDEX_PATH.exists()
+            logger.info(f"파일 존재 여부: {file_exists}")
+            
+            if not file_exists:
                 logger.warning(f"FAISS 인덱스 파일이 존재하지 않음: {FAISS_INDEX_PATH}")
                 # 디렉토리 내용 확인
                 parent_dir = FAISS_INDEX_PATH.parent
