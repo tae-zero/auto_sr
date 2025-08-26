@@ -21,6 +21,7 @@ FAISS_STORE_NAME = os.getenv("FAISS_STORE_NAME", "sr_corpus")
 def get_faiss_index_path():
     """FAISS 인덱스 파일 경로를 동적으로 생성"""
     import logging
+    import os
     logger = logging.getLogger(__name__)
     
     path = Path(FAISS_VOLUME_PATH) / FAISS_INDEX_NAME / "index.faiss"
@@ -28,6 +29,22 @@ def get_faiss_index_path():
     logger.info(f"  - FAISS_VOLUME_PATH: {FAISS_VOLUME_PATH}")
     logger.info(f"  - FAISS_INDEX_NAME: {FAISS_INDEX_NAME}")
     logger.info(f"  - 전체 경로: {path}")
+    
+    # 디렉토리 내용 확인
+    volume_dir = Path(FAISS_VOLUME_PATH)
+    if volume_dir.exists():
+        logger.info(f"  - /app/vectordb 디렉토리 존재: ✅")
+        logger.info(f"  - /app/vectordb 내용: {list(volume_dir.iterdir())}")
+        
+        sr_corpus_dir = volume_dir / FAISS_INDEX_NAME
+        if sr_corpus_dir.exists():
+            logger.info(f"  - sr_corpus 디렉토리 존재: ✅")
+            logger.info(f"  - sr_corpus 내용: {list(sr_corpus_dir.iterdir())}")
+        else:
+            logger.info(f"  - sr_corpus 디렉토리 존재: ❌")
+    else:
+        logger.info(f"  - /app/vectordb 디렉토리 존재: ❌")
+    
     logger.info(f"  - 경로 존재 여부: {path.exists()}")
     
     return path
