@@ -19,12 +19,26 @@ FAISS_INDEX_NAME = os.getenv("FAISS_INDEX_NAME", "sr_corpus")
 FAISS_STORE_NAME = os.getenv("FAISS_STORE_NAME", "sr_corpus")
 
 # FAISS 파일 경로 (지속가능경영보고서)
-FAISS_INDEX_PATH = Path(FAISS_VOLUME_PATH) / FAISS_INDEX_NAME / "index.faiss"
-FAISS_STORE_PATH = Path(FAISS_VOLUME_PATH) / FAISS_STORE_NAME / "index.pkl"
+# Railway와 Docker 환경 모두 지원
+if os.path.exists("/app/vectordb"):
+    # Railway 환경: /app/vectordb 사용
+    FAISS_INDEX_PATH = Path("/app/vectordb") / FAISS_INDEX_NAME / "index.faiss"
+    FAISS_STORE_PATH = Path("/app/vectordb") / FAISS_STORE_NAME / "index.pkl"
+else:
+    # 로컬/Docker Compose 환경: 환경변수 경로 사용
+    FAISS_INDEX_PATH = Path(FAISS_VOLUME_PATH) / FAISS_INDEX_NAME / "index.faiss"
+    FAISS_STORE_PATH = Path(FAISS_VOLUME_PATH) / FAISS_STORE_NAME / "index.pkl"
 
 # TCFD 기준서 FAISS 파일 경로 (추가)
-TCFD_INDEX_PATH = Path(FAISS_VOLUME_PATH) / "standards" / "index.faiss"
-TCFD_STORE_PATH = Path(FAISS_VOLUME_PATH) / "standards" / "index.pkl"
+# Railway와 Docker 환경 모두 지원
+if os.path.exists("/app/vectordb"):
+    # Railway 환경: /app/vectordb 사용
+    TCFD_INDEX_PATH = Path("/app/vectordb") / "standards" / "index.faiss"
+    TCFD_STORE_PATH = Path("/app/vectordb") / "standards" / "index.pkl"
+else:
+    # 로컬/Docker Compose 환경: 환경변수 경로 사용
+    TCFD_INDEX_PATH = Path(FAISS_VOLUME_PATH) / "standards" / "index.faiss"
+    TCFD_STORE_PATH = Path(FAISS_VOLUME_PATH) / "standards" / "index.pkl"
 
 # =============================================================================
 # 🔤 임베딩 모델 설정 (이미 임베딩된 FAISS 사용)

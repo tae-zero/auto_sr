@@ -20,6 +20,22 @@ mkdir -p /app/vectordb/standards
 
 echo "📁 vectordb 디렉토리 생성 완료"
 
+# FAISS 파일 상태 확인
+echo "🔍 FAISS 파일 상태 확인:"
+if [ -f "/app/vectordb/sr_corpus/index.faiss" ]; then
+    echo "  ✅ sr_corpus/index.faiss: 존재함"
+    ls -la /app/vectordb/sr_corpus/
+else
+    echo "  ❌ sr_corpus/index.faiss: 존재하지 않음"
+fi
+
+if [ -f "/app/vectordb/standards/index.faiss" ]; then
+    echo "  ✅ standards/index.faiss: 존재함"
+    ls -la /app/vectordb/standards/
+else
+    echo "  ❌ standards/index.faiss: 존재하지 않음"
+fi
+
 # Python 의존성 확인
 echo "🐍 Python 의존성 확인 중..."
 pip list

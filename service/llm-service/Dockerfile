@@ -31,7 +31,10 @@ COPY . .
 # 스크립트 실행 권한 부여
 RUN chmod +x railway-start.sh
 
-# vectordb 디렉토리 생성 (Docker Volume 마운트용)
+# vectordb 폴더를 이미지에 포함 (Railway 배포용)
+COPY vectordb/ /app/vectordb/
+
+# vectordb 디렉토리 생성 (Docker Volume 마운트용 - 로컬 개발용)
 RUN mkdir -p /app/vectordb/sr_corpus /app/vectordb/standards
 
 # 포트 설정 (Docker Compose에서 8002:8000으로 매핑)
