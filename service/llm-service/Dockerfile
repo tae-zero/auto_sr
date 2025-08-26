@@ -34,7 +34,8 @@ COPY Procfile .
 COPY runtime.txt .
 
 # vectordb 폴더 복사 (Railway 볼륨에 복사할 소스)
-COPY ../tcfdreport-service/vectordb/ ./vectordb/
+# Docker 빌드 컨텍스트 내에서 vectordb 폴더를 직접 복사
+COPY vectordb/ ./vectordb/
 
 # 스크립트 실행 권한 부여
 RUN chmod +x railway-start.sh
