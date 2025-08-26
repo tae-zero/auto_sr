@@ -19,48 +19,32 @@ echo "📁 현재 작업 디렉토리: $(pwd)"
 echo "📁 현재 디렉토리 내용:"
 ls -la
 
-# vectordb 폴더 상태 확인 (모든 환경에서 동일한 경로 사용)
+# vectordb 폴더 상태 확인 (Railway Volume 경로 사용)
 echo "🔍 vectordb 폴더 상태 확인:"
-if [ -d "/app/vectordb" ]; then
-    echo "  ✅ /app/vectordb 디렉토리: 존재함"
-    echo "  📁 /app/vectordb 내용:"
-    ls -la /app/vectordb/
+if [ -d "$FAISS_VOLUME_PATH" ]; then
+    echo "  ✅ $FAISS_VOLUME_PATH 디렉토리: 존재함"
+    echo "  📁 $FAISS_VOLUME_PATH 내용:"
+    ls -la "$FAISS_VOLUME_PATH"
     
-    if [ -d "/app/vectordb/sr_corpus" ]; then
-        echo "  ✅ sr_corpus 디렉토리: 존재함"
-        echo "  📁 sr_corpus 내용:"
-        ls -la /app/vectordb/sr_corpus/
+    if [ -d "$FAISS_VOLUME_PATH/$FAISS_INDEX_NAME" ]; then
+        echo "  ✅ $FAISS_INDEX_NAME 디렉토리: 존재함"
+        echo "  📁 $FAISS_INDEX_NAME 내용:"
+        ls -la "$FAISS_VOLUME_PATH/$FAISS_INDEX_NAME"
     else
-        echo "  ❌ sr_corpus 디렉토리: 존재하지 않음"
+        echo "  ❌ $FAISS_INDEX_NAME 디렉토리: 존재하지 않음"
     fi
     
-    if [ -d "/app/vectordb/standards" ]; then
+    if [ -d "$FAISS_VOLUME_PATH/standards" ]; then
         echo "  ✅ standards 디렉토리: 존재함"
         echo "  📁 standards 내용:"
-        ls -la /app/vectordb/standards/
+        ls -la "$FAISS_VOLUME_PATH/standards"
     else
         echo "  ❌ standards 디렉토리: 존재하지 않음"
     fi
 else
-    echo "  ❌ /app/vectordb 디렉토리: 존재하지 않음"
-    echo "  📁 현재 디렉토리에서 vectordb 폴더 확인 중..."
-    
-    if [ -d "./vectordb" ]; then
-        echo "  ✅ ./vectordb 디렉토리 발견:"
-        ls -la ./vectordb/
-        echo "  📋 ./vectordb를 /app/vectordb로 복사 중..."
-        cp -r ./vectordb /app/vectordb
-        echo "  ✅ 복사 완료"
-        
-        # 복사 후 다시 확인
-        if [ -d "/app/vectordb" ]; then
-            echo "  ✅ /app/vectordb 디렉토리: 복사 후 존재함"
-            echo "  📁 /app/vectordb 내용:"
-            ls -la /app/vectordb/
-        fi
-    else
-        echo "  ❌ ./vectordb 디렉토리도 존재하지 않음"
-    fi
+    echo "  ❌ $FAISS_VOLUME_PATH 디렉토리: 존재하지 않음"
+    echo "  📁 Railway Volume에 vectordb 폴더를 업로드해야 합니다"
+    echo "  📁 예상 경로: $FAISS_VOLUME_PATH/$FAISS_INDEX_NAME/index.faiss"
 fi
 
 # Python 의존성 확인
