@@ -14,7 +14,7 @@ SERVICE_PORT = int(os.getenv("PORT", "8000"))  # Docker Compose(8009) 및 Railwa
 # =============================================================================
 # 📁 FAISS Volume 설정 (vectordb 구조)
 # =============================================================================
-FAISS_VOLUME_PATH = os.getenv("FAISS_VOLUME_PATH", "/app/vectordb")
+FAISS_VOLUME_PATH = os.getenv("FAISS_VOLUME_PATH", "/data")
 FAISS_INDEX_NAME = os.getenv("FAISS_INDEX_NAME", "sr_corpus")
 FAISS_STORE_NAME = os.getenv("FAISS_STORE_NAME", "sr_corpus")
 
