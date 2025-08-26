@@ -78,9 +78,24 @@ class RAGService:
                 logger.error(f"❌ PKL 파일 로딩 실패: {str(pkl_error)}")
                 logger.error(f"  - 파일 경로: {store_file}")
                 logger.error(f"  - 파일 크기: {os.path.getsize(store_file) if os.path.exists(store_file) else '파일 없음'}")
-                # PKL 로딩 실패 시에도 FAISS는 사용 가능하도록 설정
-                self.doc_store = None
-                logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
+                
+                # Pydantic 호환성 문제 시도 해결
+                if '__fields_set__' in str(pkl_error):
+                    logger.info("🔄 Pydantic 호환성 문제 감지, 대체 방법 시도")
+                    try:
+                        # pickle5 또는 다른 로더 시도
+                        import pickle5 as pickle5
+                        with open(store_file, 'rb') as f:
+                            self.doc_store = pickle5.load(f)
+                        logger.info(f"✅ pickle5로 문서 저장소 로딩 성공: {len(self.doc_store)}개 문서")
+                    except Exception as pkl5_error:
+                        logger.error(f"❌ pickle5 로딩도 실패: {str(pkl5_error)}")
+                        self.doc_store = None
+                        logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
+                else:
+                    # 다른 오류의 경우
+                    self.doc_store = None
+                    logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
             
             self.is_index_loaded = True
             logger.info("FAISS 인덱스 로딩 완료")
