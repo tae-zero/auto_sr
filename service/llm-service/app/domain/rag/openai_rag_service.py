@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Tuple, Optional
 from pathlib import Path
 from ...common.config import (
     FAISS_INDEX_PATH, FAISS_STORE_PATH, 
+    FAISS_VOLUME_PATH, FAISS_INDEX_NAME,
     EMBED_DIM, OPENAI_API_KEY, OPENAI_MODEL,
     OPENAI_MAX_TOKENS, OPENAI_TEMPERATURE
 )
