@@ -7,9 +7,9 @@ openai==1.12.0
 faiss-cpu==1.7.4
 numpy==1.24.3
 pydantic==2.11.7
-pydantic-core==2.18.2
-langchain==0.2.17
-langchain-community==0.2.16
+
+langchain==0.2.10
+langchain-community==0.2.10
 langchain-core==0.2.43
 langchain-text-splitters==0.2.4
 sqlalchemy==2.0.43
