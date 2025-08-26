@@ -63,7 +63,7 @@ async def log_requests(request: Request, call_next):
     process_time = time.time() - start_time
     
     # 응답 로깅
-    log_response_info(request_id, f"Status {response.status_code}", process_time, {"process_time": process_time})
+    log_response_info(request_id, f"Status {response.status_code}", {"process_time": process_time})
     
     return response
 
@@ -149,7 +149,4 @@ app.include_router(rag_router)
 # FAISS 라우터 등록
 app.include_router(faiss_router)
 
-logger.info(f"🎯 {SERVICE_NAME} 서비스 초기화 완료 - 2개 RAG 시스템 지원")
-logger.info(f"🌐 서비스 URL: http://{SERVICE_HOST}:{SERVICE_PORT}")
-logger.info(f"📚 FAISS 경로: {FAISS_INDEX_PATH}")
-logger.info(f"🔍 사용 가능한 RAG 서비스: OpenAI, Hugging Face")
+# 서비스 초기화 완료 (lifespan에서 처리됨)

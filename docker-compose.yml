@@ -272,13 +272,13 @@ services:
       dockerfile: Dockerfile
     container_name: llm-service
     ports:
-      - "${LLM_SERVICE_PORT:-8002}:8000"
+      - "${LLM_SERVICE_PORT:-8002}:8002"
     volumes:
       - ./service/llm-service/vectordb:/app/vectordb
     env_file: .env
     environment:
       - SERVICE_HOST=${SERVICE_HOST:-0.0.0.0}
-      - PORT=${LLM_SERVICE_PORT:-8002}
+      - PORT=8002
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PYTHONUNBUFFERED=${PYTHONUNBUFFERED:-1}
       # FAISS 설정
