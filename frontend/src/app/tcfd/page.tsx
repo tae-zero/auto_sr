@@ -372,31 +372,54 @@ export default function TcfdSrPage() {
     setIsGenerating(true);
     
     try {
-      // TCFD 입력 데이터를 통합하여 질문 생성
-      const tcfdInputs = {
-        m1: tcfdInputData.metrics_targets_m1,
-        m2: tcfdInputData.metrics_targets_m2,
-        m3: tcfdInputData.metrics_targets_m3,
-        governance: `${tcfdInputData.governance_g1} ${tcfdInputData.governance_g2}`,
-        strategy: `${tcfdInputData.strategy_s1} ${tcfdInputData.strategy_s2} ${tcfdInputData.strategy_s3}`,
-        riskManagement: `${tcfdInputData.risk_management_r1} ${tcfdInputData.risk_management_r2} ${tcfdInputData.risk_management_r3}`,
-        companyName: companyFinancialData.company_name
+      // TCFD 입력 데이터를 새 API 형식에 맞춰 구성
+      const tcfdReportRequest = {
+        company_name: companyFinancialData.company_name,
+        report_year: new Date().getFullYear().toString(),
+        tcfd_inputs: {
+          company_name: companyFinancialData.company_name,
+          user_id: localStorage.getItem('user_id') || 'user123',
+          governance_g1: tcfdInputData.governance_g1 || '',
+          governance_g2: tcfdInputData.governance_g2 || '',
+          strategy_s1: tcfdInputData.strategy_s1 || '',
+          strategy_s2: tcfdInputData.strategy_s2 || '',
+          strategy_s3: tcfdInputData.strategy_s3 || '',
+          risk_management_r1: tcfdInputData.risk_management_r1 || '',
+          risk_management_r2: tcfdInputData.risk_management_r2 || '',
+          risk_management_r3: tcfdInputData.risk_management_r3 || '',
+          metrics_targets_m1: tcfdInputData.metrics_targets_m1 || '',
+          metrics_targets_m2: tcfdInputData.metrics_targets_m2 || '',
+          metrics_targets_m3: tcfdInputData.metrics_targets_m3 || '',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        report_type: "draft",
+        llm_provider: "openai"
       };
 
-      console.log('🤖 TCFD 보고서 생성 시작:', tcfdInputs);
+      console.log('🤖 TCFD 보고서 생성 시작:', tcfdReportRequest);
 
-      // 2개 RAG 시스템 동시 호출
+      // 2개 LLM 시스템으로 TCFD 보고서 생성
       const [openaiResult, hfResult] = await Promise.all([
-        llmServiceAPI.generateOpenAIRAG(tcfdInputs),
-        llmServiceAPI.generateHFRAG(tcfdInputs)
+        // OpenAI로 TCFD 보고서 생성
+        generateTCFDReportWithLLM(tcfdReportRequest, "openai"),
+        // Hugging Face로 TCFD 보고서 생성
+        generateTCFDReportWithLLM(tcfdReportRequest, "huggingface")
       ]);
 
-      console.log('✅ OpenAI RAG 결과:', openaiResult);
-      console.log('✅ Hugging Face RAG 결과:', hfResult);
+      console.log('✅ OpenAI TCFD 보고서 결과:', openaiResult);
+      console.log('✅ Hugging Face TCFD 보고서 결과:', hfResult);
 
+      // 결과를 기존 RAG 결과 형식에 맞춰 변환
       setRagResults({
-        openai: openaiResult,
-        huggingface: hfResult
+        openai: {
+          draft: openaiResult.report_content || '보고서 생성에 실패했습니다.',
+          polished: openaiResult.report_content || '보고서 생성에 실패했습니다.'
+        },
+        huggingface: {
+          draft: hfResult.report_content || '보고서 생성에 실패했습니다.',
+          polished: hfResult.report_content || '보고서 생성에 실패했습니다.'
+        }
       });
 
       // AI보고서 초안 탭으로 자동 이동
@@ -407,6 +430,43 @@ export default function TcfdSrPage() {
       alert('TCFD 보고서 생성에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  // LLM 서비스를 사용하여 TCFD 보고서 생성
+  const generateTCFDReportWithLLM = async (request: any, llmProvider: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        throw new Error('인증 토큰이 없습니다');
+      }
+
+      // llm-service의 TCFD API 호출
+      const response = await fetch(`${process.env.NEXT_PUBLIC_LLM_SERVICE_URL || 'http://localhost:8002'}/tcfd/generate-report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...request,
+          llm_provider: llmProvider
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error: unknown) {
+      console.error(`❌ ${llmProvider} TCFD 보고서 생성 실패:`, error);
+      return {
+        success: false,
+        report_content: `${llmProvider} 모델로 보고서 생성에 실패했습니다: ${error instanceof Error ? error.message : String(error)}`,
+        error_message: error instanceof Error ? error.message : String(error)
+      };
     }
   };
 
