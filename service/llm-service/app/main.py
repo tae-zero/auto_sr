@@ -9,6 +9,7 @@ from .common.config import SERVICE_NAME, SERVICE_HOST, SERVICE_PORT, EMBED_DIM
 from .common.schemas import HealthResponse, ErrorResponse
 from .common.utils import generate_request_id, log_request_info, log_response_info
 from .router.rag_router import router as rag_router
+from .router.faiss_router import router as faiss_router
 from .domain.rag.rag_manager import RAGManager
 
 # 로깅 설정
@@ -144,5 +145,8 @@ async def health_check():
 
 # RAG 라우터 등록
 app.include_router(rag_router)
+
+# FAISS 라우터 등록
+app.include_router(faiss_router)
 
 logger.info(f"🎯 {SERVICE_NAME} 서비스 초기화 완료 - 2개 RAG 시스템 지원")

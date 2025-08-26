@@ -213,6 +213,79 @@ export const tcfdReportAPI = {
   getTcfdInputs: () => apiClient.get('/api/v1/tcfdreport/inputs'),
 };
 
+// LLM Service API (TCFD 보고서 생성용)
+export const llmServiceAPI = {
+  // TCFD 보고서 초안 생성 (Gateway를 통한 통합 호출)
+  generateTCFDReport: async (tcfdInputs: TCFDInputs) => {
+    const response = await fetch('/api/llm/generate-tcfd-report', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        question: `TCFD 보고서 생성을 위한 질문: ${JSON.stringify(tcfdInputs)}`,
+        sections: [
+          '기후 관련 위험 평가',
+          '기후 관련 기회 평가', 
+          '기후 관련 목표 설정',
+          '기후 관련 전략 및 계획'
+        ],
+        top_k: 8
+      })
+    });
+    return response.json();
+  },
+
+  // OpenAI RAG로 초안 생성 (직접 LLM Service 호출)
+  generateOpenAIRAG: async (tcfdInputs: TCFDInputs) => {
+    const response = await fetch('/api/llm/generate-openai-rag', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        question: `TCFD 보고서 생성을 위한 질문: ${JSON.stringify(tcfdInputs)}`,
+        sections: [
+          '기후 관련 위험 평가',
+          '기후 관련 기회 평가',
+          '기후 관련 목표 설정',
+          '기후 관련 전략 및 계획'
+        ],
+        top_k: 8
+      })
+    });
+    return response.json();
+  },
+
+  // Hugging Face RAG로 초안 생성 (직접 LLM Service 호출)
+  generateHFRAG: async (tcfdInputs: TCFDInputs) => {
+    const response = await fetch('/api/llm/generate-hf-rag', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        question: `TCFD 보고서 생성을 위한 질문: ${JSON.stringify(tcfdInputs)}`,
+        sections: [
+          '기후 관련 위험 평가',
+          '기후 관련 기회 평가',
+          '기후 관련 목표 설정',
+          '기후 관련 전략 및 계획'
+        ],
+        top_k: 8
+      })
+    });
+    return response.json();
+  }
+};
+
+// TCFD 입력 데이터 타입 (LLM Service용)
+interface TCFDInputs {
+  m1: string;
+  m2: string;
+  m3: string;
+}
+
 // 요청 인터셉터
 apiClient.interceptors.request.use(
   async (config) => {

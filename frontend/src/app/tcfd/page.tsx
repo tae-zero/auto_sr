@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ClimateScenarioModal, TCFDDetailModal } from '@/ui/molecules';
 import { Header } from '@/ui/organisms';
-import { apiClient, tcfdReportAPI, tcfdAPI } from '@/shared/lib';
+import { apiClient, tcfdReportAPI, tcfdAPI, llmServiceAPI } from '@/shared/lib';
 import { useAuthStore } from '@/shared/state/auth.store';
 import axios from 'axios';
 
@@ -193,6 +193,17 @@ export default function TcfdSrPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // RAG 결과 상태 관리
+  const [ragResults, setRagResults] = useState<{
+    openai: any | null;
+    huggingface: any | null;
+  }>({
+    openai: null,
+    huggingface: null
+  });
+  
+  const [isGenerating, setIsGenerating] = useState(false);
+
   // 회사 목록 로드 (사용하지 않음)
   const loadCompanies = async () => {
     // 회사 목록은 더 이상 로드하지 않음
@@ -341,6 +352,61 @@ export default function TcfdSrPage() {
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // 2개 RAG 시스템으로 TCFD 보고서 생성 함수
+  const handleGenerateTCFDReport = async () => {
+    if (!companyFinancialData?.company_name) {
+      alert('회사 정보가 필요합니다. 먼저 회사를 검색해주세요.');
+      return;
+    }
+
+    // TCFD 입력 데이터가 충분한지 확인
+    const hasInputData = Object.values(tcfdInputData).some(value => value.trim() !== '');
+    if (!hasInputData) {
+      alert('TCFD 입력 데이터가 필요합니다. TCFD 프레임워크 탭에서 데이터를 입력해주세요.');
+      return;
+    }
+
+    setIsGenerating(true);
+    
+    try {
+      // TCFD 입력 데이터를 통합하여 질문 생성
+      const tcfdInputs = {
+        m1: tcfdInputData.metrics_targets_m1,
+        m2: tcfdInputData.metrics_targets_m2,
+        m3: tcfdInputData.metrics_targets_m3,
+        governance: `${tcfdInputData.governance_g1} ${tcfdInputData.governance_g2}`,
+        strategy: `${tcfdInputData.strategy_s1} ${tcfdInputData.strategy_s2} ${tcfdInputData.strategy_s3}`,
+        riskManagement: `${tcfdInputData.risk_management_r1} ${tcfdInputData.risk_management_r2} ${tcfdInputData.risk_management_r3}`,
+        companyName: companyFinancialData.company_name
+      };
+
+      console.log('🤖 TCFD 보고서 생성 시작:', tcfdInputs);
+
+      // 2개 RAG 시스템 동시 호출
+      const [openaiResult, hfResult] = await Promise.all([
+        llmServiceAPI.generateOpenAIRAG(tcfdInputs),
+        llmServiceAPI.generateHFRAG(tcfdInputs)
+      ]);
+
+      console.log('✅ OpenAI RAG 결과:', openaiResult);
+      console.log('✅ Hugging Face RAG 결과:', hfResult);
+
+      setRagResults({
+        openai: openaiResult,
+        huggingface: hfResult
+      });
+
+      // AI보고서 초안 탭으로 자동 이동
+      setActiveTab(5);
+
+    } catch (error) {
+      console.error('❌ TCFD 보고서 생성 실패:', error);
+      alert('TCFD 보고서 생성에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -1266,7 +1332,9 @@ export default function TcfdSrPage() {
             {activeTab === 5 && (
               <div>
                 <h2 className="text-2xl font-bold text-primary-600 mb-6">🤖 AI보고서 초안</h2>
-                <div className="bg-gradient-to-r from-primary-50 to-info-50 p-6 rounded-brand border border-primary-300">
+                
+                {/* AI 보고서 생성 버튼 */}
+                <div className="bg-gradient-to-r from-primary-50 to-info-50 p-6 rounded-brand border border-primary-300 mb-8">
                   <h3 className="text-lg font-semibold text-black mb-4">AI 기반 TCFD 보고서 생성</h3>
                   <div className="space-y-3">
                     <div className="flex items-center">
@@ -1286,10 +1354,76 @@ export default function TcfdSrPage() {
                       <span className="text-black">지속가능성 지표 및 권장사항 제시</span>
                     </div>
                   </div>
-                  <button className="mt-6 px-6 py-3 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100">
-                    AI 보고서 생성 시작
+                  <button 
+                    onClick={handleGenerateTCFDReport}
+                    disabled={isGenerating}
+                    className="mt-6 px-6 py-3 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isGenerating ? '생성 중...' : 'AI 보고서 생성 시작'}
                   </button>
                 </div>
+
+                {/* RAG 결과 표시 */}
+                {ragResults.openai || ragResults.huggingface ? (
+                  <div className="space-y-8">
+                    <h3 className="text-xl font-bold text-gray-800">AI 생성 TCFD 보고서</h3>
+                    
+                    {/* OpenAI RAG 결과 */}
+                    {ragResults.openai && (
+                      <div className="border rounded-lg p-6 bg-blue-50">
+                        <h4 className="text-lg font-semibold mb-4 text-blue-600">
+                          🤖 OpenAI RAG 결과
+                        </h4>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <h5 className="font-medium text-gray-700 mb-2">초안</h5>
+                            <div className="bg-white p-4 rounded-lg border border-blue-200 whitespace-pre-wrap">
+                              {ragResults.openai.draft}
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <h5 className="font-medium text-gray-700 mb-2">윤문된 텍스트</h5>
+                            <div className="bg-green-50 p-4 rounded-lg border border-green-200 whitespace-pre-wrap">
+                              {ragResults.openai.polished}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Hugging Face RAG 결과 */}
+                    {ragResults.huggingface && (
+                      <div className="border rounded-lg p-6 bg-purple-50">
+                        <h4 className="text-lg font-semibold mb-4 text-purple-600">
+                          🚀 Hugging Face RAG 결과 (코알파/RoLA)
+                        </h4>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <h5 className="font-medium text-gray-700 mb-2">초안</h5>
+                            <div className="bg-white p-4 rounded-lg border border-purple-200 whitespace-pre-wrap">
+                              {ragResults.huggingface.draft}
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <h5 className="font-medium text-gray-700 mb-2">윤문된 텍스트</h5>
+                            <div className="bg-green-50 p-4 rounded-lg border border-green-200 whitespace-pre-wrap">
+                              {ragResults.huggingface.polished}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-500">
+                    <p>AI 보고서 생성을 시작하려면 위의 버튼을 클릭하세요.</p>
+                    <p className="text-sm mt-2">TCFD 프레임워크 탭에서 데이터를 입력한 후 생성할 수 있습니다.</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -77,4 +77,4 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(secur
             return None
     except Exception as e:
         logger.error(f"Token verification error: {str(e)}")
-        return None 
+        return None
