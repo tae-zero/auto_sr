@@ -19,7 +19,7 @@ def log_request_info(request_id: str, endpoint: str, **kwargs):
 
 def log_response_info(request_id: str, endpoint: str, response_time: float, **kwargs):
     """응답 정보를 로깅합니다."""
-    logger.info(f"[{request_id}] {endpoint} 완료 - {response_time:.2f}초 - {kwargs}")
+    logger.info(f"[{request_id}] {endpoint} 완료 - {response_time:.2f}초 - {str(kwargs)}")
 
 def timing_decorator(func):
     """함수 실행 시간을 측정하는 데코레이터"""
