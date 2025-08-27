@@ -8,4 +8,5 @@ class ServiceType(str, Enum):
     REPORT = "report-service"
     TCFD = "tcfd-service"
     USER = "user-service"
-    AUTH = "auth-service" 
+    AUTH = "auth-service"
+    LLM = "llm-service" 

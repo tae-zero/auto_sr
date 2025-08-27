@@ -205,7 +205,7 @@ async def lifespan(app: FastAPI):
             )
             logger.info(f"✅ Railway TCFD Report Service 등록: {tcfdreport_service_url}")
         else:
-            logger.warning("⚠️ Railway TCFD Report Service URL이 설정되지 않음")
+            logger.warning("⚠️ Railway TCFDREPORT_SERVICE_URL이 설정되지 않음")
     else:
         app.state.service_discovery.register_service(
             service_name="tcfdreport-service",
@@ -213,6 +213,26 @@ async def lifespan(app: FastAPI):
             load_balancer_type="round_robin"
         )
         logger.info("✅ 로컬 TCFD Report Service 등록 완료")
+    
+    # LLM Service 등록
+    if railway_environment:
+        llm_service_url = os.getenv("RAILWAY_LLM_SERVICE_URL")
+        if llm_service_url:
+            app.state.service_discovery.register_service(
+                service_name="llm-service",
+                instances=[{"host": llm_service_url, "port": 443, "weight": 1}],
+                load_balancer_type="round_robin"
+            )
+            logger.info(f"✅ Railway LLM Service 등록: {llm_service_url}")
+        else:
+            logger.warning("⚠️ RAILWAY_LLM_SERVICE_URL이 설정되지 않음")
+    else:
+        app.state.service_discovery.register_service(
+            service_name="llm-service",
+            instances=[{"host": "llm-service", "port": 8002, "weight": 1}],
+            load_balancer_type="round_robin"
+        )
+        logger.info("✅ 로컬 LLM Service 등록 완료")
     
     logger.info("✅ 모든 서비스 등록 완료")
     yield
