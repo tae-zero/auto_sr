@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ClimateScenarioModal, TCFDDetailModal } from '@/ui/molecules';
 import { Header } from '@/ui/organisms';
 import { apiClient, tcfdReportAPI, tcfdAPI, llmServiceAPI } from '@/shared/lib';
+import { downloadAsWordFromServer, downloadAsPDFFromServer, DownloadContent } from '@/utils/downloadUtils';
 
 import axios from 'axios';
 
@@ -637,6 +638,54 @@ export default function TcfdSrPage() {
   const closeTcfdDetailModal = () => {
     setIsTcfdDetailModalOpen(false);
     setSelectedTcfdCategory(null);
+  };
+
+  // Word 다운로드 함수
+  const handleDownloadAsWord = async (modelType: 'openai' | 'huggingface') => {
+    try {
+      const result = ragResults[modelType];
+      if (!result) {
+        alert('다운로드할 내용이 없습니다.');
+        return;
+      }
+
+      const content: DownloadContent = {
+        title: `${tcfdDatabaseData?.company_name || '회사'} TCFD 보고서 - ${modelType === 'openai' ? 'OpenAI GPT-4o-mini' : 'KoAlpaca/RoLA'}`,
+        draft: result.draft,
+        polished: result.polished,
+        companyName: tcfdDatabaseData?.company_name,
+        timestamp: new Date().toLocaleString('ko-KR')
+      };
+
+      await downloadAsWordFromServer(content);
+    } catch (error) {
+      console.error('Word 다운로드 실패:', error);
+      alert('Word 문서 다운로드에 실패했습니다: ' + (error as Error).message);
+    }
+  };
+
+  // PDF 다운로드 함수
+  const handleDownloadAsPDF = async (modelType: 'openai' | 'huggingface') => {
+    try {
+      const result = ragResults[modelType];
+      if (!result) {
+        alert('다운로드할 내용이 없습니다.');
+        return;
+      }
+
+      const content: DownloadContent = {
+        title: `${tcfdDatabaseData?.company_name || '회사'} TCFD 보고서 - ${modelType === 'openai' ? 'OpenAI GPT-4o-mini' : 'KoAlpaca/RoLA'}`,
+        draft: result.draft,
+        polished: result.polished,
+        companyName: tcfdDatabaseData?.company_name,
+        timestamp: new Date().toLocaleString('ko-KR')
+      };
+
+      await downloadAsPDFFromServer(content);
+    } catch (error) {
+      console.error('PDF 다운로드 실패:', error);
+      alert('PDF 다운로드에 실패했습니다: ' + (error as Error).message);
+    }
   };
 
   // TCFD 표준 데이터 불러오기 (apiClient 사용)
@@ -2825,6 +2874,24 @@ export default function TcfdSrPage() {
                               </div>
                             </div>
                           </div>
+                          
+                          {/* 다운로드 버튼들 */}
+                          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-blue-200">
+                            <button
+                              onClick={() => handleDownloadAsWord('openai')}
+                              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                            >
+                              <span>📄</span>
+                              <span>Word 다운로드</span>
+                            </button>
+                            <button
+                              onClick={() => handleDownloadAsPDF('openai')}
+                              className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
+                            >
+                              <span>📕</span>
+                              <span>PDF 다운로드</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -2867,6 +2934,24 @@ export default function TcfdSrPage() {
                                 {ragResults.huggingface.polished}
                               </div>
                             </div>
+                          </div>
+                          
+                          {/* 다운로드 버튼들 */}
+                          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-purple-200">
+                            <button
+                              onClick={() => handleDownloadAsWord('huggingface')}
+                              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+                            >
+                              <span>📄</span>
+                              <span>Word 다운로드</span>
+                            </button>
+                            <button
+                              onClick={() => handleDownloadAsPDF('huggingface')}
+                              className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
+                            >
+                              <span>📕</span>
+                              <span>PDF 다운로드</span>
+                            </button>
                           </div>
                         </div>
                       </div>

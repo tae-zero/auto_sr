@@ -1,9 +1,15 @@
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.responses import FileResponse
 from typing import Dict, Any
 import logging
 import asyncpg
 import os
 from datetime import datetime
+import tempfile
+from docx import Document
+from docx.shared import Inches
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+import io
 
 logger = logging.getLogger(__name__)
 
@@ -181,3 +187,165 @@ async def get_tcfd_inputs(company_name: str):
     finally:
         if conn:
             await conn.close()
+
+@tcfdreport_router.post("/download/word")
+async def download_tcfd_report_as_word(data: Dict[str, Any]):
+    """TCFD 보고서를 Word 문서로 다운로드"""
+    try:
+        logger.info(f"Word 문서 다운로드 요청: {data.get('company_name', 'Unknown')}")
+        
+        # 필수 필드 검증
+        if not data.get('draft') or not data.get('polished'):
+            raise HTTPException(status_code=400, detail="초안과 윤문 내용이 필요합니다")
+        
+        # Word 문서 생성
+        doc = Document()
+        
+        # 제목
+        title = doc.add_heading(f"{data.get('company_name', '회사')} TCFD 보고서", 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # 회사명
+        if data.get('company_name'):
+            company_para = doc.add_paragraph(f"회사: {data['company_name']}")
+            company_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # 생성일시
+        timestamp_para = doc.add_paragraph(f"생성일시: {datetime.now().strftime('%Y년 %m월 %d일 %H:%M:%S')}")
+        timestamp_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # 초안 섹션
+        doc.add_heading("📝 초안 생성", level=1)
+        doc.add_paragraph(data['draft'])
+        
+        # 윤문 섹션
+        doc.add_heading("✨ 윤문된 텍스트", level=1)
+        doc.add_paragraph(data['polished'])
+        
+        # 임시 파일로 저장
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp_file:
+            doc.save(tmp_file.name)
+            tmp_file_path = tmp_file.name
+        
+        # 파일명 생성
+        filename = f"{data.get('company_name', 'TCFD')}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+        
+        return FileResponse(
+            path=tmp_file_path,
+            filename=filename,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+        
+    except Exception as e:
+        logger.error(f"Word 문서 생성 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Word 문서 생성 실패: {str(e)}")
+
+@tcfdreport_router.post("/download/pdf")
+async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
+    """TCFD 보고서를 PDF로 다운로드"""
+    try:
+        logger.info(f"PDF 다운로드 요청: {data.get('company_name', 'Unknown')}")
+        
+        # 필수 필드 검증
+        if not data.get('draft') or not data.get('polished'):
+            raise HTTPException(status_code=400, detail="초안과 윤문 내용이 필요합니다")
+        
+        # PDF 생성을 위한 HTML 생성 (간단한 버전)
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>{data.get('company_name', '회사')} TCFD 보고서</title>
+            <style>
+                body {{ font-family: 'Malgun Gothic', Arial, sans-serif; margin: 40px; line-height: 1.6; }}
+                h1 {{ text-align: center; color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px; }}
+                h2 {{ color: #059669; margin-top: 30px; }}
+                .company-info {{ text-align: center; color: #6b7280; margin: 20px 0; }}
+                .content {{ background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+                .timestamp {{ text-align: center; color: #9ca3af; font-size: 14px; margin: 20px 0; }}
+            </style>
+        </head>
+        <body>
+            <h1>{data.get('company_name', '회사')} TCFD 보고서</h1>
+            <div class="company-info">회사: {data.get('company_name', '회사')}</div>
+            <div class="timestamp">생성일시: {datetime.now().strftime('%Y년 %m월 %d일 %H:%M:%S')}</div>
+            
+            <h2>📝 초안 생성</h2>
+            <div class="content">{data['draft'].replace(chr(10), '<br>')}</div>
+            
+            <h2>✨ 윤문된 텍스트</h2>
+            <div class="content">{data['polished'].replace(chr(10), '<br>')}</div>
+        </body>
+        </html>
+        """
+        
+        # 임시 HTML 파일 생성
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w', encoding='utf-8') as tmp_file:
+            tmp_file.write(html_content)
+            tmp_file_path = tmp_file.name
+        
+        # 파일명 생성
+        filename = f"{data.get('company_name', 'TCFD')}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        
+        return FileResponse(
+            path=tmp_file_path,
+            filename=filename,
+            media_type="text/html"
+        )
+        
+    except Exception as e:
+        logger.error(f"PDF 생성 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"PDF 생성 실패: {str(e)}")
+
+@tcfdreport_router.post("/download/combined")
+async def download_tcfd_report_combined(data: Dict[str, Any]):
+    """TCFD 보고서를 Word와 PDF 모두 다운로드 (ZIP 파일)"""
+    try:
+        logger.info(f"통합 다운로드 요청: {data.get('company_name', 'Unknown')}")
+        
+        # 필수 필드 검증
+        if not data.get('draft') or not data.get('polished'):
+            raise HTTPException(status_code=400, detail="초안과 윤문 내용이 필요합니다")
+        
+        # Word 문서 생성
+        doc = Document()
+        
+        # 제목
+        title = doc.add_heading(f"{data.get('company_name', '회사')} TCFD 보고서", 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # 회사명
+        if data.get('company_name'):
+            company_para = doc.add_paragraph(f"회사: {data['company_name']}")
+            company_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # 생성일시
+        timestamp_para = doc.add_paragraph(f"생성일시: {datetime.now().strftime('%Y년 %m월 %d일 %H:%M:%S')}")
+        timestamp_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # 초안 섹션
+        doc.add_heading("📝 초안 생성", level=1)
+        doc.add_paragraph(data['draft'])
+        
+        # 윤문 섹션
+        doc.add_heading("✨ 윤문된 텍스트", level=1)
+        doc.add_paragraph(data['polished'])
+        
+        # 임시 파일로 저장
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp_file:
+            doc.save(tmp_file.name)
+            tmp_file_path = tmp_file.name
+        
+        # 파일명 생성
+        filename = f"{data.get('company_name', 'TCFD')}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+        
+        return FileResponse(
+            path=tmp_file_path,
+            filename=filename,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+        
+    except Exception as e:
+        logger.error(f"통합 다운로드 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"통합 다운로드 실패: {str(e)}")
