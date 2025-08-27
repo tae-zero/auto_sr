@@ -366,9 +366,267 @@ const climateAnalysisImages: ClimateAnalysisImage[] = [
   }
 ];
 
+// HL만도 기후시나리오 이미지들
+const hlMandoImages: ClimateAnalysisImage[] = [
+  // SSP126 2026-2030년
+  {
+    id: 'hlmando-ssp126-1',
+    title: 'HL만도 - SSP126 연강수량 (2026-2030)',
+    filename: 'SSP126_화성시_연강수량_2026_2030.png',
+    path: '/HL만도/SSP126_화성시_연강수량_2026_2030.png',
+    description: 'HL만도 화성시 SSP126 시나리오 연강수량 예측 (2026-2030)',
+    category: 'HL만도-SSP126'
+  },
+  {
+    id: 'hlmando-ssp126-2',
+    title: 'HL만도 - SSP126 호우일수 (2026-2030)',
+    filename: 'SSP126_화성시_호우일수_2026_2030.png',
+    path: '/HL만도/SSP126_화성시_호우일수_2026_2030.png',
+    description: 'HL만도 화성시 SSP126 시나리오 호우일수 예측 (2026-2030)',
+    category: 'HL만도-SSP126'
+  },
+  {
+    id: 'hlmando-ssp126-3',
+    title: 'HL만도 - SSP126 폭염일수 (2026-2030)',
+    filename: 'SSP126_화성시_폭염일수_2026_2030.png',
+    path: '/HL만도/SSP126_화성시_폭염일수_2026_2030.png',
+    description: 'HL만도 화성시 SSP126 시나리오 폭염일수 예측 (2026-2030)',
+    category: 'HL만도-SSP126'
+  },
+  {
+    id: 'hlmando-ssp126-4',
+    title: 'HL만도 - SSP126 열대야일수 (2026-2030)',
+    filename: 'SSP126_화성시_열대야일수_2026_2030.png',
+    path: '/HL만도/SSP126_화성시_열대야일수_2026_2030.png',
+    description: 'HL만도 화성시 SSP126 시나리오 열대야일수 예측 (2026-2030)',
+    category: 'HL만도-SSP126'
+  },
+  {
+    id: 'hlmando-ssp126-5',
+    title: 'HL만도 - SSP126 연평균기온 (2026-2030)',
+    filename: 'SSP126_화성시_연평균기온_2026_2030.png',
+    path: '/HL만도/SSP126_화성시_연평균기온_2026_2030.png',
+    description: 'HL만도 화성시 SSP126 시나리오 연평균기온 예측 (2026-2030)',
+    category: 'HL만도-SSP126'
+  },
+  // SSP585 2026-2030년
+  {
+    id: 'hlmando-ssp585-1',
+    title: 'HL만도 - SSP585 연강수량 (2026-2030)',
+    filename: 'SSP585_화성시_연강수량_2026_2030.png',
+    path: '/HL만도/SSP585_화성시_연강수량_2026_2030.png',
+    description: 'HL만도 화성시 SSP585 시나리오 연강수량 예측 (2026-2030)',
+    category: 'HL만도-SSP585'
+  },
+  {
+    id: 'hlmando-ssp585-2',
+    title: 'HL만도 - SSP585 호우일수 (2026-2030)',
+    filename: 'SSP585_화성시_호우일수_2026_2030.png',
+    path: '/HL만도/SSP585_화성시_호우일수_2026_2030.png',
+    description: 'HL만도 화성시 SSP585 시나리오 호우일수 예측 (2026-2030)',
+    category: 'HL만도-SSP585'
+  },
+  {
+    id: 'hlmando-ssp585-3',
+    title: 'HL만도 - SSP585 폭염일수 (2026-2030)',
+    filename: 'SSP585_화성시_폭염일수_2026_2030.png',
+    path: '/HL만도/SSP585_화성시_폭염일수_2026_2030.png',
+    description: 'HL만도 화성시 SSP585 시나리오 폭염일수 예측 (2026-2030)',
+    category: 'HL만도-SSP585'
+  },
+  {
+    id: 'hlmando-ssp585-4',
+    title: 'HL만도 - SSP585 열대야일수 (2026-2030)',
+    filename: 'SSP585_화성시_열대야일수_2026_2030.png',
+    path: '/HL만도/SSP585_화성시_열대야일수_2026_2030.png',
+    description: 'HL만도 화성시 SSP585 시나리오 열대야일수 예측 (2026-2030)',
+    category: 'HL만도-SSP585'
+  },
+  {
+    id: 'hlmando-ssp585-5',
+    title: 'HL만도 - SSP585 연평균기온 (2026-2030)',
+    filename: 'SSP585_화성시_연평균기온_2026_2030.png',
+    path: '/HL만도/SSP585_화성시_연평균기온_2026_2030.png',
+    description: 'HL만도 화성시 SSP585 시나리오 연평균기온 예측 (2026-2030)',
+    category: 'HL만도-SSP585'
+  }
+];
+
+// 한온시스템 기후시나리오 이미지들
+const hanonSystemImages: ClimateAnalysisImage[] = [
+  // SSP126 2026-2030년
+  {
+    id: 'hanon-ssp126-1',
+    title: '한온시스템 - SSP126 연강수량 (2026-2030)',
+    filename: 'SSP126_강남구_연강수량_2026_2030.png',
+    path: '/한온시스템/SSP126_강남구_연강수량_2026_2030.png',
+    description: '한온시스템 강남구 SSP126 시나리오 연강수량 예측 (2026-2030)',
+    category: '한온시스템-SSP126'
+  },
+  {
+    id: 'hanon-ssp126-2',
+    title: '한온시스템 - SSP126 호우일수 (2026-2030)',
+    filename: 'SSP126_강남구_호우일수_2026_2030.png',
+    path: '/한온시스템/SSP126_강남구_호우일수_2026_2030.png',
+    description: '한온시스템 강남구 SSP126 시나리오 호우일수 예측 (2026-2030)',
+    category: '한온시스템-SSP126'
+  },
+  {
+    id: 'hanon-ssp126-3',
+    title: '한온시스템 - SSP126 폭염일수 (2026-2030)',
+    filename: 'SSP126_강남구_폭염일수_2026_2030.png',
+    path: '/한온시스템/SSP126_강남구_폭염일수_2026_2030.png',
+    description: '한온시스템 강남구 SSP126 시나리오 폭염일수 예측 (2026-2030)',
+    category: '한온시스템-SSP126'
+  },
+  {
+    id: 'hanon-ssp126-4',
+    title: '한온시스템 - SSP126 열대야일수 (2026-2030)',
+    filename: 'SSP126_강남구_열대야일수_2026_2030.png',
+    path: '/한온시스템/SSP126_강남구_열대야일수_2026_2030.png',
+    description: '한온시스템 강남구 SSP126 시나리오 열대야일수 예측 (2026-2030)',
+    category: '한온시스템-SSP126'
+  },
+  {
+    id: 'hanon-ssp126-5',
+    title: '한온시스템 - SSP126 연평균기온 (2026-2030)',
+    filename: 'SSP126_강남구_연평균기온_2026_2030.png',
+    path: '/한온시스템/SSP126_강남구_연평균기온_2026_2030.png',
+    description: '한온시스템 강남구 SSP126 시나리오 연평균기온 예측 (2026-2030)',
+    category: '한온시스템-SSP126'
+  },
+  // SSP585 2026-2030년
+  {
+    id: 'hanon-ssp585-1',
+    title: '한온시스템 - SSP585 연강수량 (2026-2030)',
+    filename: 'SSP585_강남구_연강수량_2026_2030.png',
+    path: '/한온시스템/SSP585_강남구_연강수량_2026_2030.png',
+    description: '한온시스템 강남구 SSP585 시나리오 연강수량 예측 (2026-2030)',
+    category: '한온시스템-SSP585'
+  },
+  {
+    id: 'hanon-ssp585-2',
+    title: '한온시스템 - SSP585 호우일수 (2026-2030)',
+    filename: 'SSP585_강남구_호우일수_2026_2030.png',
+    path: '/한온시스템/SSP585_강남구_호우일수_2026_2030.png',
+    description: '한온시스템 강남구 SSP585 시나리오 호우일수 예측 (2026-2030)',
+    category: '한온시스템-SSP585'
+  },
+  {
+    id: 'hanon-ssp585-3',
+    title: '한온시스템 - SSP585 폭염일수 (2026-2030)',
+    filename: 'SSP585_강남구_폭염일수_2026_2030.png',
+    path: '/한온시스템/SSP585_강남구_폭염일수_2026_2030.png',
+    description: '한온시스템 강남구 SSP585 시나리오 폭염일수 예측 (2026-2030)',
+    category: '한온시스템-SSP585'
+  },
+  {
+    id: 'hanon-ssp585-4',
+    title: '한온시스템 - SSP585 열대야일수 (2026-2030)',
+    filename: 'SSP585_강남구_열대야일수_2026_2030.png',
+    path: '/한온시스템/SSP585_강남구_열대야일수_2026_2030.png',
+    description: '한온시스템 강남구 SSP585 시나리오 열대야일수 예측 (2026-2030)',
+    category: '한온시스템-SSP585'
+  },
+  {
+    id: 'hanon-ssp585-5',
+    title: '한온시스템 - SSP585 연평균기온 (2026-2030)',
+    filename: 'SSP585_강남구_연평균기온_2026_2030.png',
+    path: '/한온시스템/SSP585_강남구_연평균기온_2026_2030.png',
+    description: '한온시스템 강남구 SSP585 시나리오 연평균기온 예측 (2026-2030)',
+    category: '한온시스템-SSP585'
+  }
+];
+
+// 현대모비스 기후시나리오 이미지들
+const hyundaiMobisImages: ClimateAnalysisImage[] = [
+  // SSP126 2026-2030년
+  {
+    id: 'mobis-ssp126-1',
+    title: '현대모비스 - SSP126 연강수량 (2026-2030)',
+    filename: 'SSP126_포항시_연강수량_2026_2030.png',
+    path: '/현대모비스/SSP126_포항시_연강수량_2026_2030.png',
+    description: '현대모비스 포항시 SSP126 시나리오 연강수량 예측 (2026-2030)',
+    category: '현대모비스-SSP126'
+  },
+  {
+    id: 'mobis-ssp126-2',
+    title: '현대모비스 - SSP126 호우일수 (2026-2030)',
+    filename: 'SSP126_포항시_호우일수_2026_2030.png',
+    path: '/현대모비스/SSP126_포항시_호우일수_2026_2030.png',
+    description: '현대모비스 포항시 SSP126 시나리오 호우일수 예측 (2026-2030)',
+    category: '현대모비스-SSP126'
+  },
+  {
+    id: 'mobis-ssp126-3',
+    title: '현대모비스 - SSP126 폭염일수 (2026-2030)',
+    filename: 'SSP126_포항시_폭염일수_2026_2030.png',
+    path: '/현대모비스/SSP126_포항시_폭염일수_2026_2030.png',
+    description: '현대모비스 포항시 SSP126 시나리오 폭염일수 예측 (2026-2030)',
+    category: '현대모비스-SSP126'
+  },
+  {
+    id: 'mobis-ssp126-4',
+    title: '현대모비스 - SSP126 열대야일수 (2026-2030)',
+    filename: 'SSP126_포항시_열대야일수_2026_2030.png',
+    path: '/현대모비스/SSP126_포항시_열대야일수_2026_2030.png',
+    description: '현대모비스 포항시 SSP126 시나리오 열대야일수 예측 (2026-2030)',
+    category: '현대모비스-SSP126'
+  },
+  {
+    id: 'mobis-ssp126-5',
+    title: '현대모비스 - SSP126 연평균기온 (2026-2030)',
+    filename: 'SSP126_포항시_연평균기온_2026_2030.png',
+    path: '/현대모비스/SSP126_포항시_연평균기온_2026_2030.png',
+    description: '현대모비스 포항시 SSP126 시나리오 연평균기온 예측 (2026-2030)',
+    category: '현대모비스-SSP126'
+  },
+  // SSP585 2026-2030년
+  {
+    id: 'mobis-ssp585-1',
+    title: '현대모비스 - SSP585 연강수량 (2026-2030)',
+    filename: 'SSP585_포항시_연강수량_2026_2030.png',
+    path: '/현대모비스/SSP585_포항시_연강수량_2026_2030.png',
+    description: '현대모비스 포항시 SSP585 시나리오 연강수량 예측 (2026-2030)',
+    category: '현대모비스-SSP585'
+  },
+  {
+    id: 'mobis-ssp585-2',
+    title: '현대모비스 - SSP585 호우일수 (2026-2030)',
+    filename: 'SSP585_포항시_호우일수_2026_2030.png',
+    path: '/현대모비스/SSP585_포항시_호우일수_2026_2030.png',
+    description: '현대모비스 포항시 SSP585 시나리오 호우일수 예측 (2026-2030)',
+    category: '현대모비스-SSP585'
+  },
+  {
+    id: 'mobis-ssp585-3',
+    title: '현대모비스 - SSP585 폭염일수 (2026-2030)',
+    filename: 'SSP585_포항시_폭염일수_2026_2030.png',
+    path: '/현대모비스/SSP585_포항시_폭염일수_2026_2030.png',
+    description: '현대모비스 포항시 SSP585 시나리오 폭염일수 예측 (2026-2030)',
+    category: '현대모비스-SSP585'
+  },
+  {
+    id: 'mobis-ssp585-4',
+    title: '현대모비스 - SSP585 열대야일수 (2026-2030)',
+    filename: 'SSP585_포항시_열대야일수_2026_2030.png',
+    path: '/현대모비스/SSP585_포항시_열대야일수_2026_2030.png',
+    description: '현대모비스 포항시 SSP585 시나리오 열대야일수 예측 (2026-2030)',
+    category: '현대모비스-SSP585'
+  },
+  {
+    id: 'mobis-ssp585-5',
+    title: '현대모비스 - SSP585 연평균기온 (2026-2030)',
+    filename: 'SSP585_포항시_연평균기온_2026_2030.png',
+    path: '/현대모비스/SSP585_포항시_연평균기온_2026_2030.png',
+    description: '현대모비스 포항시 SSP585 시나리오 연평균기온 예측 (2026-2030)',
+    category: '현대모비스-SSP585'
+  }
+];
+
 export default function ClimateScenariosPage() {
   const router = useRouter();
-  const [selectedTab, setSelectedTab] = useState<'ssp26' | 'ssp85' | 'climate'>('ssp26');
+  const [selectedTab, setSelectedTab] = useState<'ssp26' | 'ssp85' | 'climate' | 'hlmando' | 'hanon' | 'mobis'>('ssp26');
   const [selectedScenario, setSelectedScenario] = useState<'ssp26' | 'ssp85'>('ssp26');
   const [selectedImage, setSelectedImage] = useState<ClimateImage | ClimateAnalysisImage | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -385,9 +643,30 @@ export default function ClimateScenariosPage() {
     setSelectedImage(null);
   };
 
+  const downloadImage = (imageSrc: string, imageTitle: string) => {
+    const link = document.createElement('a');
+    link.href = imageSrc;
+    link.download = `${imageTitle}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const getCurrentImages = () => {
     if (selectedTab === 'climate') {
       return climateAnalysisImages;
+    } else if (selectedTab === 'hlmando') {
+      return selectedScenario === 'ssp26' 
+        ? hlMandoImages.filter(img => img.category === 'HL만도-SSP126')
+        : hlMandoImages.filter(img => img.category === 'HL만도-SSP585');
+    } else if (selectedTab === 'hanon') {
+      return selectedScenario === 'ssp26' 
+        ? hanonSystemImages.filter(img => img.category === '한온시스템-SSP126')
+        : hanonSystemImages.filter(img => img.category === '한온시스템-SSP585');
+    } else if (selectedTab === 'mobis') {
+      return selectedScenario === 'ssp26' 
+        ? hyundaiMobisImages.filter(img => img.category === '현대모비스-SSP126')
+        : hyundaiMobisImages.filter(img => img.category === '현대모비스-SSP585');
     }
     return selectedScenario === 'ssp26' ? ssp26Images : ssp85Images;
   };
@@ -480,41 +759,71 @@ export default function ClimateScenariosPage() {
 
           {/* 메인 탭 선택 */}
           <div className="mb-8">
-            <div className="flex space-x-1 bg-gray-200 p-1 rounded-lg mb-6">
+            <div className="flex flex-wrap space-x-1 bg-gray-200 p-1 rounded-lg mb-6">
               <button
                 onClick={() => setSelectedTab('ssp26')}
-                className={`flex-1 py-3 px-6 rounded-md font-medium transition-colors ${
+                className={`flex-1 min-w-0 py-3 px-4 rounded-md font-medium transition-colors text-sm ${
                   selectedTab === 'ssp26'
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-800'
                 }`}
               >
-                SSP 2.6 (낮은 배출 시나리오)
+                SSP 2.6
               </button>
               <button
                 onClick={() => setSelectedTab('ssp85')}
-                className={`flex-1 py-3 px-6 rounded-md font-medium transition-colors ${
+                className={`flex-1 min-w-0 py-3 px-4 rounded-md font-medium transition-colors text-sm ${
                   selectedTab === 'ssp85'
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-800'
                 }`}
               >
-                SSP 8.5 (높은 배출 시나리오)
+                SSP 8.5
               </button>
               <button
-                onClick={() => setSelectedTab('climate')}
-                className={`flex-1 py-3 px-6 rounded-md font-medium transition-colors ${
-                  selectedTab === 'climate'
+                onClick={() => setSelectedTab('hlmando')}
+                className={`flex-1 min-w-0 py-3 px-4 rounded-md font-medium transition-colors text-sm ${
+                  selectedTab === 'hlmando'
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-800'
                 }`}
               >
-                Climate 분석
+                HL만도
+              </button>
+              <button
+                onClick={() => setSelectedTab('hanon')}
+                className={`flex-1 min-w-0 py-3 px-4 rounded-md font-medium transition-colors text-sm ${
+                  selectedTab === 'hanon'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                한온시스템
+              </button>
+              <button
+                onClick={() => setSelectedTab('mobis')}
+                className={`flex-1 min-w-0 py-3 px-4 rounded-md font-medium transition-colors text-sm ${
+                  selectedTab === 'mobis'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                현대모비스
+              </button>
+              <button
+                onClick={() => setSelectedTab('climate')}
+                className={`flex-1 min-w-0 py-3 px-4 rounded-md font-medium transition-colors text-sm ${
+                  selectedTab === 'climate'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-800'
+                }`}
+              >
+                기후 분석
               </button>
             </div>
 
-            {/* SSP 시나리오 하위 탭 (climate 탭이 아닐 때만 표시) */}
-            {selectedTab !== 'climate' && (
+            {/* SSP 시나리오 하위 탭 (회사별 탭에서만 표시) */}
+            {(selectedTab === 'hlmando' || selectedTab === 'hanon' || selectedTab === 'mobis') && (
               <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
                 <button
                   onClick={() => setSelectedScenario('ssp26')}
@@ -548,7 +857,7 @@ export default function ClimateScenariosPage() {
                 className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => handleImageClick(image)}
               >
-                <div className="aspect-w-16 aspect-h-9 bg-gray-100">
+                <div className="aspect-w-16 aspect-h-9 bg-gray-100 relative">
                   <Image
                     src={image.path}
                     alt={image.title}
@@ -556,6 +865,17 @@ export default function ClimateScenariosPage() {
                     height={360}
                     className="w-full h-48 object-cover"
                   />
+                  {/* 다운로드 버튼 */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadImage(image.path, image.title);
+                    }}
+                    className="absolute top-2 right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg"
+                    title="이미지 다운로드"
+                  >
+                    <span className="text-sm">⬇️</span>
+                  </button>
                 </div>
                 <div className="p-4">
                   <h3 className="font-semibold text-gray-900 mb-2">{image.title}</h3>
@@ -581,14 +901,23 @@ export default function ClimateScenariosPage() {
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <h2 className="text-2xl font-bold text-gray-900">{selectedImage.title}</h2>
-                <button
-                  onClick={closeModal}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => downloadImage(selectedImage.path, selectedImage.title)}
+                    className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-1"
+                  >
+                    <span>⬇️</span>
+                    <span>다운로드</span>
+                  </button>
+                  <button
+                    onClick={closeModal}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
               
               <div className="mb-4">

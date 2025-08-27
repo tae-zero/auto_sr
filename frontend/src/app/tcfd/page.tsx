@@ -211,6 +211,10 @@ export default function TcfdSrPage() {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'temperature' | 'precipitation' | 'extreme'>('all');
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ src: string; title: string } | null>(null);
+  
+  // 도움말 모달 관련 상태
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [isScenarioModalOpen, setIsScenarioModalOpen] = useState(false);
 
   // 회사 목록 로드 (사용하지 않음)
   const loadCompanies = async () => {
@@ -297,6 +301,22 @@ export default function TcfdSrPage() {
   const closeClimateModal = () => {
     setIsClimateModalOpen(false);
     setSelectedScenario(null);
+  };
+
+  // 도움말 모달 열기/닫기
+  const openHelpModal = () => setIsHelpModalOpen(true);
+  const closeHelpModal = () => setIsHelpModalOpen(false);
+  const openScenarioModal = () => setIsScenarioModalOpen(true);
+  const closeScenarioModal = () => setIsScenarioModalOpen(false);
+
+  // 이미지 다운로드 함수
+  const downloadImage = (imageSrc: string, imageTitle: string) => {
+    const link = document.createElement('a');
+    link.href = imageSrc;
+    link.download = `${imageTitle}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // TCFD 입력 데이터 변경 핸들러
@@ -1874,6 +1894,17 @@ export default function TcfdSrPage() {
                                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
                                     onClick={() => openImageModal(image.src, image.title)}
                                   />
+                                  {/* 다운로드 버튼 */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      downloadImage(image.src, image.title);
+                                    }}
+                                    className="absolute top-2 right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg"
+                                    title="이미지 다운로드"
+                                  >
+                                    <span className="text-sm">⬇️</span>
+                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -1900,6 +1931,17 @@ export default function TcfdSrPage() {
                                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
                                     onClick={() => openImageModal(image.src, image.title)}
                                   />
+                                  {/* 다운로드 버튼 */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      downloadImage(image.src, image.title);
+                                    }}
+                                    className="absolute top-2 right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg"
+                                    title="이미지 다운로드"
+                                  >
+                                    <span className="text-sm">⬇️</span>
+                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -1935,9 +1977,27 @@ export default function TcfdSrPage() {
                 {companyOverview && (
                   <div>
                     <div className="bg-green-50 border border-green-200 rounded-brand p-4 mb-6">
-                      <h3 className="text-lg font-semibold text-green-800 mb-2">
-                        📍 {companyOverview.종목명 || companyName} 기후시나리오 분석
-                      </h3>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-semibold text-green-800">
+                          📍 {companyOverview.종목명 || companyName} 기후시나리오 분석
+                        </h3>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={openHelpModal}
+                            className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors flex items-center space-x-1"
+                          >
+                            <span>📖</span>
+                            <span>기후 시나리오란?</span>
+                          </button>
+                          <button
+                            onClick={openScenarioModal}
+                            className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-1"
+                          >
+                            <span>❓</span>
+                            <span>사용법</span>
+                          </button>
+                        </div>
+                      </div>
                       <p className="text-green-700 text-sm">
                         해당 기업의 생산시설이 위치한 지역의 기후변화 시나리오를 확인할 수 있습니다.
                       </p>
@@ -2061,6 +2121,17 @@ export default function TcfdSrPage() {
                                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
                                     onClick={() => openImageModal(image.src, image.title)}
                                   />
+                                  {/* 다운로드 버튼 */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      downloadImage(image.src, image.title);
+                                    }}
+                                    className="absolute top-2 right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg"
+                                    title="이미지 다운로드"
+                                  >
+                                    <span className="text-sm">⬇️</span>
+                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -2112,6 +2183,17 @@ export default function TcfdSrPage() {
                                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
                                     onClick={() => openImageModal(image.src, image.title)}
                                   />
+                                  {/* 다운로드 버튼 */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      downloadImage(image.src, image.title);
+                                    }}
+                                    className="absolute top-2 right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg"
+                                    title="이미지 다운로드"
+                                  >
+                                    <span className="text-sm">⬇️</span>
+                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -2123,9 +2205,27 @@ export default function TcfdSrPage() {
                     {/* 일반 SSP 시나리오 섹션 추가 */}
                     <div className="mt-12 pt-8 border-t-2 border-gray-200">
                       <div className="bg-blue-50 border border-blue-200 rounded-brand p-4 mb-6">
-                        <h3 className="text-lg font-semibold text-blue-800 mb-2">
-                          🌍 일반 기후시나리오 시나리오
-                        </h3>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold text-blue-800">
+                            🌍 한반도 기후시나리오 시나리오
+                          </h3>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={openHelpModal}
+                              className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-1"
+                            >
+                              <span>📖</span>
+                              <span>기후 시나리오란?</span>
+                            </button>
+                            <button
+                              onClick={openScenarioModal}
+                              className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors flex items-center space-x-1"
+                            >
+                              <span>❓</span>
+                              <span>도움말</span>
+                            </button>
+                          </div>
+                        </div>
                         <p className="text-blue-700 text-sm">
                           SSP126과 SSP585 시나리오의 전반적인 기후변화 예측을 확인할 수 있습니다.
                         </p>
@@ -2217,6 +2317,17 @@ export default function TcfdSrPage() {
                                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
                                       onClick={() => openImageModal(image.src, image.title)}
                                     />
+                                    {/* 다운로드 버튼 */}
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        downloadImage(image.src, image.title);
+                                      }}
+                                      className="absolute top-2 right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg"
+                                      title="이미지 다운로드"
+                                    >
+                                      <span className="text-sm">⬇️</span>
+                                    </button>
                                   </div>
                                 </div>
                               </div>
@@ -2243,6 +2354,17 @@ export default function TcfdSrPage() {
                                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
                                       onClick={() => openImageModal(image.src, image.title)}
                                     />
+                                    {/* 다운로드 버튼 */}
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        downloadImage(image.src, image.title);
+                                      }}
+                                      className="absolute top-2 right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg"
+                                      title="이미지 다운로드"
+                                    >
+                                      <span className="text-sm">⬇️</span>
+                                    </button>
                                   </div>
                                 </div>
                               </div>
@@ -2503,12 +2625,21 @@ export default function TcfdSrPage() {
               {/* 헤더 */}
               <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-800">{selectedImage.title}</h3>
-                <button
-                  onClick={closeImageModal}
-                  className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
-                >
-                  <span className="text-gray-600 font-bold text-lg">×</span>
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => downloadImage(selectedImage.src, selectedImage.title)}
+                    className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-1"
+                  >
+                    <span>⬇️</span>
+                    <span>다운로드</span>
+                  </button>
+                  <button
+                    onClick={closeImageModal}
+                    className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  >
+                    <span className="text-gray-600 font-bold text-lg">×</span>
+                  </button>
+                </div>
               </div>
               
               {/* 이미지 */}
@@ -2518,6 +2649,269 @@ export default function TcfdSrPage() {
                   alt={selectedImage.title}
                   className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
                 />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 기후시나리오 도움말 모달 */}
+        {isHelpModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-brand shadow-soft p-8 max-w-4xl mx-4 relative max-h-[90vh] overflow-y-auto">
+              {/* X 버튼 */}
+              <button
+                onClick={closeHelpModal}
+                className="absolute top-4 right-4 w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                <span className="text-gray-600 font-bold text-lg">×</span>
+              </button>
+              
+              {/* 제목 */}
+              <h2 className="text-2xl font-bold text-blue-600 mb-6 text-center">🌍 기후시나리오 이용가이드</h2>
+              
+              {/* 가이드 내용 */}
+              <div className="space-y-6">
+                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                  <h3 className="text-xl font-semibold text-blue-800 mb-3">📊 기후시나리오란?</h3>
+                  <p className="text-gray-700 mb-3">
+                    기후시나리오는 미래의 기후 변화를 예측하기 위해 다양한 사회경제적 발전 경로와 온실가스 배출 시나리오를 조합한 것으로 이를 통해 기업과 투자자들이 기후 관련 위험과 기회를 파악하고, 장기적인 의사결정을 내릴 수 있도록 도움을 줍니다.
+                  </p>
+                  <p className="text-gray-700">
+
+                  <br />
+                  🌱SSP1-2.6 (낙관적 저탄소 전환 시나리오)
+                  <br />
+                  글로벌 차원에서 탄소중립이 조기에 달성되고, 친환경 기술과 ESG 규제가 강화됩니다. 기업은 지속가능 기술 투자, 저탄소 공급망 구축, 탄소배출 관리 역량 확보가 경쟁우위의 핵심입니다.
+                  <br />
+                  🔥SSP5-8.5 (비관적 고탄소 시나리오)
+                  <br />
+                  화석연료 중심 성장으로 인해 4℃ 이상 온도 상승이 예상되며, 극한기상·규제 리스크가 폭발적으로 증가합니다. 이 경우 기업은 물리적 리스크 관리(홍수·폭염·공급망 차질)와 기후규제 충격에 대응하는 비용 부담이 가중됩니다.
+                  <br />
+                  <br />  
+                  ➡️ 따라서 기업은 두 시나리오를 동시에 고려해 **Transition Risk(전환 리스크)와 Physical Risk(물리적 리스크)**를 균형 있게 평가하고, 중장기 전략 시뮬레이션을 통해 대응 방안을 마련해야 합니다.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+                    <h4 className="text-lg font-semibold text-green-800 mb-3">🌱 SSP 1-2.6 (저탄소 시나리오)</h4>
+                    <ul className="text-gray-700 space-y-2 text-sm">
+                      <li>• <strong>온도 상승:</strong> 2100년까지 1.6°C</li>
+                      <li>• <strong>배출 경로:</strong> 급격한 탄소 감소</li>
+                      <li>• <strong>목표:</strong> 파리협정 1.5°C 달성</li>
+                      <li>• <strong>특징:</strong> 지속가능한 발전 모델</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-red-50 p-6 rounded-lg border border-red-200">
+                    <h4 className="text-lg font-semibold text-red-800 mb-3">🔥 SSP 5-8.5 (고탄소 시나리오)</h4>
+                    <ul className="text-gray-700 space-y-2 text-sm">
+                      <li>• <strong>온도 상승:</strong> 2100년까지 4.4°C</li>
+                      <li>• <strong>배출 경로:</strong> 현재 수준 유지</li>
+                      <li>• <strong>위험:</strong> 극한 기후 현상 증가</li>
+                      <li>• <strong>특징:</strong> 화석연료 의존 지속</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+                  <h4 className="text-lg font-semibold text-yellow-800 mb-3">📈 기후지표 카테고리</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h5 className="font-semibold text-yellow-700 mb-2">🌡️ 온도 관련</h5>
+                      <p className="text-gray-700 text-sm">평균기온, 최고기온, 최저기온 변화</p>
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-yellow-700 mb-2">💧 강수 관련</h5>
+                      <p className="text-gray-700 text-sm">강수량, 강수일수, 최대강수량 변화</p>
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-yellow-700 mb-2">⚡ 극한 현상</h5>
+                      <p className="text-gray-700 text-sm">폭염일수, 한파일수, 태풍 영향</p>
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-yellow-700 mb-2">🌍 전체</h5>
+                      <p className="text-gray-700 text-sm">모든 기후지표 통합 보기</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                  <h4 className="text-lg font-semibold text-purple-800 mb-3">🎯 활용 방법</h4>
+                  <ol className="text-gray-700 space-y-2 text-sm">
+                    <li><strong>1.</strong> SSP 시나리오 선택 (SSP126 또는 SSP585)</li>
+                    <li><strong>2.</strong> 관심 있는 기후지표 카테고리 선택</li>
+                    <li><strong>3.</strong> 이미지 클릭하여 상세 보기</li>
+                    <li><strong>4.</strong> 회사별 지역 데이터와 비교 분석</li>
+                    <li><strong>5.</strong> TCFD 보고서 작성 시 참고 자료로 활용</li>
+                  </ol>
+                </div>
+              </div>
+              
+              {/* 닫기 버튼 */}
+              <div className="mt-8 text-center">
+                <button
+                  onClick={closeHelpModal}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-brand shadow-soft hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-100"
+                >
+                  확인
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 시나리오란? 모달 */}
+        {isScenarioModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-brand shadow-soft p-8 max-w-4xl mx-4 relative max-h-[90vh] overflow-y-auto">
+              {/* X 버튼 */}
+              <button
+                onClick={closeScenarioModal}
+                className="absolute top-4 right-4 w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                <span className="text-gray-600 font-bold text-lg">×</span>
+              </button>
+              
+              {/* 제목 */}
+              <h2 className="text-2xl font-bold text-blue-600 mb-6 text-center">📖 기후시나리오 사용법</h2>
+              
+              {/* 내용 */}
+              <div className="space-y-6">
+                {/* 기본 흐름 */}
+                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                  <h3 className="text-xl font-semibold text-blue-800 mb-3">📋 기본 흐름</h3>
+                  <div className="space-y-3 text-gray-700">
+                    <div className="flex items-start space-x-2">
+                      <span className="text-blue-600 font-bold">1.</span>
+                      <span><strong>기간 선택:</strong> 상단에서 분석 구간을 고릅니다. (예: 2026–2030)</span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <span className="text-blue-600 font-bold">2.</span>
+                      <span><strong>지역 선택:</strong> 강남구/경주시/평택시/아산시/대덕구/울주군 중 하나를 클릭합니다.</span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <span className="text-blue-600 font-bold">3.</span>
+                      <span><strong>시나리오 선택:</strong> SSP 1-2.6(저탄소) 또는 SSP 5-8.5(고탄소) 탭을 누릅니다.</span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <span className="text-blue-600 font-bold">4.</span>
+                      <span><strong>그래프 읽기:</strong> 선택한 지역 기준으로 카드(그래프)가 갱신됩니다.</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 그래프 읽기 가이드 */}
+                <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+                  <h4 className="text-lg font-semibold text-green-800 mb-3">📊 그래프 읽기</h4>
+                  <div className="space-y-3 text-gray-700">
+                    <div>
+                      <p className="mb-2"><strong>단위:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-sm">
+                        <li>연간 강수량: 단위 mm</li>
+                        <li>호우일수/폭염일수/열대야일수: 단위 일</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="mb-2"><strong>값 읽기:</strong></p>
+                      <p className="text-sm">막대 높이=예측 값입니다. (막대 위 숫자가 보이면 그 값을 읽어주세요.)</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 대응 방안 */}
+                <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+                  <h4 className="text-lg font-semibold text-yellow-800 mb-3">⚡ 대응 방안</h4>
+                  <div className="space-y-4">
+                    <div className="bg-white p-4 rounded-lg">
+                      <h5 className="font-semibold text-yellow-700 mb-2">🌧️ 호우일수 ↑</h5>
+                      <ul className="text-gray-700 text-sm space-y-1">
+                        <li>• 출하·납품 버퍼 1–2일 설정, 대체운송 루트 준비</li>
+                        <li>• 전기실/컴프레서룸 방수턱·집수정 점검, 창고 랙 최저단 상향</li>
+                        <li>• 체크: OTD(납기), 물류 리드타임, 침수 임계 초과시간</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-lg">
+                      <h5 className="font-semibold text-yellow-700 mb-2">💧 연간 강수량 ↑ / ↓</h5>
+                      <ul className="text-gray-700 text-sm space-y-1">
+                        <li>• ↑: 도장부스 RH/이슬점 관리 강화, 방습 포장 적용</li>
+                        <li>• ↓: RO/DI 수처리 여유 용량·재이용수 비중 점검</li>
+                        <li>• 체크: 도장 불량률, 수처리 설비 부하율</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-lg">
+                      <h5 className="font-semibold text-yellow-700 mb-2">🔥 폭염일수 ↑</h5>
+                      <ul className="text-gray-700 text-sm space-y-1">
+                        <li>• 전력 피크 요금 대비: ESS/DR 검토, 일부 공정 야간 전환</li>
+                        <li>• 칠러/냉각탑 용량 재점검(오일·금형 온도 상한 지정)</li>
+                        <li>• 체크: 피크 kW, kWh/Unit, 라인정지·트립 건수</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-lg">
+                      <h5 className="font-semibold text-yellow-700 mb-2">🌙 열대야일수 ↑</h5>
+                      <ul className="text-gray-700 text-sm space-y-1">
+                        <li>• 야간 프리쿨링 운영, 첫 차수 전수검사</li>
+                        <li>• 금형/유압유 온도 SOP(야간 기준치) 적용</li>
+                        <li>• 체크: 첫 차수 불량률, 스크랩률, 사이클타임 변동</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 실제 피해 사례 */}
+                <div className="bg-red-50 p-6 rounded-lg border border-red-200">
+                  <h4 className="text-lg font-semibold text-red-800 mb-3">⚠️ 실제 피해 경고</h4>
+                  <div className="space-y-4">
+                    <div className="bg-white p-4 rounded-lg">
+                      <h5 className="font-semibold text-red-700 mb-2">🇩🇪 독일(2021)</h5>
+                      <p className="text-gray-700 text-sm mb-2">아르 계곡 홍수로 ZF 아르바일러 공장 침수 → ZF는 <strong>침수 안전 지역으로 생산 이전(2026 예정)</strong>을 결정했습니다.</p>
+                      <p className="text-red-600 text-sm font-semibold">"한 번의 홍수가 공장 이전으로 이어질 수 있습니다."</p>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-lg">
+                      <h5 className="font-semibold text-red-700 mb-2">🇸🇮 슬로베니아(2023)</h5>
+                      <p className="text-gray-700 text-sm mb-2">부품사 KLS Ljubno 침수 → VW 포르투갈 공장 일시 중단.</p>
+                      <p className="text-red-600 text-sm font-semibold">"한 협력사의 침수가 해외 라인 셧다운으로 번집니다."</p>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-lg">
+                      <h5 className="font-semibold text-red-700 mb-2">🇮🇳 인도 첸나이(2015)</h5>
+                      <p className="text-gray-700 text-sm mb-2">집중호우로 Apollo Tyres 오라가담 공장 가동 중단, 생산손실 약 450톤.</p>
+                      <p className="text-red-600 text-sm font-semibold">"창고/설비 침수는 즉시 생산 손실로 이어집니다."</p>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-lg">
+                      <h5 className="font-semibold text-red-700 mb-2">🇮🇳 인도 케랄라(2018)</h5>
+                      <p className="text-gray-700 text-sm mb-2">홍수로 Apollo Tyres 2개 공장 가동 중단, 손실 1,500–3,000톤 보고.</p>
+                      <p className="text-red-600 text-sm font-semibold">"피해는 설비뿐 아니라 인력 접근 불가로도 발생합니다."</p>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-lg">
+                      <h5 className="font-semibold text-red-700 mb-2">🇹🇭 태국(2011)</h5>
+                      <p className="text-gray-700 text-sm mb-2">아유타야·파툼타니 산업단지 대규모 침수 → 수백 개 부품/조립 공장 장기 중단, 글로벌 공급망 병목.</p>
+                      <p className="text-red-600 text-sm font-semibold">"지역 재난이 세계 생산차질로 확산됩니다."</p>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-lg">
+                      <h5 className="font-semibold text-red-700 mb-2">🇨🇳 중국 쓰촨(2022)</h5>
+                      <p className="text-gray-700 text-sm mb-2">기록적 폭염·가뭄으로 전력 제한, 도요타·CATL 등 공장 셧다운.</p>
+                      <p className="text-red-600 text-sm font-semibold">"폭염은 전력제한→생산중단의 트리거가 됩니다."</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* 닫기 버튼 */}
+              <div className="mt-8 text-center">
+                <button
+                  onClick={closeScenarioModal}
+                  className="px-6 py-2 bg-green-600 text-white rounded-brand shadow-soft hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-100"
+                >
+                  확인
+                </button>
               </div>
             </div>
           </div>
@@ -2570,7 +2964,7 @@ export default function TcfdSrPage() {
                      </div>
                      <div>
                        <h3 className="font-semibold text-gray-800 mb-1">재무정보 탭</h3>
-                       <p className="text-gray-600 text-sm">상세한 재무 데이터와 손익계산서 정보를 확인하세요</p>
+                       <p className="text-gray-600 text-sm">재무 데이터와 손익계산서, 임원, 직원의 정보를 확인하세요</p>
                      </div>
                    </div>
                    
@@ -2580,7 +2974,7 @@ export default function TcfdSrPage() {
                      </div>
                      <div>
                        <h3 className="font-semibold text-gray-800 mb-1">TCFD 프레임워크 탭</h3>
-                       <p className="text-gray-600 text-sm">11개 핵심 인덱스를 입력하여 기후 관련 정보를 작성하세요</p>
+                       <p className="text-gray-600 text-sm">11개 핵심 인덱스를 입력하여 TCFD 보고서를 작성하세요</p>
                      </div>
                    </div>
                    
@@ -2590,7 +2984,7 @@ export default function TcfdSrPage() {
                      </div>
                      <div>
                        <h3 className="font-semibold text-gray-800 mb-1">기후시나리오 탭</h3>
-                       <p className="text-gray-600 text-sm">SSP 2.6과 SSP 8.5 시나리오의 기후 변화 예측을 확인하세요</p>
+                       <p className="text-gray-600 text-sm">SSP 1-2.6과 SSP 5-8.5 시나리오의 기후 변화 예측을 확인하세요</p>
                      </div>
                    </div>
                    
