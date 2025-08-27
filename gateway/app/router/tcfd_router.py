@@ -616,3 +616,107 @@ async def get_tcfd_inputs(request: Request, authorization: str = Header(None)):
         logger.error(f"❌ 스택 트레이스: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"TCFD Service 요청 실패: {str(e)}")
 
+@router.post("/generate-report")
+async def generate_tcfd_report(request: Request, authorization: str = Header(None)):
+    """TCFD 보고서 생성 (LLM Service로 요청 전달)"""
+    try:
+        logger.info("🔍 TCFD 보고서 생성 요청 시작")
+        
+        # JWT 토큰 검증
+        if not authorization or not authorization.startswith('Bearer '):
+            raise HTTPException(status_code=401, detail="Bearer 토큰이 필요합니다")
+        
+        # 토큰 검증 및 사용자 정보 추출
+        user_info = await verify_token(authorization)
+        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_info', {}).get('user_id', 'unknown')}")
+        
+        # Auth Service 응답 구조에 맞게 사용자 정보 추출
+        user_data = user_info.get('user_info', {})
+        if not user_data:
+            logger.warning("⚠️ 사용자 정보가 없습니다")
+            user_data = {}
+        
+        # Service Discovery를 통해 LLM Service 인스턴스 가져오기
+        service_discovery: ServiceDiscovery = request.app.state.service_discovery
+        logger.info(f"📡 Service Discovery 상태: {service_discovery}")
+        
+        llm_service = service_discovery.get_service_instance("llm-service")
+        logger.info(f"🎯 선택된 LLM Service 인스턴스: {llm_service}")
+        
+        if not llm_service:
+            logger.error("❌ LLM Service를 찾을 수 없습니다")
+            raise HTTPException(status_code=503, detail="LLM Service를 찾을 수 없습니다")
+        
+        # LLM Service로 요청 전달
+        host = llm_service.host
+        port = llm_service.port
+        logger.info(f"🔍 원본 LLM Service host: {host}")
+        logger.info(f"🔍 LLM Service port: {port}")
+        logger.info(f"🔍 RAILWAY_ENVIRONMENT: {os.getenv('RAILWAY_ENVIRONMENT')}")
+        
+        # URL이 이미 완전한 형태인지 확인
+        if not host.startswith(('http://', 'https://')):
+            # Docker 환경에서는 http:// 사용, Railway에서는 https:// 사용
+            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+                host = f"https://{host}"
+                logger.info(f"🔧 Railway 환경: https:// 추가됨")
+            else:
+                host = f"http://{host}"
+                logger.info(f"🔧 Docker 환경: http:// 추가됨")
+        
+        logger.info(f"🌐 LLM Service URL: {host}")
+        logger.info(f"📤 요청 엔드포인트: {host}/tcfd/generate-report")
+        
+        # 사용자 정보를 쿼리 파라미터로 전달
+        user_params = {
+            "user_id": user_data.get("user_id"),
+            "email": user_data.get("email"),
+            "company_id": user_data.get("company_id")
+        }
+        
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            # Railway 환경에서는 실제 서비스 URL 사용, Docker에서는 컨테이너 이름 사용
+            railway_llm_url = os.getenv("RAILWAY_LLM_SERVICE_URL")
+            if railway_llm_url:
+                url = f"{railway_llm_url}/tcfd/generate-report"
+                logger.info(f"🔧 Railway/Vercel 환경에서 환경변수 LLM Service URL: {url}")
+            else:
+                # Docker 환경에서는 컨테이너 이름과 포트 사용
+                url = f"http://llm-service:8002/tcfd/generate-report"
+                logger.info(f"🔧 Docker 환경에서 LLM Service URL: {url}")
+            
+            logger.info(f"📤 최종 요청 URL: {url}")
+            logger.info(f"📤 사용자 정보: {user_params}")
+            logger.info(f"📤 Authorization 헤더: {authorization}")
+            
+            # 요청 본문 읽기
+            request_body = await request.json()
+            logger.info(f"📤 요청 본문: {request_body}")
+            
+            # Authorization 헤더와 사용자 정보를 함께 전달
+            headers = {"Authorization": authorization}
+            response = await client.post(
+                url,
+                json=request_body,
+                headers=headers
+            )
+            logger.info(f"📥 LLM Service 응답 상태: {response.status_code}")
+            logger.info(f"📥 LLM Service 응답 헤더: {dict(response.headers)}")
+            
+            response.raise_for_status()
+            response_data = response.json()
+            logger.info(f"✅ LLM Service 응답 데이터: {response_data}")
+            return response_data
+            
+    except HTTPException:
+        raise
+    except httpx.HTTPStatusError as e:
+        logger.error(f"❌ LLM Service HTTP 응답 오류: {e.response.status_code}")
+        logger.error(f"❌ 응답 내용: {e.response.text}")
+        raise HTTPException(status_code=e.response.status_code, detail=f"LLM Service 응답 오류: {e.response.status_code}")
+    except Exception as e:
+        logger.error(f"❌ LLM Service 요청 실패: {str(e)}")
+        logger.error(f"❌ 오류 타입: {type(e).__name__}")
+        logger.error(f"❌ 스택 트레이스: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"LLM Service 요청 실패: {str(e)}")
+

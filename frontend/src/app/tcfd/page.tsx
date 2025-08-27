@@ -203,6 +203,7 @@ export default function TcfdSrPage() {
   });
   
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedLLMModel, setSelectedLLMModel] = useState<'openai' | 'huggingface' | null>(null);
   const [tcfdDatabaseData, setTcfdDatabaseData] = useState<any>(null);
   const [isLoadingDatabaseData, setIsLoadingDatabaseData] = useState(false);
 
@@ -522,28 +523,40 @@ export default function TcfdSrPage() {
 
       console.log('🤖 TCFD 보고서 생성 시작:', tcfdReportRequest);
 
-      // 2개 LLM 시스템으로 TCFD 보고서 생성
-      const [openaiResult, hfResult] = await Promise.all([
-        // OpenAI로 TCFD 보고서 생성
-        generateTCFDReportWithLLM(tcfdReportRequest, "openai"),
-        // Hugging Face로 TCFD 보고서 생성
-        generateTCFDReportWithLLM(tcfdReportRequest, "huggingface")
-      ]);
+      // 선택된 LLM 모델로 TCFD 보고서 생성
+      let result: any = null;
+      if (selectedLLMModel === "openai") {
+        result = await generateTCFDReportWithLLM(tcfdReportRequest, "openai");
+        console.log('✅ OpenAI TCFD 보고서 결과:', result);
+        
+        // OpenAI 결과만 설정
+        setRagResults(prev => ({
+          ...prev,
+          openai: {
+            draft: result?.report_content || '보고서 생성에 실패했습니다.',
+            polished: result?.report_content || '보고서 생성에 실패했습니다.'
+          }
+        }));
+      } else if (selectedLLMModel === "huggingface") {
+        result = await generateTCFDReportWithLLM(tcfdReportRequest, "huggingface");
+        console.log('✅ Hugging Face TCFD 보고서 결과:', result);
+        
+        // Hugging Face 결과만 설정
+        setRagResults(prev => ({
+          ...prev,
+          huggingface: {
+            draft: result?.report_content || '보고서 생성에 실패했습니다.',
+            polished: result?.report_content || '보고서 생성에 실패했습니다.'
+          }
+        }));
+      }
 
-      console.log('✅ OpenAI TCFD 보고서 결과:', openaiResult);
-      console.log('✅ Hugging Face TCFD 보고서 결과:', hfResult);
-
-      // 결과를 기존 RAG 결과 형식에 맞춰 변환
-      setRagResults({
-        openai: {
-          draft: openaiResult.report_content || '보고서 생성에 실패했습니다.',
-          polished: openaiResult.report_content || '보고서 생성에 실패했습니다.'
-        },
-        huggingface: {
-          draft: hfResult.report_content || '보고서 생성에 실패했습니다.',
-          polished: hfResult.report_content || '보고서 생성에 실패했습니다.'
+              // 결과가 성공적으로 생성되었는지 확인
+        if (result && result.success) {
+          console.log('✅ TCFD 보고서 생성 성공:', result);
+        } else {
+          console.log('❌ TCFD 보고서 생성 실패:', result);
         }
-      });
 
       // AI보고서 초안 탭으로 자동 이동
       setActiveTab(5);
@@ -564,7 +577,7 @@ export default function TcfdSrPage() {
         throw new Error('인증 토큰이 없습니다');
       }
 
-      // llm-service의 TCFD API 호출
+      // LLM Service의 TCFD API 직접 호출
       const response = await fetch(`${process.env.NEXT_PUBLIC_LLM_SERVICE_URL || 'http://localhost:8002'}/tcfd/generate-report`, {
         method: 'POST',
         headers: {
@@ -2514,19 +2527,61 @@ export default function TcfdSrPage() {
                   </div>
                   
                   <div className="text-center space-y-4">
+                    {/* AI 모델 선택 */}
+                    <div className="mb-6">
+                      <h4 className="text-lg font-semibold text-gray-800 mb-4 text-center">🤖 AI 모델 선택</h4>
+                      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        {/* OpenAI 모델 선택 */}
+                        <button
+                          onClick={() => setSelectedLLMModel('openai')}
+                          className={`px-6 py-3 rounded-lg border-2 transition-all duration-300 focus:outline-none focus:ring-4 ${
+                            selectedLLMModel === 'openai'
+                              ? 'border-blue-500 bg-blue-50 text-blue-700 ring-blue-200'
+                              : 'border-gray-300 bg-white text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                            <span className="font-medium">OpenAI GPT-4o-mini</span>
+                          </div>
+                        </button>
+                        
+                        {/* KoAlpaca 모델 선택 */}
+                        <button
+                          onClick={() => setSelectedLLMModel('huggingface')}
+                          className={`px-6 py-3 rounded-lg border-2 transition-all duration-300 focus:outline-none focus:ring-4 ${
+                            selectedLLMModel === 'huggingface'
+                              ? 'border-purple-500 bg-purple-50 text-purple-700 ring-purple-200'
+                              : 'border-gray-300 bg-white text-gray-700 hover:border-purple-300 hover:bg-purple-50'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 bg-purple-500 rounded-full"></div>
+                            <span className="font-medium">KoAlpaca/RoLA</span>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                       <button 
                         onClick={handleGenerateTCFDReport}
-                        disabled={isGenerating}
-                        className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-brand shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
+                        disabled={isGenerating || !selectedLLMModel}
+                        className={`px-8 py-4 rounded-brand shadow-lg transition-all duration-300 focus:outline-none focus:ring-4 font-semibold text-lg ${
+                          !selectedLLMModel
+                            ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                            : selectedLLMModel === 'openai'
+                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 focus:ring-blue-200'
+                            : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 focus:ring-purple-200'
+                        }`}
                       >
                         {isGenerating ? (
                           <div className="flex items-center">
                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                            AI 모델들이 보고서를 생성하고 있습니다...
+                            {selectedLLMModel === 'openai' ? 'OpenAI' : 'KoAlpaca'} 모델로 보고서를 생성하고 있습니다...
                           </div>
                         ) : (
-                          '🚀 AI 보고서 생성 시작'
+                          `🚀 ${selectedLLMModel === 'openai' ? 'OpenAI' : selectedLLMModel === 'huggingface' ? 'KoAlpaca' : 'AI'} 보고서 생성 시작`
                         )}
                       </button>
                       
@@ -2548,7 +2603,10 @@ export default function TcfdSrPage() {
                     
                     <div className="space-y-2">
                       <p className="text-sm text-gray-500">
-                        TCFD 프레임워크 탭에서 데이터를 입력한 후 생성할 수 있습니다
+                        {!selectedLLMModel 
+                          ? '🤖 AI 모델을 선택한 후 TCFD 프레임워크 탭에서 데이터를 입력하면 보고서를 생성할 수 있습니다'
+                          : 'TCFD 프레임워크 탭에서 데이터를 입력한 후 생성할 수 있습니다'
+                        }
                       </p>
                       {tcfdDatabaseData && (
                         <div className="space-y-1">
