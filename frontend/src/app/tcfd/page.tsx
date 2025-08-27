@@ -204,6 +204,14 @@ export default function TcfdSrPage() {
   
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // 기후시나리오 관련 상태 추가
+  const [selectedYear, setSelectedYear] = useState<'2026-2030' | '2025-2035-2050'>('2026-2030');
+  const [selectedSSP, setSelectedSSP] = useState<'SSP126' | 'SSP585'>('SSP126');
+  const [selectedRegion, setSelectedRegion] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'temperature' | 'precipitation' | 'extreme'>('all');
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{ src: string; title: string } | null>(null);
+
   // 회사 목록 로드 (사용하지 않음)
   const loadCompanies = async () => {
     // 회사 목록은 더 이상 로드하지 않음
@@ -221,6 +229,8 @@ export default function TcfdSrPage() {
 
     setIsLoadingCompany(true);
     setCompanyError(null);
+    setSelectedRegion(''); // 회사 변경 시 지역 선택 초기화
+    setSelectedCategory('all'); // 회사 변경 시 카테고리 선택 초기화
 
     // 디버깅 로그 추가
     console.log('🔍 회사명:', companyName);
@@ -821,6 +831,199 @@ export default function TcfdSrPage() {
       'm3': 'metrics_targets_m3'
     };
     return keyMapping[recommendationType] || '';
+  };
+
+  // 기후시나리오 이미지 모달 관련 함수들
+  const openImageModal = (src: string, title: string) => {
+    setSelectedImage({ src, title });
+    setIsImageModalOpen(true);
+  };
+
+  const closeImageModal = () => {
+    setIsImageModalOpen(false);
+    setSelectedImage(null);
+  };
+
+  // 회사별 기후시나리오 이미지 가져오기
+  const getCompanyClimateImages = (companyName: string, ssp: string, year: string, region?: string) => {
+    const images: Array<{
+      src: string;
+      title: string;
+      description: string;
+    }> = [];
+
+    // 기후지표별 이미지 정보
+    const climateIndicators = [
+      { key: '연강수량', title: '연간 강수량 변화', description: '연간 총 강수량의 변화 추세를 보여줍니다' },
+      { key: '호우일수', title: '호우일수 변화', description: '폭우 발생 일수의 변화를 보여줍니다' },
+      { key: '열대야일수', title: '열대야일수 변화', description: '밤 최저기온 25°C 이상 지속되는 일수를 보여줍니다' },
+      { key: '폭염일수', title: '폭염일수 변화', description: '낮 최고기온 33°C 이상 지속되는 일수를 보여줍니다' },
+      { key: '연평균기온', title: '연평균기온 변화', description: '연간 평균 기온의 변화 추세를 보여줍니다' }
+    ];
+
+    // 회사별 지역 매핑
+    const companyRegions: Record<string, string[]> = {
+      '한온시스템': ['강남구', '경주시', '평택시', '아산시', '대덕구', '울주군'],
+      '현대모비스': ['포항시', '의왕시', '창원시', '진천군', '강남구', '성남시', '경주시', '아산시', '울주군', '달성군'],
+      'HL만도': ['화성시', '익산시', '원주시', '성남시', '평택시', '연수구']
+    };
+
+    // 회사명 정규화 (대소문자, 공백 제거)
+    const normalizedCompanyName = companyName.replace(/\s+/g, '').toLowerCase();
+    let regions: string[] = [];
+    
+    for (const [company, companyRegionsList] of Object.entries(companyRegions)) {
+      if (normalizedCompanyName.includes(company.toLowerCase().replace(/\s+/g, ''))) {
+        regions = companyRegionsList;
+        break;
+      }
+    }
+
+    if (regions.length === 0) {
+      return images;
+    }
+
+    // 지역 필터링 적용
+    if (region && region !== '전체') {
+      regions = regions.filter(r => r === region);
+    }
+
+    // 연도별 파일명 패턴
+    const yearPattern = year === '2026-2030' ? '_2026_2030' : '';
+
+    // 각 지역과 기후지표에 대해 이미지 생성
+    regions.forEach(region => {
+      climateIndicators.forEach(indicator => {
+        const filename = `${ssp}_${region}_${indicator.key}${yearPattern}.png`;
+        const imagePath = `/${companyName}/${filename}`;
+        
+        images.push({
+          src: imagePath,
+          title: `${region} ${indicator.title}`,
+          description: indicator.description
+        });
+      });
+    });
+
+    return images;
+  };
+
+  // 일반 기후시나리오 이미지 가져오기 (SSP126, SSP585)
+  const getGeneralClimateImages = (ssp: 'SSP126' | 'SSP585') => {
+    const images: Array<{
+      src: string;
+      title: string;
+      description: string;
+    }> = [];
+
+    // SSP별 폴더명과 이미지 매핑 (실제 파일명 패턴에 맞춤)
+    const sspImageMap = {
+      'SSP126': {
+        folder: 'image_ssp2.6',
+        images: [
+          { key: '호우일수', title: '호우일수 변화', description: '폭우 발생 일수의 변화를 보여줍니다' },
+          { key: '폭염일수', title: '폭염일수 변화', description: '낮 최고기온 33°C 이상 지속되는 일수를 보여줍니다' },
+          { key: '평균_최고기온', title: '평균 최고기온 변화', description: '일평균 최고기온의 변화를 보여줍니다' },
+          { key: '최대무강수지속기간', title: '최대 무강수 지속기간', description: '연속으로 비가 오지 않는 최대 기간을 보여줍니다' },
+          { key: '열대야일수', title: '열대야일수 변화', description: '밤 최저기온 25°C 이상 지속되는 일수를 보여줍니다' },
+          { key: '연평균기온', title: '연평균기온 변화', description: '연간 평균 기온의 변화 추세를 보여줍니다' },
+          { key: '강수량', title: '강수량 변화', description: '총 강수량의 변화를 보여줍니다' },
+          { key: '강수강도', title: '강수강도 변화', description: '강수의 세기를 보여줍니다' },
+          { key: '1일_한파일수', title: '1일 한파일수', description: '하루 중 한파가 지속되는 시간을 보여줍니다' },
+          { key: '1일_최대강수량', title: '1일 최대강수량', description: '하루 중 최대 강수량을 보여줍니다' }
+        ]
+      },
+      'SSP585': {
+        folder: 'image_ssp8.5',
+        images: [
+          { key: '호우일수', title: '호우일수 변화', description: '폭우 발생 일수의 변화를 보여줍니다' },
+          { key: '폭염_일수', title: '폭염일수 변화', description: '낮 최고기온 33°C 이상 지속되는 일수를 보여줍니다' },
+          { key: '평균_최고기온', title: '평균 최고기온 변화', description: '일평균 최고기온의 변화를 보여줍니다' },
+          { key: '최대무강수지속기간', title: '최대 무강수 지속기간', description: '연속으로 비가 오지 않는 최대 기간을 보여줍니다' },
+          { key: '열대야일수', title: '열대야일수 변화', description: '밤 최저기온 25°C 이상 지속되는 일수를 보여줍니다' },
+          { key: '연평균기온', title: '연평균기온 변화', description: '연간 평균 기온의 변화 추세를 보여줍니다' },
+          { key: '강수량', title: '강수량 변화', description: '총 강수량의 변화를 보여줍니다' },
+          { key: '강수강도', title: '강수강도 변화', description: '강수의 세기를 보여줍니다' },
+          { key: '한파일수', title: '한파일수', description: '한파가 지속되는 일수를 보여줍니다' },
+          { key: '1일_최대강수량', title: '1일 최대강수량', description: '하루 중 최대 강수량을 보여줍니다' }
+        ]
+      }
+    };
+
+    const sspData = sspImageMap[ssp];
+    if (!sspData) return images;
+
+    // 각 기후지표에 대해 이미지 생성 (실제 파일명 패턴에 맞춤)
+    sspData.images.forEach(indicator => {
+      // 파일명 패턴에 따라 이미지 생성
+      if (indicator.key === '호우일수' || indicator.key === '폭염_일수' || indicator.key === '폭염일수') {
+        // 호우일수, 폭염일수는 1, 2번 이미지가 있음
+        for (let i = 1; i <= 2; i++) {
+          // 실제 파일명 패턴: SSP_585_폭염_일수_1.png
+          const filename = `SSP_${ssp === 'SSP126' ? '126' : '585'}_${indicator.key}_${i}.png`;
+          const imagePath = `/${sspData.folder}/${filename}`;
+          
+          images.push({
+            src: imagePath,
+            title: `${indicator.title} ${i}`,
+            description: `${indicator.description} (${ssp} 시나리오)`
+          });
+        }
+      } else if (indicator.key === '열대야일수') {
+        // 열대야일수는 1, 2번 이미지가 있음
+        for (let i = 1; i <= 2; i++) {
+          const filename = `SSP_${ssp === 'SSP126' ? '126' : '585'}_${indicator.key}_${i}.png`;
+          const imagePath = `/${sspData.folder}/${filename}`;
+          
+          images.push({
+            src: imagePath,
+            title: `${indicator.title} ${i}`,
+            description: `${indicator.description} (${ssp} 시나리오)`
+          });
+        }
+      } else {
+        // 나머지는 단일 이미지 (특별한 경우 처리)
+        let filename: string;
+        
+        // SSP126의 경우 특별한 파일명 패턴 처리
+        if (ssp === 'SSP126' && indicator.key === '1일_최대강수량') {
+          filename = `SSP_126_1일_최대강수량_1.png`;
+        } else {
+          filename = `SSP_${ssp === 'SSP126' ? '126' : '585'}_${indicator.key}.png`;
+        }
+        
+        const imagePath = `/${sspData.folder}/${filename}`;
+        
+        images.push({
+          src: imagePath,
+          title: indicator.title,
+          description: `${indicator.description} (${ssp} 시나리오)`
+        });
+      }
+    });
+
+    return images;
+  };
+
+  // 카테고리별로 이미지 필터링하는 함수
+  const getFilteredGeneralClimateImages = (ssp: 'SSP126' | 'SSP585', category: string) => {
+    const allImages = getGeneralClimateImages(ssp);
+    
+    if (category === 'all') {
+      return allImages;
+    }
+    
+    const categoryMap = {
+      'temperature': ['연평균기온', '평균_최고기온', '열대야일수', '폭염일수', '폭염_일수', '한파일수', '1일_한파일수'],
+      'precipitation': ['강수량', '강수강도', '호우일수', '1일_최대강수량', '1일_최대강수량_1'],
+      'extreme': ['최대무강수지속기간', '폭염일수', '폭염_일수', '호우일수', '한파일수', '1일_한파일수']
+    };
+    
+    const targetKeys = categoryMap[category as keyof typeof categoryMap] || [];
+    
+    return allImages.filter(image => {
+      return targetKeys.some(key => image.title.includes(key) || image.description.includes(key));
+    });
   };
 
   return (
@@ -1581,50 +1784,475 @@ export default function TcfdSrPage() {
             {activeTab === 4 && (
               <div>
                 <h2 className="text-2xl font-bold text-primary-600 mb-6">🌍 기후시나리오</h2>
-                <div className="space-y-4">
-                  <div className="bg-danger-50 p-4 rounded-brand border border-danger-200">
-                    <h3 className="text-lg font-semibold text-black mb-2">SSP 8.5 (고탄소 시나리오)</h3>
-                    <p className="text-black mb-4">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
-                    <button
-                      onClick={() => handleClimateDetails('ssp8.5')}
-                      className="px-4 py-2 bg-danger-600 text-black rounded-brand shadow-soft hover:bg-danger-700 transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-danger-100"
-                    >
-                      상세보기
-                    </button>
-                  </div>
+                
+                {/* 회사 검색이 완료되지 않은 경우 기본 안내 */}
+                {!companyOverview && (
+                  <div className="space-y-6">
+                    {/* SSP 시나리오별 탭 */}
+                    <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+                      <button
+                        onClick={() => setSelectedSSP('SSP126')}
+                        className={`flex-1 py-3 px-6 rounded-md font-medium transition-colors ${
+                          selectedSSP === 'SSP126'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-800'
+                        }`}
+                      >
+                        SSP 1-2.6 (저탄소)
+                      </button>
+                      <button
+                        onClick={() => setSelectedSSP('SSP585')}
+                        className={`flex-1 py-3 px-6 rounded-md font-medium transition-colors ${
+                          selectedSSP === 'SSP585'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-800'
+                        }`}
+                      >
+                        SSP 5-8.5 (고탄소)
+                      </button>
+                    </div>
 
-                  <div className="bg-info-50 p-4 rounded-brand border border-info-200">
-                    <h3 className="text-lg font-semibold text-black mb-2">SSP 2.6 (극저탄소 시나리오)</h3>
-                    <p className="text-black mb-4">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
-                    <button
-                      onClick={() => handleClimateDetails('ssp2.6')}
-                      className="px-4 py-2 bg-info-600 text-black rounded-brand shadow-soft hover:bg-info-700 transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-info-100"
-                    >
-                      상세보기
-                    </button>
-                  </div>
+                    {/* 기후지표 카테고리별 탭 */}
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      <button
+                        onClick={() => setSelectedCategory('all')}
+                        className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                          selectedCategory === 'all'
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'bg-gray-200 text-gray-600 hover:text-gray-800'
+                        }`}
+                      >
+                        전체
+                      </button>
+                      <button
+                        onClick={() => setSelectedCategory('temperature')}
+                        className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                          selectedCategory === 'temperature'
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'bg-gray-200 text-gray-600 hover:text-gray-800'
+                        }`}
+                      >
+                        온도 관련
+                      </button>
+                      <button
+                        onClick={() => setSelectedCategory('precipitation')}
+                        className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                          selectedCategory === 'precipitation'
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'bg-gray-200 text-gray-600 hover:text-gray-800'
+                        }`}
+                      >
+                        강수 관련
+                      </button>
+                      <button
+                        onClick={() => setSelectedCategory('extreme')}
+                        className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                          selectedCategory === 'extreme'
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'bg-gray-200 text-gray-600 hover:text-gray-800'
+                        }`}
+                      >
+                        극한 현상
+                      </button>
+                    </div>
 
-                  {/* 기후 시나리오 이미지 갤러리로 이동하는 More 버튼 */}
-                  <div className="mt-6 text-center">
-                    <button
-                      onClick={() => {
-                        const token = localStorage.getItem('auth_token');
-                        if (token) {
-                          router.push('/climate-scenarios');
-                        } else {
-                          alert('로그인이 필요합니다. 먼저 로그인해주세요.');
-                          router.push('/login');
-                        }
-                      }}
-                                                 className="px-8 py-3 bg-success-600 text-black rounded-brand shadow-soft hover:bg-success-700 transition-colors font-medium text-lg focus:outline-none focus:ring-2 focus:ring-success-100"
-                    >
-                      🌍 기후 시나리오 이미지 더보기
-                    </button>
-                                             <p className="text-sm text-black mt-2">
-                      SSP 2.6과 SSP 8.5 시나리오의 상세한 기후 변화 예측 이미지를 확인하세요
-                    </p>
+                    {/* SSP 126 (저탄소) 시나리오 설명 */}
+                    {selectedSSP === 'SSP126' && (
+                      <div className="bg-info-50 p-6 rounded-brand border border-info-200">
+                        <h3 className="text-xl font-semibold text-info-800 mb-3">SSP 1-2.6 (극저탄소 시나리오)</h3>
+                        <p className="text-info-700 mb-4 text-lg">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                          {getFilteredGeneralClimateImages('SSP126', selectedCategory).map((image, index) => (
+                            <div key={index} className="bg-white rounded-lg border border-info-200 shadow-sm overflow-hidden">
+                              <div className="p-4">
+                                <h5 className="font-semibold text-gray-800 mb-2">{image.title}</h5>
+                                <p className="text-sm text-gray-600 mb-3">{image.description}</p>
+                                <div className="relative aspect-video bg-gray-100 rounded-md overflow-hidden">
+                                  <img
+                                    src={image.src}
+                                    alt={image.title}
+                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
+                                    onClick={() => openImageModal(image.src, image.title)}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SSP 585 (고탄소) 시나리오 설명 */}
+                    {selectedSSP === 'SSP585' && (
+                      <div className="bg-danger-50 p-6 rounded-brand border border-danger-200">
+                        <h3 className="text-xl font-semibold text-danger-800 mb-3">SSP 5-8.5 (고탄소 시나리오)</h3>
+                        <p className="text-danger-700 mb-4 text-lg">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                          {getFilteredGeneralClimateImages('SSP585', selectedCategory).map((image, index) => (
+                            <div key={index} className="bg-white rounded-lg border border-danger-200 shadow-sm overflow-hidden">
+                              <div className="p-4">
+                                <h5 className="font-semibold text-gray-800 mb-2">{image.title}</h5>
+                                <p className="text-sm text-gray-600 mb-3">{image.description}</p>
+                                <div className="relative aspect-video bg-gray-100 rounded-md overflow-hidden">
+                                  <img
+                                    src={image.src}
+                                    alt={image.title}
+                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
+                                    onClick={() => openImageModal(image.src, image.title)}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 기후 시나리오 이미지 갤러리로 이동하는 More 버튼 */}
+                    <div className="mt-8 text-center">
+                      <button
+                        onClick={() => {
+                          const token = localStorage.getItem('auth_token');
+                          if (token) {
+                            router.push('/climate-scenarios');
+                          } else {
+                            alert('로그인이 필요합니다. 먼저 로그인해주세요.');
+                            router.push('/login');
+                          }
+                        }}
+                        className="px-8 py-3 bg-success-600 text-black rounded-brand shadow-soft hover:bg-success-700 transition-colors font-medium text-lg focus:outline-none focus:ring-2 focus:ring-success-100"
+                      >
+                        🌍 기후 시나리오 이미지 더보기
+                      </button>
+                      <p className="text-sm text-black mt-2">
+                        SSP 2.6과 SSP 8.5 시나리오의 상세한 기후 변화 예측 이미지를 확인하세요
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* 회사 검색이 완료된 경우 회사별 기후시나리오 이미지 표시 */}
+                {companyOverview && (
+                  <div>
+                    <div className="bg-green-50 border border-green-200 rounded-brand p-4 mb-6">
+                      <h3 className="text-lg font-semibold text-green-800 mb-2">
+                        📍 {companyOverview.종목명 || companyName} 기후시나리오 분석
+                      </h3>
+                      <p className="text-green-700 text-sm">
+                        해당 기업의 생산시설이 위치한 지역의 기후변화 시나리오를 확인할 수 있습니다.
+                      </p>
+                    </div>
+
+                    {/* 연도별 탭 선택 */}
+                    <div className="mb-6">
+                      <div className="flex space-x-1 bg-gray-200 p-1 rounded-lg">
+                        <button
+                          onClick={() => setSelectedYear('2026-2030')}
+                          className={`flex-1 py-3 px-6 rounded-md font-medium transition-colors ${
+                            selectedYear === '2026-2030'
+                              ? 'bg-white text-blue-600 shadow-sm'
+                              : 'text-gray-600 hover:text-gray-800'
+                          }`}
+                        >
+                          2026-2030년
+                        </button>
+                        <button
+                          onClick={() => setSelectedYear('2025-2035-2050')}
+                          className={`flex-1 py-3 px-6 rounded-md font-medium transition-colors ${
+                            selectedYear === '2025-2035-2050'
+                              ? 'bg-white text-blue-600 shadow-sm'
+                              : 'text-gray-600 hover:text-gray-800'
+                          }`}
+                        >
+                          넷제로2050
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 지역별 탭 선택 */}
+                    <div className="mb-6">
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => setSelectedRegion('')}
+                          className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                            selectedRegion === ''
+                              ? 'bg-blue-600 text-white shadow-sm'
+                              : 'bg-gray-200 text-gray-600 hover:text-gray-800'
+                          }`}
+                        >
+                          전체 지역
+                        </button>
+                        {(() => {
+                          // 회사별 지역 매핑
+                          const companyRegions: Record<string, string[]> = {
+                            '한온시스템': ['강남구', '경주시', '평택시', '아산시', '대덕구', '울주군'],
+                            '현대모비스': ['포항시', '의왕시', '창원시', '진천군', '강남구', '성남시', '경주시', '아산시', '울주군', '달성군'],
+                            'HL만도': ['화성시', '익산시', '원주시', '성남시', '평택시', '연수구']
+                          };
+                          
+                          // 회사명 정규화 (대소문자, 공백 제거)
+                          const normalizedCompanyName = companyName.replace(/\s+/g, '').toLowerCase();
+                          let regions: string[] = [];
+                          
+                          for (const [company, companyRegionsList] of Object.entries(companyRegions)) {
+                            if (normalizedCompanyName.includes(company.toLowerCase().replace(/\s+/g, ''))) {
+                              regions = companyRegionsList;
+                              break;
+                            }
+                          }
+                          
+                          return regions.map((region) => (
+                            <button
+                              key={region}
+                              onClick={() => setSelectedRegion(region)}
+                              className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                                selectedRegion === region
+                                  ? 'bg-blue-600 text-white shadow-sm'
+                                  : 'bg-gray-200 text-gray-600 hover:text-gray-800'
+                              }`}
+                            >
+                              {region}
+                            </button>
+                          ));
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* 2026-2030년 탭 내용 */}
+                    {selectedYear === '2026-2030' && (
+                      <div className="space-y-6">
+                        <h4 className="text-xl font-semibold text-gray-800">2026-2030년 기후변화 예측</h4>
+                        
+                        {/* SSP 시나리오별 탭 */}
+                        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-4">
+                          <button
+                            onClick={() => setSelectedSSP('SSP126')}
+                            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+                              selectedSSP === 'SSP126'
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-gray-600 hover:text-gray-800'
+                            }`}
+                          >
+                            SSP 1-2.6 (저탄소)
+                          </button>
+                          <button
+                            onClick={() => setSelectedSSP('SSP585')}
+                            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+                              selectedSSP === 'SSP585'
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-gray-600 hover:text-gray-800'
+                            }`}
+                          >
+                            SSP 5-8.5 (고탄소)
+                          </button>
+                        </div>
+
+                        {/* 기후지표별 이미지 그리드 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {getCompanyClimateImages(companyName, selectedSSP, '2026-2030', selectedRegion).map((image, index) => (
+                            <div key={index} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                              <div className="p-4">
+                                <h5 className="font-semibold text-gray-800 mb-2">{image.title}</h5>
+                                <p className="text-sm text-gray-600 mb-3">{image.description}</p>
+                                <div className="relative aspect-video bg-gray-100 rounded-md overflow-hidden">
+                                  <img
+                                    src={image.src}
+                                    alt={image.title}
+                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
+                                    onClick={() => openImageModal(image.src, image.title)}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 2025/2035/2050년 탭 내용 */}
+                    {selectedYear === '2025-2035-2050' && (
+                      <div className="space-y-6">
+                        <h4 className="text-xl font-semibold text-gray-800">넷제로2050 기후변화 예측</h4>
+                        
+                        {/* SSP 시나리오별 탭 */}
+                        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-4">
+                          <button
+                            onClick={() => setSelectedSSP('SSP126')}
+                            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+                              selectedSSP === 'SSP126'
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-gray-600 hover:text-gray-800'
+                            }`}
+                          >
+                            SSP 1-2.6 (저탄소)
+                          </button>
+                          <button
+                            onClick={() => setSelectedSSP('SSP585')}
+                            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+                              selectedSSP === 'SSP585'
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-gray-600 hover:text-gray-800'
+                            }`}
+                          >
+                            SSP 5-8.5 (고탄소)
+                          </button>
+                        </div>
+
+                        {/* 기후지표별 이미지 그리드 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {getCompanyClimateImages(companyName, selectedSSP, '2025-2035-2050', selectedRegion).map((image, index) => (
+                            <div key={index} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                              <div className="p-4">
+                                <h5 className="font-semibold text-gray-800 mb-2">{image.title}</h5>
+                                <p className="text-sm text-gray-600 mb-3">{image.description}</p>
+                                <div className="relative aspect-video bg-gray-100 rounded-md overflow-hidden">
+                                  <img
+                                    src={image.src}
+                                    alt={image.title}
+                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
+                                    onClick={() => openImageModal(image.src, image.title)}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 일반 SSP 시나리오 섹션 추가 */}
+                    <div className="mt-12 pt-8 border-t-2 border-gray-200">
+                      <div className="bg-blue-50 border border-blue-200 rounded-brand p-4 mb-6">
+                        <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                          🌍 일반 기후시나리오 시나리오
+                        </h3>
+                        <p className="text-blue-700 text-sm">
+                          SSP126과 SSP585 시나리오의 전반적인 기후변화 예측을 확인할 수 있습니다.
+                        </p>
+                      </div>
+
+                      {/* SSP 시나리오별 탭 */}
+                      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+                        <button
+                          onClick={() => setSelectedSSP('SSP126')}
+                          className={`flex-1 py-3 px-6 rounded-md font-medium transition-colors ${
+                            selectedSSP === 'SSP126'
+                              ? 'bg-white text-blue-600 shadow-sm'
+                              : 'text-gray-600 hover:text-gray-800'
+                          }`}
+                        >
+                          SSP 1-2.6 (저탄소)
+                        </button>
+                        <button
+                          onClick={() => setSelectedSSP('SSP585')}
+                          className={`flex-1 py-3 px-6 rounded-md font-medium transition-colors ${
+                            selectedSSP === 'SSP585'
+                              ? 'bg-white text-blue-600 shadow-sm'
+                              : 'text-gray-600 hover:text-gray-800'
+                          }`}
+                        >
+                          SSP 5-8.5 (고탄소)
+                        </button>
+                      </div>
+
+                      {/* 기후지표 카테고리별 탭 */}
+                      <div className="flex flex-wrap gap-2 mb-6">
+                        <button
+                          onClick={() => setSelectedCategory('all')}
+                          className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                            selectedCategory === 'all'
+                              ? 'bg-blue-600 text-white shadow-sm'
+                              : 'bg-gray-200 text-gray-600 hover:text-gray-800'
+                          }`}
+                        >
+                          전체
+                        </button>
+                        <button
+                          onClick={() => setSelectedCategory('temperature')}
+                          className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                            selectedCategory === 'temperature'
+                              ? 'bg-blue-600 text-white shadow-sm'
+                              : 'bg-gray-200 text-gray-600 hover:text-gray-800'
+                          }`}
+                        >
+                          온도 관련
+                        </button>
+                        <button
+                          onClick={() => setSelectedCategory('precipitation')}
+                          className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                            selectedCategory === 'precipitation'
+                              ? 'bg-blue-600 text-white shadow-sm'
+                              : 'bg-gray-200 text-gray-600 hover:text-gray-800'
+                          }`}
+                        >
+                          강수 관련
+                        </button>
+                        <button
+                          onClick={() => setSelectedCategory('extreme')}
+                          className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                            selectedCategory === 'extreme'
+                              ? 'bg-blue-600 text-white shadow-sm'
+                              : 'bg-gray-200 text-gray-600 hover:text-gray-800'
+                          }`}
+                        >
+                          극한 현상
+                        </button>
+                      </div>
+
+                      {/* SSP 126 (저탄소) 시나리오 설명 */}
+                      {selectedSSP === 'SSP126' && (
+                        <div className="bg-info-50 p-6 rounded-brand border border-info-200">
+                          <h4 className="text-xl font-semibold text-info-800 mb-3">SSP 1-2.6 (극저탄소 시나리오)</h4>
+                          <p className="text-info-700 mb-4 text-lg">2100년까지 1.6°C 온도 상승, 파리협정 목표 달성</p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                            {getFilteredGeneralClimateImages('SSP126', selectedCategory).map((image, index) => (
+                              <div key={index} className="bg-white rounded-lg border border-info-200 shadow-sm overflow-hidden">
+                                <div className="p-4">
+                                  <h5 className="font-semibold text-gray-800 mb-2">{image.title}</h5>
+                                  <p className="text-sm text-gray-600 mb-3">{image.description}</p>
+                                  <div className="relative aspect-video bg-gray-100 rounded-md overflow-hidden">
+                                    <img
+                                      src={image.src}
+                                      alt={image.title}
+                                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
+                                      onClick={() => openImageModal(image.src, image.title)}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* SSP 585 (고탄소) 시나리오 설명 */}
+                      {selectedSSP === 'SSP585' && (
+                        <div className="bg-danger-50 p-6 rounded-brand border border-danger-200">
+                          <h4 className="text-xl font-semibold text-danger-800 mb-3">SSP 5-8.5 (고탄소 시나리오)</h4>
+                          <p className="text-danger-700 mb-4 text-lg">2100년까지 4.9°C 온도 상승, 극단적인 기후 변화</p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                            {getFilteredGeneralClimateImages('SSP585', selectedCategory).map((image, index) => (
+                              <div key={index} className="bg-white rounded-lg border border-danger-200 shadow-sm overflow-hidden">
+                                <div className="p-4">
+                                  <h5 className="font-semibold text-gray-800 mb-2">{image.title}</h5>
+                                  <p className="text-sm text-gray-600 mb-3">{image.description}</p>
+                                  <div className="relative aspect-video bg-gray-100 rounded-md overflow-hidden">
+                                    <img
+                                      src={image.src}
+                                      alt={image.title}
+                                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
+                                      onClick={() => openImageModal(image.src, image.title)}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1866,6 +2494,33 @@ export default function TcfdSrPage() {
             scenario={selectedScenario}
             onClose={closeClimateModal}
           />
+        )}
+
+        {/* 기후시나리오 이미지 모달 */}
+        {isImageModalOpen && selectedImage && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-2xl max-w-4xl max-h-[90vh] overflow-hidden">
+              {/* 헤더 */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-800">{selectedImage.title}</h3>
+                <button
+                  onClick={closeImageModal}
+                  className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
+                >
+                  <span className="text-gray-600 font-bold text-lg">×</span>
+                </button>
+              </div>
+              
+              {/* 이미지 */}
+              <div className="p-4">
+                <img
+                  src={selectedImage.src}
+                  alt={selectedImage.title}
+                  className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
         )}
 
         {/* TCFD 상세보기 모달 */}

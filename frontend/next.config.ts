@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_TCFD_SERVICE_URL: process.env.NEXT_PUBLIC_TCFD_SERVICE_URL || 'http://localhost:8005',
     NEXT_PUBLIC_AUTH_SERVICE_URL: process.env.NEXT_PUBLIC_AUTH_SERVICE_URL || 'http://localhost:8008',
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api',
+    // LLM 서비스 URL 추가
+    NEXT_PUBLIC_LLM_SERVICE_URL: process.env.NEXT_PUBLIC_LLM_SERVICE_URL || 'http://localhost:8002',
   },
   
   // Vercel 최적화 설정
