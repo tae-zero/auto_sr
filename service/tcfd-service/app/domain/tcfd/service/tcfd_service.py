@@ -248,6 +248,61 @@ class TCFDService:
             logger.error(f"기후 시나리오 조회 실패: {str(e)}")
             raise Exception(f"기후 시나리오 조회 실패: {str(e)}")
     
+    async def get_tcfd_inputs(self, db) -> List[Dict[str, Any]]:
+        """TCFD 입력 데이터 조회 (가장 최신 데이터 포함)"""
+        try:
+            logger.info("🔍 TCFD 입력 데이터 조회 시작")
+            
+            # tcfd_inputs 테이블에서 데이터 조회
+            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+                # Railway 환경: 비동기 처리
+                from app.common.models import TCFDInput
+                result = await db.execute(select(TCFDInput).order_by(TCFDInput.created_at.desc()))
+                inputs = result.scalars().all()
+            else:
+                # Docker 환경: 동기 처리
+                from sqlalchemy.orm import Session
+                if isinstance(db, Session):
+                    from app.common.models import TCFDInput
+                    result = db.execute(select(TCFDInput).order_by(TCFDInput.created_at.desc()))
+                    inputs = result.scalars().all()
+                else:
+                    # 비동기 세션인 경우
+                    from app.common.models import TCFDInput
+                    result = await db.execute(select(TCFDInput).order_by(TCFDInput.created_at.desc()))
+                    inputs = result.scalars().all()
+            
+            # SQLAlchemy 객체를 딕셔너리로 변환
+            inputs_list = []
+            for input_data in inputs:
+                input_dict = {
+                    "id": input_data.id,
+                    "governance_g1": input_data.governance_g1,
+                    "governance_g2": input_data.governance_g2,
+                    "strategy_s1": input_data.strategy_s1,
+                    "strategy_s2": input_data.strategy_s2,
+                    "strategy_s3": input_data.strategy_s3,
+                    "risk_management_r1": input_data.risk_management_r1,
+                    "risk_management_r2": input_data.risk_management_r2,
+                    "risk_management_r3": input_data.risk_management_r3,
+                    "metrics_targets_m1": input_data.metrics_targets_m1,
+                    "metrics_targets_m2": input_data.metrics_targets_m2,
+                    "metrics_targets_m3": input_data.metrics_targets_m3,
+                    "created_at": input_data.created_at.isoformat() if input_data.created_at else None,
+                    "updated_at": input_data.updated_at.isoformat() if input_data.updated_at else None
+                }
+                inputs_list.append(input_dict)
+            
+            logger.info(f"✅ TCFD 입력 데이터 조회 성공: {len(inputs_list)}개 레코드")
+            return inputs_list
+            
+        except Exception as e:
+            logger.error(f"❌ TCFD 입력 데이터 조회 실패: {str(e)}")
+            logger.error(f"❌ 오류 타입: {type(e).__name__}")
+            import traceback
+            logger.error(f"❌ 스택 트레이스: {traceback.format_exc()}")
+            raise Exception(f"TCFD 입력 데이터 조회 실패: {str(e)}")
+
     async def close(self):
         """리소스 정리"""
         await self.repository.close()

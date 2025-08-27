@@ -203,6 +203,8 @@ export default function TcfdSrPage() {
   });
   
   const [isGenerating, setIsGenerating] = useState(false);
+  const [tcfdDatabaseData, setTcfdDatabaseData] = useState<any>(null);
+  const [isLoadingDatabaseData, setIsLoadingDatabaseData] = useState(false);
 
   // 기후시나리오 관련 상태 추가
   const [selectedYear, setSelectedYear] = useState<'2026-2030' | '2025-2035-2050'>('2026-2030');
@@ -292,6 +294,74 @@ export default function TcfdSrPage() {
   };
 
 
+
+  // TCFD 데이터베이스에서 입력 데이터 가져오기 (created_at 기준 최신 데이터)
+  const loadTcfdDatabaseData = async () => {
+    if (!companyFinancialData?.company_name) {
+      console.log('❌ 회사 정보가 없습니다');
+      return null;
+    }
+
+    setIsLoadingDatabaseData(true);
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        throw new Error('인증 토큰이 없습니다');
+      }
+
+      // TCFD 입력 데이터 조회 API 호출 (가장 최신 데이터 기준)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8000'}/api/v1/tcfd/inputs`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ TCFD 데이터베이스 데이터 로드 성공:', data);
+      
+      if (data.success && data.data) {
+        // 배열인 경우 가장 최신 데이터(created_at 기준)를 찾기
+        let latestData;
+        if (Array.isArray(data.data)) {
+          if (data.data.length === 0) {
+            console.log('❌ TCFD 데이터가 없습니다');
+            return null;
+          }
+          
+          // created_at 기준으로 정렬하여 가장 최신 데이터 선택
+          latestData = data.data.sort((a: any, b: any) => {
+            const dateA = new Date(a.created_at || 0);
+            const dateB = new Date(b.created_at || 0);
+            return dateB.getTime() - dateA.getTime(); // 내림차순 정렬 (최신이 먼저)
+          })[0];
+          
+          console.log('📅 전체 데이터 개수:', data.data.length);
+          console.log('📅 최신 데이터 생성일시:', latestData.created_at);
+        } else {
+          // 단일 객체인 경우
+          latestData = data.data;
+          console.log('📅 단일 데이터 생성일시:', latestData.created_at);
+        }
+        
+        setTcfdDatabaseData(latestData);
+        return latestData;
+      } else {
+        console.log('❌ TCFD 데이터가 없습니다');
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ TCFD 데이터베이스 데이터 로드 실패:', error);
+      return null;
+    } finally {
+      setIsLoadingDatabaseData(false);
+    }
+  };
 
   // 상세보기 모달 열기/닫기
   const handleClimateDetails = (scenario: 'ssp2.6' | 'ssp8.5') => {
@@ -392,16 +462,39 @@ export default function TcfdSrPage() {
       return;
     }
 
-    // TCFD 입력 데이터가 충분한지 확인
-    const hasInputData = Object.values(tcfdInputData).some(value => value.trim() !== '');
-    if (!hasInputData) {
-      alert('TCFD 입력 데이터가 필요합니다. TCFD 프레임워크 탭에서 데이터를 입력해주세요.');
-      return;
-    }
-
     setIsGenerating(true);
     
     try {
+      // 데이터베이스에서 TCFD 입력 데이터 가져오기 (자동, 최신 데이터 기준)
+      let dbData = tcfdDatabaseData;
+      
+      if (!dbData) {
+        console.log('🔄 데이터베이스에서 TCFD 데이터를 자동으로 가져와서 최신 데이터를 선택합니다...');
+        dbData = await loadTcfdDatabaseData();
+      }
+      
+      if (!dbData) {
+        alert('TCFD 프레임워크에서 입력한 데이터를 찾을 수 없습니다. 먼저 TCFD 프레임워크 탭에서 데이터를 입력하고 저장해주세요.');
+        setIsGenerating(false);
+        return;
+      }
+
+      console.log('📊 AI 보고서 생성에 사용할 TCFD 데이터:', {
+        company_name: dbData.company_name,
+        created_at: dbData.created_at,
+        governance_g1: dbData.governance_g1 ? '입력됨' : '빈 값',
+        governance_g2: dbData.governance_g2 ? '입력됨' : '빈 값',
+        strategy_s1: dbData.strategy_s1 ? '입력됨' : '빈 값',
+        strategy_s2: dbData.strategy_s2 ? '입력됨' : '빈 값',
+        strategy_s3: dbData.strategy_s3 ? '입력됨' : '빈 값',
+        risk_management_r1: dbData.risk_management_r1 ? '입력됨' : '빈 값',
+        risk_management_r2: dbData.risk_management_r2 ? '입력됨' : '빈 값',
+        risk_management_r3: dbData.risk_management_r3 ? '입력됨' : '빈 값',
+        metrics_targets_m1: dbData.metrics_targets_m1 ? '입력됨' : '빈 값',
+        metrics_targets_m2: dbData.metrics_targets_m2 ? '입력됨' : '빈 값',
+        metrics_targets_m3: dbData.metrics_targets_m3 ? '입력됨' : '빈 값'
+      });
+
       // TCFD 입력 데이터를 새 API 형식에 맞춰 구성
       const tcfdReportRequest = {
         company_name: companyFinancialData.company_name,
@@ -409,17 +502,17 @@ export default function TcfdSrPage() {
         tcfd_inputs: {
           company_name: companyFinancialData.company_name,
           user_id: localStorage.getItem('user_id') || 'user123',
-          governance_g1: tcfdInputData.governance_g1 || '',
-          governance_g2: tcfdInputData.governance_g2 || '',
-          strategy_s1: tcfdInputData.strategy_s1 || '',
-          strategy_s2: tcfdInputData.strategy_s2 || '',
-          strategy_s3: tcfdInputData.strategy_s3 || '',
-          risk_management_r1: tcfdInputData.risk_management_r1 || '',
-          risk_management_r2: tcfdInputData.risk_management_r2 || '',
-          risk_management_r3: tcfdInputData.risk_management_r3 || '',
-          metrics_targets_m1: tcfdInputData.metrics_targets_m1 || '',
-          metrics_targets_m2: tcfdInputData.metrics_targets_m2 || '',
-          metrics_targets_m3: tcfdInputData.metrics_targets_m3 || '',
+          governance_g1: dbData.governance_g1 || '',
+          governance_g2: dbData.governance_g2 || '',
+          strategy_s1: dbData.strategy_s1 || '',
+          strategy_s2: dbData.strategy_s2 || '',
+          strategy_s3: dbData.strategy_s3 || '',
+          risk_management_r1: dbData.risk_management_r1 || '',
+          risk_management_r2: dbData.risk_management_r2 || '',
+          risk_management_r3: dbData.risk_management_r3 || '',
+          metrics_targets_m1: dbData.metrics_targets_m1 || '',
+          metrics_targets_m2: dbData.metrics_targets_m2 || '',
+          metrics_targets_m3: dbData.metrics_targets_m3 || '',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         },
@@ -2420,26 +2513,200 @@ export default function TcfdSrPage() {
                     </div>
                   </div>
                   
-                  <div className="text-center">
-                    <button 
-                      onClick={handleGenerateTCFDReport}
-                      disabled={isGenerating}
-                      className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-brand shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
-                    >
-                      {isGenerating ? (
-                        <div className="flex items-center">
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                          AI 모델들이 보고서를 생성하고 있습니다...
+                  <div className="text-center space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <button 
+                        onClick={handleGenerateTCFDReport}
+                        disabled={isGenerating}
+                        className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-brand shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
+                      >
+                        {isGenerating ? (
+                          <div className="flex items-center">
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                            AI 모델들이 보고서를 생성하고 있습니다...
+                          </div>
+                        ) : (
+                          '🚀 AI 보고서 생성 시작'
+                        )}
+                      </button>
+                      
+                      <button 
+                        onClick={loadTcfdDatabaseData}
+                        disabled={isLoadingDatabaseData}
+                        className="px-6 py-4 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-brand shadow-lg hover:from-green-700 hover:to-teal-700 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
+                      >
+                        {isLoadingDatabaseData ? (
+                          <div className="flex items-center">
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                            최신 데이터 로딩 중...
+                          </div>
+                        ) : (
+                          '🔄 TCFD 데이터 새로고침 (최신 데이터 자동 선택)'
+                        )}
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-500">
+                        TCFD 프레임워크 탭에서 데이터를 입력한 후 생성할 수 있습니다
+                      </p>
+                      {tcfdDatabaseData && (
+                        <div className="space-y-1">
+                                                  <p className="text-sm text-green-600 font-medium">
+                          ✅ 데이터베이스에서 TCFD 입력 데이터를 성공적으로 가져와서 최신 데이터를 선택했습니다
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          📅 선택된 데이터 기준: {new Date(tcfdDatabaseData.created_at).toLocaleString('ko-KR')}
+                        </p>
                         </div>
-                      ) : (
-                        '🚀 AI 보고서 생성 시작'
                       )}
-                    </button>
-                    <p className="text-sm text-gray-500 mt-3">
-                      TCFD 프레임워크 탭에서 데이터를 입력한 후 생성할 수 있습니다
-                    </p>
+                    </div>
                   </div>
                 </div>
+
+                {/* TCFD 데이터베이스 입력 데이터 표시 */}
+                {tcfdDatabaseData ? (
+                  <div className="mb-8">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-bold text-gray-800">📊 TCFD 프레임워크 입력 데이터</h3>
+                      <div className="text-sm text-gray-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                        📅 최신 데이터: {new Date(tcfdDatabaseData.created_at).toLocaleString('ko-KR')}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* 거버넌스 */}
+                        <div>
+                          <h4 className="font-semibold text-blue-700 mb-3 flex items-center">
+                            <span className="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                            거버넌스 (Governance)
+                          </h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">G1: 기후 관련 위험과 기회에 대한 감독</label>
+                              <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-800 min-h-[60px]">
+                                {tcfdDatabaseData.governance_g1 || '입력된 데이터가 없습니다'}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">G2: 경영진의 기후 관련 위험과 기회 관리</label>
+                              <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-800 min-h-[60px]">
+                                {tcfdDatabaseData.governance_g2 || '입력된 데이터가 없습니다'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 전략 */}
+                        <div>
+                          <h4 className="font-semibold text-green-700 mb-3 flex items-center">
+                            <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                            전략 (Strategy)
+                          </h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">S1: 기후 관련 위험과 기회의 영향</label>
+                              <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-800 min-h-[60px]">
+                                {tcfdDatabaseData.strategy_s1 || '입력된 데이터가 없습니다'}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">S2: 기후 관련 위험과 기회에 대한 대응</label>
+                              <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-800 min-h-[60px]">
+                                {tcfdDatabaseData.strategy_s2 || '입력된 데이터가 없습니다'}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">S3: 재무계획에의 통합</label>
+                              <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-800 min-h-[60px]">
+                                {tcfdDatabaseData.strategy_s3 || '입력된 데이터가 없습니다'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 위험관리 */}
+                        <div>
+                          <h4 className="font-semibold text-orange-700 mb-3 flex items-center">
+                            <span className="w-3 h-3 bg-orange-500 rounded-full mr-2"></span>
+                            위험관리 (Risk Management)
+                          </h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">R1: 기후 관련 위험 식별 및 평가</label>
+                              <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-800 min-h-[60px]">
+                                {tcfdDatabaseData.risk_management_r1 || '입력된 데이터가 없습니다'}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">R2: 기후 관련 위험 관리</label>
+                              <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-800 min-h-[60px]">
+                                {tcfdDatabaseData.risk_management_r2 || '입력된 데이터가 없습니다'}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">R3: 위험관리 프로세스에의 통합</label>
+                              <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-800 min-h-[60px]">
+                                {tcfdDatabaseData.risk_management_r3 || '입력된 데이터가 없습니다'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 지표 및 목표 */}
+                        <div>
+                          <h4 className="font-semibold text-purple-700 mb-3 flex items-center">
+                            <span className="w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
+                            지표 및 목표 (Metrics & Targets)
+                          </h4>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">M1: 기후 관련 위험과 기회 평가 지표</label>
+                              <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-800 min-h-[60px]">
+                                {tcfdDatabaseData.metrics_targets_m1 || '입력된 데이터가 없습니다'}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">M2: 기후 관련 기회 평가 지표</label>
+                              <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-800 min-h-[60px]">
+                                {tcfdDatabaseData.metrics_targets_m2 || '입력된 데이터가 없습니다'}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">M3: 기후 관련 목표 설정</label>
+                              <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-800 min-h-[60px]">
+                                {tcfdDatabaseData.metrics_targets_m3 || '입력된 데이터가 없습니다'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mb-8">
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                      <div className="flex items-center">
+                        <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center mr-3">
+                          <span className="text-white text-sm">⚠️</span>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-yellow-800 mb-2">TCFD 데이터가 로드되지 않았습니다</h3>
+                          <p className="text-yellow-700 mb-4">
+                            TCFD 프레임워크에서 입력한 데이터를 데이터베이스에서 가져와야 합니다.
+                          </p>
+                          <button
+                            onClick={loadTcfdDatabaseData}
+                            disabled={isLoadingDatabaseData}
+                            className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isLoadingDatabaseData ? '로딩 중...' : '🔄 TCFD 데이터 로드'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* RAG 결과 표시 */}
                 {ragResults.openai || ragResults.huggingface ? (

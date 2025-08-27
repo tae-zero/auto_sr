@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer
 from typing import Dict, Any
 import logging
+import httpx
+import os
 
 from ..domain.tcfd.tcfd_report_service import TCFDReportService
 from ..domain.tcfd.tcfd_model import TCFDReportRequest, TCFDReportResponse, TCFDRecommendationRequest, TCFDRecommendationResponse
@@ -90,6 +92,51 @@ async def generate_tcfd_recommendation(request: TCFDRecommendationRequest):
         raise HTTPException(
             status_code=500,
             detail=f"권고사항 문장 생성 중 오류가 발생했습니다: {str(e)}"
+        )
+
+@tcfd_router.get("/inputs")
+async def get_tcfd_inputs():
+    """
+    TCFD 입력 데이터 조회 (tcfd-service로 요청 전달)
+    
+    Returns:
+        Dict: TCFD 입력 데이터 목록
+    """
+    try:
+        logger.info("🔍 TCFD 입력 데이터 조회 요청 시작")
+        
+        # tcfd-service URL 결정 (환경별 처리)
+        tcfd_service_url = os.getenv("TCFD_SERVICE_URL")
+        if tcfd_service_url:
+            url = f"{tcfd_service_url}/api/v1/tcfd/inputs"
+        else:
+            # 환경변수가 없으면 localhost 사용 (개발 환경)
+            url = "http://localhost:8005/api/v1/tcfd/inputs"
+        
+        logger.info(f"📤 TCFD Service 요청 URL: {url}")
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(url)
+            logger.info(f"📥 TCFD Service 응답 상태: {response.status_code}")
+            
+            response.raise_for_status()
+            response_data = response.json()
+            logger.info(f"✅ TCFD Service 응답 데이터 조회 성공")
+            
+            return response_data
+            
+    except httpx.HTTPStatusError as e:
+        logger.error(f"❌ TCFD Service HTTP 응답 오류: {e.response.status_code}")
+        logger.error(f"❌ 응답 내용: {e.response.text}")
+        raise HTTPException(
+            status_code=e.response.status_code, 
+            detail=f"TCFD Service 응답 오류: {e.response.status_code}"
+        )
+    except Exception as e:
+        logger.error(f"❌ TCFD 입력 데이터 조회 실패: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"TCFD 입력 데이터 조회 실패: {str(e)}"
         )
 
 @tcfd_router.get("/health")

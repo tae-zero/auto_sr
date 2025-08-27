@@ -22,3 +22,20 @@ class TCFDStandard(Base):
     disclosure_id = Column(String, primary_key=True, index=True)
     disclosure_summary = Column(Text)
     disclosure_detail = Column(Text)
+
+class TCFDInput(Base):
+    __tablename__ = "tcfd_inputs"
+    id = Column(Integer, primary_key=True, index=True)
+    governance_g1 = Column(Text)
+    governance_g2 = Column(Text)
+    strategy_s1 = Column(Text)
+    strategy_s2 = Column(Text)
+    strategy_s3 = Column(Text)
+    risk_management_r1 = Column(Text)
+    risk_management_r2 = Column(Text)
+    risk_management_r3 = Column(Text)
+    metrics_targets_m1 = Column(Text)
+    metrics_targets_m2 = Column(Text)
+    metrics_targets_m3 = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())

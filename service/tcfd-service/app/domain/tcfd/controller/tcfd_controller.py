@@ -283,3 +283,31 @@ async def get_company_overview(company_name: str = Query(...)):
     except Exception as e:
         logger.error(f"회사별 기업개요 정보 조회 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/inputs")
+async def get_tcfd_inputs(
+    db = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """TCFD 입력 데이터 조회 (가장 최신 데이터 포함)"""
+    try:
+        logger.info("🔍 TCFD 입력 데이터 조회 시작")
+        logger.info(f"🔍 인증된 사용자: {current_user.get('email', 'unknown')}")
+        logger.info(f"🔍 회사 ID: {current_user.get('company_id', 'unknown')}")
+        
+        # TCFD 입력 데이터 조회
+        inputs = await tcfd_service.get_tcfd_inputs(db)
+        logger.info(f"✅ TCFD 입력 데이터 조회 성공: {len(inputs)}개 레코드")
+        
+        return {
+            "success": True,
+            "message": "TCFD 입력 데이터 조회 성공",
+            "data": inputs
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ TCFD 입력 데이터 조회 실패: {str(e)}")
+        logger.error(f"❌ 오류 타입: {type(e).__name__}")
+        import traceback
+        logger.error(f"❌ 스택 트레이스: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"TCFD 입력 데이터 조회 실패: {str(e)}")
