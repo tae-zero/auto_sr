@@ -577,8 +577,15 @@ export default function TcfdSrPage() {
         throw new Error('인증 토큰이 없습니다');
       }
 
-      // LLM Service의 TCFD API 직접 호출
-      const response = await fetch(`${process.env.NEXT_PUBLIC_LLM_SERVICE_URL || 'http://localhost:8002'}/tcfd/generate-report`, {
+      // 환경에 따라 Gateway URL 결정 (Docker vs Railway)
+      const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 
+        (window.location.hostname === 'localhost' ? 'http://localhost:8080' : 'https://autosr-production.up.railway.app');
+      
+      console.log('🌐 Gateway URL 결정:', gatewayUrl);
+      console.log('🌐 현재 호스트:', window.location.hostname);
+      
+      // Gateway를 통해 LLM Service의 TCFD API 호출
+      const response = await fetch(`${gatewayUrl}/api/v1/tcfd/generate-report`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
