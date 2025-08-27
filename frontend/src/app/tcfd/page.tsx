@@ -3200,37 +3200,37 @@ export default function TcfdSrPage() {
                     <div className="bg-white p-4 rounded-lg">
                       <h5 className="font-semibold text-red-700 mb-2">🇩🇪 독일(2021)</h5>
                       <p className="text-gray-700 text-sm mb-2">아르 계곡 홍수로 ZF 아르바일러 공장 침수 → ZF는 <strong>침수 안전 지역으로 생산 이전(2026 예정)</strong>을 결정했습니다.</p>
-                      <p className="text-red-600 text-sm font-semibold">"한 번의 홍수가 공장 이전으로 이어질 수 있습니다."</p>
+                      <p className="text-red-600 text-sm font-semibold">&ldquo;한 번의 홍수가 공장 이전으로 이어질 수 있습니다.&rdquo;</p>
                     </div>
                     
                     <div className="bg-white p-4 rounded-lg">
                       <h5 className="font-semibold text-red-700 mb-2">🇸🇮 슬로베니아(2023)</h5>
                       <p className="text-gray-700 text-sm mb-2">부품사 KLS Ljubno 침수 → VW 포르투갈 공장 일시 중단.</p>
-                      <p className="text-red-600 text-sm font-semibold">"한 협력사의 침수가 해외 라인 셧다운으로 번집니다."</p>
+                      <p className="text-red-600 text-sm font-semibold">&ldquo;한 협력사의 침수가 해외 라인 셧다운으로 번집니다.&rdquo;</p>
                     </div>
                     
                     <div className="bg-white p-4 rounded-lg">
                       <h5 className="font-semibold text-red-700 mb-2">🇮🇳 인도 첸나이(2015)</h5>
                       <p className="text-gray-700 text-sm mb-2">집중호우로 Apollo Tyres 오라가담 공장 가동 중단, 생산손실 약 450톤.</p>
-                      <p className="text-red-600 text-sm font-semibold">"창고/설비 침수는 즉시 생산 손실로 이어집니다."</p>
+                      <p className="text-red-600 text-sm font-semibold">&ldquo;창고/설비 침수는 즉시 생산 손실로 이어집니다.&rdquo;</p>
                     </div>
                     
                     <div className="bg-white p-4 rounded-lg">
                       <h5 className="font-semibold text-red-700 mb-2">🇮🇳 인도 케랄라(2018)</h5>
                       <p className="text-gray-700 text-sm mb-2">홍수로 Apollo Tyres 2개 공장 가동 중단, 손실 1,500–3,000톤 보고.</p>
-                      <p className="text-red-600 text-sm font-semibold">"피해는 설비뿐 아니라 인력 접근 불가로도 발생합니다."</p>
+                      <p className="text-red-600 text-sm font-semibold">&ldquo;피해는 설비뿐 아니라 인력 접근 불가로도 발생합니다.&rdquo;</p>
                     </div>
                     
                     <div className="bg-white p-4 rounded-lg">
                       <h5 className="font-semibold text-red-700 mb-2">🇹🇭 태국(2011)</h5>
                       <p className="text-gray-700 text-sm mb-2">아유타야·파툼타니 산업단지 대규모 침수 → 수백 개 부품/조립 공장 장기 중단, 글로벌 공급망 병목.</p>
-                      <p className="text-red-600 text-sm font-semibold">"지역 재난이 세계 생산차질로 확산됩니다."</p>
+                      <p className="text-red-600 text-sm font-semibold">&ldquo;지역 재난이 세계 생산차질로 확산됩니다.&rdquo;</p>
                     </div>
                     
                     <div className="bg-white p-4 rounded-lg">
                       <h5 className="font-semibold text-red-700 mb-2">🇨🇳 중국 쓰촨(2022)</h5>
                       <p className="text-gray-700 text-sm mb-2">기록적 폭염·가뭄으로 전력 제한, 도요타·CATL 등 공장 셧다운.</p>
-                      <p className="text-red-600 text-sm font-semibold">"폭염은 전력제한→생산중단의 트리거가 됩니다."</p>
+                      <p className="text-red-600 text-sm font-semibold">&ldquo;폭염은 전력제한→생산중단의 트리거가 됩니다.&rdquo;</p>
                     </div>
                   </div>
                 </div>
