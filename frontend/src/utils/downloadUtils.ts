@@ -9,6 +9,47 @@ export interface DownloadContent {
 }
 
 /**
+ * axios를 사용한 안정적인 파일 다운로드 (권장)
+ */
+export const downloadFileWithAxios = async (url: string, payload: any, fallbackName: string): Promise<void> => {
+  try {
+    // axios를 동적으로 import (필요시에만)
+    const axios = (await import('axios')).default;
+    
+    const res = await axios.post(url, payload, { 
+      responseType: 'blob',
+      timeout: 60000 // 60초 타임아웃
+    });
+
+    // 에러 응답(예: 400/500)이 blob(JSON)로 오는 경우 처리
+    if (res.status !== 200) {
+      const text = await res.data.text?.().catch(() => '');
+      throw new Error(text || `HTTP ${res.status}`);
+    }
+
+    // 파일명 추출
+    const cd = (res.headers['content-disposition'] || '') as string;
+    const m = /filename\*?=(?:UTF-8''|")?([^"]+)/i.exec(cd);
+    const encoded = (m?.[1] || fallbackName).trim();
+    const filename = decodeURIComponent(encoded);
+
+    // 다운로드
+    const blob = new Blob([res.data]);
+    const urlObj = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = urlObj;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(urlObj);
+  } catch (error) {
+    console.error('Axios 다운로드 실패:', error);
+    throw error;
+  }
+};
+
+/**
  * 서버 API를 통해 Word 문서 다운로드
  */
 export const downloadAsWordFromServer = async (content: DownloadContent): Promise<void> => {
@@ -26,14 +67,22 @@ export const downloadAsWordFromServer = async (content: DownloadContent): Promis
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
     }
 
+    // 파일명 추출
+    const contentDisposition = response.headers.get('content-disposition') || '';
+    const filenameMatch = /filename\*?=(?:UTF-8''|")?([^"]+)/i.exec(contentDisposition);
+    const encodedFilename = (filenameMatch?.[1] || `${content.title}_TCFD_보고서.docx`).trim();
+    const filename = decodeURIComponent(encodedFilename);
+
+    // Blob으로 변환하여 다운로드
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${content.title}_TCFD_보고서.docx`;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -62,14 +111,22 @@ export const downloadAsPDFFromServer = async (content: DownloadContent): Promise
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
     }
 
+    // 파일명 추출
+    const contentDisposition = response.headers.get('content-disposition') || '';
+    const filenameMatch = /filename\*?=(?:UTF-8''|")?([^"]+)/i.exec(contentDisposition);
+    const encodedFilename = (filenameMatch?.[1] || `${content.title}_TCFD_보고서.pdf`).trim();
+    const filename = decodeURIComponent(encodedFilename);
+
+    // Blob으로 변환하여 다운로드
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${content.title}_TCFD_보고서.pdf`;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

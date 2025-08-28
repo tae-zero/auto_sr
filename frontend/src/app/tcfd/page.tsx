@@ -658,10 +658,17 @@ export default function TcfdSrPage() {
         timestamp: new Date().toLocaleString('ko-KR')
       };
 
+      // 다운로드 시작 알림
+      console.log('Word 다운로드 시작:', content.title);
+      
       await downloadAsWordFromServer(content);
+      
+      // 성공 알림
+      console.log('Word 다운로드 완료');
     } catch (error) {
       console.error('Word 다운로드 실패:', error);
-      alert('Word 문서 다운로드에 실패했습니다: ' + (error as Error).message);
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+      alert(`Word 문서 다운로드에 실패했습니다: ${errorMessage}`);
     }
   };
 
@@ -682,10 +689,17 @@ export default function TcfdSrPage() {
         timestamp: new Date().toLocaleString('ko-KR')
       };
 
+      // 다운로드 시작 알림
+      console.log('PDF 다운로드 시작:', content.title);
+      
       await downloadAsPDFFromServer(content);
+      
+      // 성공 알림
+      console.log('PDF 다운로드 완료');
     } catch (error) {
       console.error('PDF 다운로드 실패:', error);
-      alert('PDF 다운로드에 실패했습니다: ' + (error as Error).message);
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+      alert(`PDF 다운로드에 실패했습니다: ${errorMessage}`);
     }
   };
 
