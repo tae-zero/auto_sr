@@ -13,14 +13,15 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libffi-dev \
     libssl-dev \
-    # WeasyPrint 의존성 패키지들
+    # WeasyPrint 의존성 패키지들 (Debian 13 호환)
     libpango-1.0-0 \
     libharfbuzz0b \
     libpangoft2-1.0-0 \
     libcairo2 \
     libpangocairo-1.0-0 \
-    libgdk-pixbuf2.0-0 \
-    libffi-dev \
+    libgdk-pixbuf-xlib-2.0-0 \
+    libgirepository-1.0-1 \
+    libglib2.0-0 \
     shared-mime-info \
     && rm -rf /var/lib/apt/lists/*
 
