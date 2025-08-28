@@ -118,14 +118,14 @@ async def _return_html_fallback(data: Dict[str, Any], error_type: str = "unknown
                 <div class="company-info">생성일시: {datetime.now().strftime("%Y년 %m월 %d일 %H시 %M분")}</div>
                 
                 <div class="error-notice">
-                    ⚠️ PDF 생성 중 오류가 발생하여 HTML 형태로 제공됩니다.<br>
+                    PDF 생성 중 오류가 발생하여 HTML 형태로 제공됩니다.<br>
                     오류 유형: {error_type}
                 </div>
                 
-                <h2>📝 AI 생성 초안</h2>
+                <h2>AI 생성 초안</h2>
                 <div class="content">{data.get('draft', '').replace(chr(10), '<br>')}</div>
                 
-                <h2>✨ 윤문된 텍스트</h2>
+                <h2>윤문된 텍스트</h2>
                 <div class="content">{data.get('polished', '').replace(chr(10), '<br>')}</div>
                 
                 <div class="timestamp">
@@ -280,11 +280,11 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
         doc.add_paragraph('')
         
         # 초안 내용 추가
-        doc.add_heading('📝 AI 생성 초안', level=1)
+        doc.add_heading('AI 생성 초안', level=1)
         doc.add_paragraph(data.get('draft', ''))
         
         # 윤문된 텍스트 추가
-        doc.add_heading('✨ 윤문된 텍스트', level=1)
+        doc.add_heading('윤문된 텍스트', level=1)
         doc.add_paragraph(data.get('polished', ''))
         
         # 파일명 생성 (한글 포함)
@@ -295,14 +295,25 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
         doc.save(doc_bytes)
         doc_bytes.seek(0)
         
-        logger.info(f"✅ Word 문서 생성 성공: {filename}, 파일 크기: {len(doc_bytes.getvalue())} bytes")
+        logger.info(f"Word 문서 생성 성공: {filename}, size={len(doc_bytes.getvalue())}B")
+        
+        # 한글 파일명을 위한 안전한 헤더 설정
+        try:
+            # UTF-8로 인코딩 시도
+            filename_encoded = urllib.parse.quote(filename, safe='')
+            content_disposition = f"attachment; filename*=UTF-8''{filename_encoded}"
+        except Exception as e:
+            logger.warning(f"UTF-8 인코딩 실패, ASCII 파일명 사용: {e}")
+            # ASCII 파일명으로 fallback
+            ascii_filename = f"TCFD_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+            content_disposition = f"attachment; filename={ascii_filename}"
         
         # StreamingResponse로 반환 (메모리에서 직접)
         response = StreamingResponse(
             io.BytesIO(doc_bytes.getvalue()),
             media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             headers={
-                "Content-Disposition": f"attachment; filename*=UTF-8''{urllib.parse.quote(filename)}",
+                "Content-Disposition": content_disposition,
                 "Cache-Control": "no-cache, no-store, must-revalidate",
                 "Pragma": "no-cache",
                 "Expires": "0",
@@ -311,11 +322,11 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
             }
         )
         
-        logger.info(f"📤 Word 문서 응답 전송: {filename}")
+        logger.info(f"Word 문서 응답 전송: {filename}")
         return response
         
     except Exception as e:
-        logger.error(f"❌ Word 문서 생성 실패: {e}")
+        logger.error(f"Word 문서 생성 실패: {e}")
         raise HTTPException(status_code=500, detail=f"Word 문서 생성 실패: {str(e)}")
 
 @tcfdreport_router.post("/download/pdf")
@@ -344,7 +355,7 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any], background_tasks: Ba
             filename = f"{safe_company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
             filename_encoded = urllib.parse.quote(filename)
             
-            logger.info(f"✅ PDF 생성 성공: {filename}, 파일 크기: {len(pdf_bytes)} bytes")
+            logger.info(f"PDF 생성 성공: {filename}, size={len(pdf_bytes)}B")
             
             # StreamingResponse로 반환 (메모리에서 직접)
             response = StreamingResponse(
@@ -360,7 +371,7 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any], background_tasks: Ba
                 }
             )
             
-            logger.info(f"📤 PDF 응답 전송: {filename}")
+            logger.info(f"PDF 응답 전송: {filename}")
             return response
             
         except Exception as e:
@@ -368,7 +379,7 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any], background_tasks: Ba
             return await _return_html_fallback(data, "weasyprint_error")
             
     except Exception as e:
-        logger.error(f"❌ PDF 다운로드 실패: {e}")
+        logger.error(f"PDF 다운로드 실패: {e}")
         raise HTTPException(status_code=500, detail=f"PDF 다운로드 실패: {str(e)}")
 
 @tcfdreport_router.post("/download/combined")
@@ -427,11 +438,11 @@ async def download_tcfd_report_combined(data: Dict[str, Any], background_tasks: 
             }
         )
         
-        logger.info(f"✅ ZIP 파일 생성 완료: {filename}, 파일 크기: {len(zip_buffer.getvalue())} bytes")
+        logger.info(f"ZIP 파일 생성 완료: {filename}, size={len(zip_buffer.getvalue())}B")
         return response
         
     except Exception as e:
-        logger.error(f"❌ ZIP 파일 생성 실패: {e}")
+        logger.error(f"ZIP 파일 생성 실패: {e}")
         raise HTTPException(status_code=500, detail=f"ZIP 파일 생성 실패: {str(e)}")
 
 async def _create_word_document(data: Dict[str, Any]) -> io.BytesIO:
@@ -457,10 +468,10 @@ async def _create_word_document(data: Dict[str, Any]) -> io.BytesIO:
         doc.add_paragraph(f'생성일시: {datetime.now().strftime("%Y년 %m월 %d일 %H시 %M분")}')
         doc.add_paragraph('')
         
-        doc.add_heading('📝 AI 생성 초안', level=1)
+        doc.add_heading('AI 생성 초안', level=1)
         doc.add_paragraph(data.get('draft', ''))
         
-        doc.add_heading('✨ 윤문된 텍스트', level=1)
+        doc.add_heading('윤문된 텍스트', level=1)
         doc.add_paragraph(data.get('polished', ''))
         
         filename = f"{safe_company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
@@ -469,11 +480,11 @@ async def _create_word_document(data: Dict[str, Any]) -> io.BytesIO:
         doc.save(doc_bytes)
         doc_bytes.seek(0)
         
-        logger.info(f"✅ Word 문서 생성 성공 (메모리): {filename}, 파일 크기: {len(doc_bytes.getvalue())} bytes")
+        logger.info(f"Word 문서 생성 성공 (메모리): {filename}, size={len(doc_bytes.getvalue())}B")
         return doc_bytes
         
     except Exception as e:
-        logger.error(f"❌ Word 문서 생성 실패 (메모리): {e}")
+        logger.error(f"Word 문서 생성 실패 (메모리): {e}")
         return None
 
 async def _generate_pdf_in_memory(data: Dict[str, Any]) -> bytes:
@@ -539,15 +550,15 @@ async def _generate_pdf_in_memory(data: Dict[str, Any]) -> bytes:
         """
         
         # WeasyPrint로 PDF 생성 (메모리에서)
-        html = HTML(string=html_content, base_url=None)
+        html = HTML(string=html_content, base_url=os.getcwd())
         css = CSS(string=css_content)
         
         pdf_bytes = html.write_pdf(stylesheets=[css])
-        logger.info(f"✅ PDF 생성 성공 (메모리): {len(pdf_bytes)} bytes")
+        logger.info(f"PDF 생성 성공 (메모리): {len(pdf_bytes)}B")
         return pdf_bytes
         
     except Exception as e:
-        logger.error(f"❌ PDF 생성 실패: {e}")
+        logger.error(f"PDF 생성 실패: {e}")
         raise e
 
 async def _generate_html_content(data: Dict[str, Any]) -> str:

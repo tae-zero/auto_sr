@@ -25,34 +25,50 @@ if not os.getenv("RAILWAY_ENVIRONMENT"):
     load_dotenv()
 
 # 로깅 설정
+import sys
 logging.basicConfig(level=logging.INFO)
+
+# UTF-8 인코딩 강제 설정
+try:
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter("%(levelname)s:%(name)s:%(message)s"))
+    handler.setLevel(logging.INFO)
+    handler.stream.reconfigure(encoding='utf-8')  # 3.7+에서 동작
+    
+    root = logging.getLogger()
+    root.handlers.clear()
+    root.addHandler(handler)
+    root.setLevel(logging.INFO)
+except Exception:
+    pass  # 인코딩 설정 실패 시 기본 설정 사용
+
 logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """애플리케이션 생명주기 관리"""
     try:
-        logger.info("🚀 TCFD Report Service 시작")
+        logger.info("TCFD Report Service 시작")
         
         # 데이터베이스 연결 초기화
         try:
             await database.connect()
-            logger.info("✅ 데이터베이스 연결 초기화 완료")
+            logger.info("데이터베이스 연결 초기화 완료")
             
             # 데이터베이스 테이블 초기화
             database_url = os.getenv("DATABASE_URL")
             if database_url:
                 table_init_success = await init_tables(database_url)
                 if table_init_success:
-                    logger.info("✅ 데이터베이스 테이블 초기화 완료")
+                    logger.info("데이터베이스 테이블 초기화 완료")
                 else:
-                    logger.warning("⚠️ 데이터베이스 테이블 초기화 실패")
+                    logger.warning("데이터베이스 테이블 초기화 실패")
             else:
-                logger.warning("⚠️ DATABASE_URL 환경변수가 설정되지 않음")
+                logger.warning("DATABASE_URL 환경변수가 설정되지 않음")
                 
         except Exception as e:
-            logger.error(f"❌ 데이터베이스 연결 초기화 실패: {str(e)}")
-            logger.info("⚠️ 데이터베이스 없이 서비스가 시작됩니다")
+            logger.error(f"데이터베이스 연결 초기화 실패: {str(e)}")
+            logger.info("데이터베이스 없이 서비스가 시작됩니다")
         
         # RAG 서비스 초기화 (조건부)
         if RAG_AVAILABLE:
@@ -60,38 +76,38 @@ async def lifespan(app: FastAPI):
                 app.state.rag_service = RAGService()
                 rag_initialized = await app.state.rag_service.initialize_embeddings()
                 if rag_initialized:
-                    logger.info("✅ RAG 서비스 초기화 완료")
+                    logger.info("RAG 서비스 초기화 완료")
                 else:
-                    logger.warning("⚠️ RAG 서비스 초기화 실패")
+                    logger.warning("RAG 서비스 초기화 실패")
                     
             except Exception as e:
-                logger.error(f"❌ RAG 서비스 초기화 실패: {str(e)}")
-                logger.info("⚠️ RAG 서비스 없이 서비스가 시작됩니다")
+                logger.error(f"RAG 서비스 초기화 실패: {str(e)}")
+                logger.info("RAG 서비스 없이 서비스가 시작됩니다")
         else:
-            logger.warning("⚠️ RAG 서비스 사용 불가: 필요한 패키지가 설치되지 않음")
+            logger.warning("RAG 서비스 사용 불가: 필요한 패키지가 설치되지 않음")
         
         yield
         
         # 리소스 정리
-        logger.info("🛑 TCFD Report Service 종료")
+        logger.info("TCFD Report Service 종료")
         
         # 데이터베이스 연결 해제
         try:
             await database.disconnect()
-            logger.info("✅ 데이터베이스 연결 해제 완료")
+            logger.info("데이터베이스 연결 해제 완료")
         except Exception as e:
-            logger.error(f"❌ 데이터베이스 연결 해제 실패: {str(e)}")
+            logger.error(f"데이터베이스 연결 해제 실패: {str(e)}")
         
         if hasattr(app.state, 'rag_service'):
             try:
                 await app.state.rag_service.close()
-                logger.info("✅ RAG 서비스 리소스 정리 완료")
+                logger.info("RAG 서비스 리소스 정리 완료")
             except Exception as e:
-                logger.error(f"❌ RAG 서비스 리소스 정리 실패: {str(e)}")
+                logger.error(f"RAG 서비스 리소스 정리 실패: {str(e)}")
                 
     except Exception as e:
-        logger.error(f"❌ TCFD Report Service 생명주기 관리 오류: {e}")
-        logger.info("⚠️ 서비스는 계속 실행됩니다")
+        logger.error(f"TCFD Report Service 생명주기 관리 오류: {e}")
+        logger.info("서비스는 계속 실행됩니다")
         yield
 
 app = FastAPI(
@@ -144,16 +160,16 @@ async def root():
 try:
     from app.router import tcfdreport_router
     app.include_router(tcfdreport_router, prefix="/api/v1/tcfdreport")
-    logger.info("✅ TCFD Report 라우터 등록 완료")
+    logger.info("TCFD Report 라우터 등록 완료")
 except ImportError as e:
-    logger.error(f"❌ TCFD Report 라우터 import 실패: {e}")
-    logger.error(f"❌ 누락된 모듈: {e.name if hasattr(e, 'name') else 'unknown'}")
-    logger.info("⚠️ 서비스는 계속 실행됩니다")
+    logger.error(f"TCFD Report 라우터 import 실패: {e}")
+    logger.error(f"누락된 모듈: {e.name if hasattr(e, 'name') else 'unknown'}")
+    logger.info("서비스는 계속 실행됩니다")
 except Exception as e:
-    logger.error(f"❌ TCFD Report 라우터 등록 실패: {e}")
-    logger.error(f"❌ 오류 타입: {type(e).__name__}")
-    logger.error(f"❌ 상세 오류: {str(e)}")
-    logger.info("⚠️ 서비스는 계속 실행됩니다")
+    logger.error(f"TCFD Report 라우터 등록 실패: {e}")
+    logger.error(f"오류 타입: {type(e).__name__}")
+    logger.error(f"상세 오류: {str(e)}")
+    logger.info("서비스는 계속 실행됩니다")
 
 if __name__ == "__main__":
     import uvicorn
