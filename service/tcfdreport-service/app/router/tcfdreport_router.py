@@ -563,6 +563,65 @@ async def _generate_pdf_in_memory(data: Dict[str, Any]) -> bytes:
 
 async def _generate_html_content(data: Dict[str, Any]) -> str:
     """HTML 콘텐츠 생성"""
+    
+    # draft와 polished 내용에서 TCFD 섹션 추출
+    draft_content = data.get('draft', '')
+    polished_content = data.get('polished', '')
+    
+    # TCFD 섹션별로 내용 파싱
+    def extract_tcfd_section(content: str, section_keywords: list) -> str:
+        """TCFD 섹션 내용 추출"""
+        if not content:
+            return '내용이 없습니다.'
+        
+        # 섹션 키워드로 내용 찾기
+        for keyword in section_keywords:
+            if keyword in content:
+                # 해당 섹션부터 다음 섹션까지 추출
+                start_idx = content.find(keyword)
+                if start_idx != -1:
+                    # 다음 섹션 찾기
+                    next_section = None
+                    for next_keyword in ['## 2.', '## 3.', '## 4.', '## 5.', '## 결론', '---']:
+                        next_idx = content.find(next_keyword, start_idx + 1)
+                        if next_idx != -1:
+                            next_section = next_idx
+                            break
+                    
+                    if next_section:
+                        section_content = content[start_idx:next_section].strip()
+                    else:
+                        section_content = content[start_idx:].strip()
+                    
+                    # 마크다운 제거 및 정리
+                    section_content = section_content.replace('##', '').replace('###', '').replace('**', '').replace('*', '').strip()
+                    if section_content:
+                        return section_content
+        
+        return '내용이 없습니다.'
+    
+    # 각 TCFD 섹션 내용 추출
+    governance_content = extract_tcfd_section(draft_content, ['## 1. 거버넌스', '### G1:', '### G2:'])
+    strategy_content = extract_tcfd_section(draft_content, ['## 2. 전략', '### S1:', '### S2:', '### S3:'])
+    risk_management_content = extract_tcfd_section(draft_content, ['## 3. 위험 관리', '### R1:', '### R2:', '### R3:'])
+    metrics_targets_content = extract_tcfd_section(draft_content, ['## 4. 지표 및 목표', '### M1:', '### M2:', '### M3:'])
+    
+    # 회사명 추출
+    company_name = data.get('company_name', 'N/A')
+    if company_name == 'N/A' and draft_content:
+        if '**회사명**:' in draft_content:
+            company_name = draft_content.split('**회사명**:')[1].split('\n')[0].strip()
+        elif '회사명:' in draft_content:
+            company_name = draft_content.split('회사명:')[1].split('\n')[0].strip()
+    
+    # 보고 연도 추출
+    report_year = data.get('report_year', 'N/A')
+    if report_year == 'N/A' and draft_content:
+        if '**보고서 연도**:' in draft_content:
+            report_year = draft_content.split('**보고서 연도**:')[1].split('\n')[0].strip()
+        elif '보고서 연도:' in draft_content:
+            report_year = draft_content.split('보고서 연도:')[1].split('\n')[0].strip()
+    
     html_content = f"""
     <!DOCTYPE html>
     <html lang="ko">
@@ -574,34 +633,42 @@ async def _generate_html_content(data: Dict[str, Any]) -> str:
     <body>
         <div class="company-info">
             <h1>TCFD 기후 관련 재무정보 공시 보고서</h1>
-            <p><strong>기업명:</strong> {data.get('company_name', 'N/A')}</p>
-            <p><strong>보고 연도:</strong> {data.get('report_year', 'N/A')}</p>
+            <p><strong>기업명:</strong> {company_name}</p>
+            <p><strong>보고 연도:</strong> {report_year}</p>
             <p><strong>생성 일시:</strong> {datetime.now().strftime('%Y년 %m월 %d일 %H:%M:%S')}</p>
         </div>
         
         <div class="section">
-            <h2>1. 거버넌스</h2>
-            <p>{data.get('governance', '내용이 없습니다.')}</p>
+            <h2>1. 거버넌스 (Governance)</h2>
+            <p>{governance_content}</p>
         </div>
         
         <div class="section">
-            <h2>2. 전략</h2>
-            <p>{data.get('strategy', '내용이 없습니다.')}</p>
+            <h2>2. 전략 (Strategy)</h2>
+            <p>{strategy_content}</p>
         </div>
         
         <div class="section">
-            <h2>3. 위험 관리</h2>
-            <p>{data.get('risk_management', '내용이 없습니다.')}</p>
+            <h2>3. 위험 관리 (Risk Management)</h2>
+            <p>{risk_management_content}</p>
         </div>
         
         <div class="section">
-            <h2>4. 지표 및 목표</h2>
-            <p>{data.get('metrics_targets', '내용이 없습니다.')}</p>
+            <h2>4. 지표 및 목표 (Metrics and Targets)</h2>
+            <p>{metrics_targets_content}</p>
         </div>
         
         <div class="section">
-            <h2>5. 시나리오 분석</h2>
-            <p>{data.get('scenario_analysis', '내용이 없습니다.')}</p>
+            <h2>5. AI 생성 보고서 전문</h2>
+            <h3>초안 (Draft)</h3>
+            <div style="background-color: #f8f9fa; padding: 1em; border-radius: 4px; margin: 1em 0;">
+                <pre style="white-space: pre-wrap; font-family: inherit; margin: 0;">{draft_content[:1000]}{'...' if len(draft_content) > 1000 else ''}</pre>
+            </div>
+            
+            <h3>윤문된 텍스트 (Polished)</h3>
+            <div style="background-color: #e8f5e8; padding: 1em; border-radius: 4px; margin: 1em 0;">
+                <pre style="white-space: pre-wrap; font-family: inherit; margin: 0;">{polished_content[:1000]}{'...' if len(polished_content) > 1000 else ''}</pre>
+            </div>
         </div>
     </body>
     </html>
