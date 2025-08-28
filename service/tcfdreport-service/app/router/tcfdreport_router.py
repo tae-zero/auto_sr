@@ -221,17 +221,26 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
         if not data.get('draft') or not data.get('polished'):
             raise HTTPException(status_code=400, detail="초안과 윤문 내용이 필요합니다")
         
+        # 회사명 추출 (draft 내용에서 추출)
+        company_name = "TCFD"
+        if data.get('draft'):
+            # draft 내용에서 회사명 추출 시도
+            draft_content = data['draft']
+            if '**회사명**:' in draft_content:
+                company_name = draft_content.split('**회사명**:')[1].split('\n')[0].strip()
+            elif '회사명:' in draft_content:
+                company_name = draft_content.split('회사명:')[1].split('\n')[0].strip()
+        
         # Word 문서 생성
         doc = Document()
         
         # 제목
-        title = doc.add_heading(f"{data.get('company_name', '회사')} TCFD 보고서", 0)
+        title = doc.add_heading(f"{company_name} TCFD 보고서", 0)
         title.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
         # 회사명
-        if data.get('company_name'):
-            company_para = doc.add_paragraph(f"회사: {data['company_name']}")
-            company_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        company_para = doc.add_paragraph(f"회사: {company_name}")
+        company_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
         # 생성일시
         timestamp_para = doc.add_paragraph(f"생성일시: {datetime.now().strftime('%Y년 %m월 %d일 %H:%M:%S')}")
@@ -251,7 +260,7 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
             tmp_file_path = tmp_file.name
         
         # 파일명 생성
-        filename = f"{data.get('company_name', 'TCFD')}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+        filename = f"{company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
         
         return FileResponse(
             path=tmp_file_path,
@@ -273,13 +282,23 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
         if not data.get('draft') or not data.get('polished'):
             raise HTTPException(status_code=400, detail="초안과 윤문 내용이 필요합니다")
         
+        # 회사명 추출 (draft 내용에서 추출)
+        company_name = "TCFD"
+        if data.get('draft'):
+            # draft 내용에서 회사명 추출 시도
+            draft_content = data['draft']
+            if '**회사명**:' in draft_content:
+                company_name = draft_content.split('**회사명**:')[1].split('\n')[0].strip()
+            elif '회사명:' in draft_content:
+                company_name = draft_content.split('회사명:')[1].split('\n')[0].strip()
+        
         # PDF 생성을 위한 HTML 생성 (간단한 버전)
         html_content = f"""
         <!DOCTYPE html>
         <html>
         <head>
             <meta charset="UTF-8">
-            <title>{data.get('company_name', '회사')} TCFD 보고서</title>
+            <title>{company_name} TCFD 보고서</title>
             <style>
                 body {{ font-family: 'Malgun Gothic', Arial, sans-serif; margin: 40px; line-height: 1.6; }}
                 h1 {{ text-align: center; color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px; }}
@@ -290,8 +309,8 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
             </style>
         </head>
         <body>
-            <h1>{data.get('company_name', '회사')} TCFD 보고서</h1>
-            <div class="company-info">회사: {data.get('company_name', '회사')}</div>
+            <h1>{company_name} TCFD 보고서</h1>
+            <div class="company-info">회사: {company_name}</div>
             <div class="timestamp">생성일시: {datetime.now().strftime('%Y년 %m월 %d일 %H:%M:%S')}</div>
             
             <h2>📝 초안 생성</h2>
@@ -324,7 +343,7 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
             os.unlink(tmp_html_path)
             
             # 파일명 생성
-            filename = f"{data.get('company_name', 'TCFD')}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            filename = f"{company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
             
             logger.info(f"✅ PDF 생성 성공: {filename}")
             return FileResponse(
@@ -336,12 +355,12 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
         except ImportError as import_error:
             # weasyprint가 없는 경우 HTML을 그대로 반환
             logger.warning(f"weasyprint가 설치되지 않아 HTML을 반환합니다: {import_error}")
-            return self._return_html_fallback(html_content, data, "weasyprint_import_error")
+            return _return_html_fallback(html_content, data, "weasyprint_import_error")
             
         except Exception as weasyprint_error:
             # WeasyPrint 실행 중 오류 (시스템 라이브러리 문제 등)
             logger.warning(f"WeasyPrint 실행 오류로 HTML을 반환합니다: {weasyprint_error}")
-            return self._return_html_fallback(html_content, data, "weasyprint_runtime_error")
+            return _return_html_fallback(html_content, data, "weasyprint_runtime_error")
         
     except Exception as e:
         logger.error(f"PDF 생성 실패: {str(e)}")
