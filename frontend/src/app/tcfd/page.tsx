@@ -503,6 +503,7 @@ export default function TcfdSrPage() {
         report_year: new Date().getFullYear().toString(),
         tcfd_inputs: {
           company_name: companyFinancialData.company_name,
+          // 사용자 ID는 내부적으로만 사용하고 보고서에는 노출하지 않음
           user_id: localStorage.getItem('user_id') || 'user123',
           governance_g1: dbData.governance_g1 || '',
           governance_g2: dbData.governance_g2 || '',

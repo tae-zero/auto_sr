@@ -165,7 +165,6 @@ class TCFDReportService:
 ## 회사 정보
 - 회사명: {request.company_name}
 - 보고서 연도: {request.report_year}
-- 사용자 ID: {tcfd_data.user_id or "정보 없음"}
 
 ## TCFD 권고사항 데이터
 

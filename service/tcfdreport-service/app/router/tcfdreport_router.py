@@ -15,6 +15,29 @@ logger = logging.getLogger(__name__)
 
 tcfdreport_router = APIRouter()
 
+def _return_html_fallback(html_content: str, data: Dict[str, Any], error_type: str):
+    """HTML fallback 반환 헬퍼 메서드"""
+    try:
+        import tempfile
+        
+        # 임시 HTML 파일 생성
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w', encoding='utf-8') as tmp_file:
+            tmp_file.write(html_content)
+            tmp_file_path = tmp_file.name
+        
+        # 파일명 생성 (오류 타입 포함)
+        filename = f"{data.get('company_name', 'TCFD')}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{error_type}.html"
+        
+        logger.info(f"HTML fallback 반환: {filename}")
+        return FileResponse(
+            path=tmp_file_path,
+            filename=filename,
+            media_type="text/html"
+        )
+    except Exception as e:
+        logger.error(f"HTML fallback 생성 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"HTML fallback 생성 실패: {str(e)}")
+
 # 데이터베이스 연결 함수
 async def get_db_connection():
     """데이터베이스 연결 반환"""
@@ -303,29 +326,22 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
             # 파일명 생성
             filename = f"{data.get('company_name', 'TCFD')}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
             
+            logger.info(f"✅ PDF 생성 성공: {filename}")
             return FileResponse(
                 path=pdf_path,
                 filename=filename,
                 media_type="application/pdf"
             )
             
-        except ImportError:
+        except ImportError as import_error:
             # weasyprint가 없는 경우 HTML을 그대로 반환
-            logger.warning("weasyprint가 설치되지 않아 HTML을 반환합니다")
+            logger.warning(f"weasyprint가 설치되지 않아 HTML을 반환합니다: {import_error}")
+            return self._return_html_fallback(html_content, data, "weasyprint_import_error")
             
-            # 임시 HTML 파일 생성
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w', encoding='utf-8') as tmp_file:
-                tmp_file.write(html_content)
-                tmp_file_path = tmp_file.name
-            
-            # 파일명 생성
-            filename = f"{data.get('company_name', 'TCFD')}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
-            
-            return FileResponse(
-                path=tmp_file_path,
-                filename=filename,
-                media_type="text/html"
-            )
+        except Exception as weasyprint_error:
+            # WeasyPrint 실행 중 오류 (시스템 라이브러리 문제 등)
+            logger.warning(f"WeasyPrint 실행 오류로 HTML을 반환합니다: {weasyprint_error}")
+            return self._return_html_fallback(html_content, data, "weasyprint_runtime_error")
         
     except Exception as e:
         logger.error(f"PDF 생성 실패: {str(e)}")
