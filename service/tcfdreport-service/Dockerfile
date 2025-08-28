@@ -14,15 +14,17 @@ RUN apt-get update && apt-get install -y \
     libffi-dev \
     libssl-dev \
     # WeasyPrint 의존성 패키지들 (Debian 13 호환)
-    libpango-1.0-0 \
-    libharfbuzz0b \
-    libpangoft2-1.0-0 \
     libcairo2 \
+    libpango-1.0-0 \
     libpangocairo-1.0-0 \
-    libgdk-pixbuf-xlib-2.0-0 \
-    libgirepository-1.0-1 \
-    libglib2.0-0 \
-    shared-mime-info \
+    libpangoft2-1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    libffi8 \
+    libxml2 \
+    libxslt1.1 \
+    # 한글 폰트 (PDF에서 한글이 깨지지 않도록)
+    fonts-noto-cjk \
+    fonts-nanum \
     && rm -rf /var/lib/apt/lists/*
 
 # Python 의존성 파일 복사 및 설치 (배포용)

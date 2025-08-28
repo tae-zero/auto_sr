@@ -397,7 +397,7 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
         
         # HTML을 PDF로 변환
         try:
-            from weasyprint import HTML
+            from weasyprint import HTML, CSS
             import tempfile
             
             # 임시 HTML 파일 생성
@@ -412,59 +412,91 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
             try:
                 logger.info("🔄 WeasyPrint PDF 생성 시작")
                 
-                # 방법 1: HTML 파일을 먼저 생성한 후 PDF 변환 (가장 안정적)
+                # 기본 CSS 스타일 정의 (한글 폰트 지원)
+                default_css = CSS(string="""
+                    @page { 
+                        size: A4; 
+                        margin: 16mm; 
+                    }
+                    body { 
+                        font-family: 'Noto Sans KR', 'Malgun Gothic', Arial, sans-serif; 
+                        line-height: 1.6;
+                        margin: 0;
+                        padding: 20px;
+                    }
+                    h1 { 
+                        text-align: center; 
+                        color: #2563eb; 
+                        border-bottom: 2px solid #2563eb; 
+                        padding-bottom: 10px; 
+                    }
+                    h2 { 
+                        color: #059669; 
+                        margin-top: 30px; 
+                    }
+                    .company-info { 
+                        text-align: center; 
+                        color: #6b7280; 
+                        margin: 20px 0; 
+                    }
+                    .content { 
+                        background: #f9fafb; 
+                        padding: 20px; 
+                        border-radius: 8px; 
+                        margin: 20px 0; 
+                    }
+                    .timestamp { 
+                        text-align: center; 
+                        color: #9ca3af; 
+                        font-size: 14px; 
+                        margin: 20px 0; 
+                    }
+                """)
+                
+                # ✨ 올바른 WeasyPrint 사용법: HTML(string=..., base_url=...).write_pdf()
                 try:
-                    # HTML 파일에 내용 저장
-                    with open(tmp_html_path, 'w', encoding='utf-8') as f:
-                        f.write(html_content)
+                    # HTML 문자열을 직접 사용하여 PDF 생성 (가장 안정적)
+                    pdf_bytes = HTML(
+                        string=html_content, 
+                        base_url="."  # 정적 리소스 경로를 위한 base_url
+                    ).write_pdf(
+                        stylesheets=[default_css]
+                    )
                     
-                    # HTML 파일에서 PDF 생성
-                    html_doc = HTML(filename=tmp_html_path)
-                    html_doc.write_pdf(pdf_path)
-                    logger.info("✅ 방법 1로 PDF 생성 성공")
+                    # PDF 바이트를 파일로 저장
+                    with open(pdf_path, 'wb') as f:
+                        f.write(pdf_bytes)
                     
-                except Exception as method1_error:
-                    logger.warning(f"방법 1 실패: {method1_error}")
+                    logger.info("✅ WeasyPrint PDF 생성 성공")
                     
-                    # 방법 2: HTML 문자열을 직접 사용하여 PDF 생성
+                except Exception as pdf_error:
+                    logger.warning(f"WeasyPrint PDF 생성 실패: {pdf_error}")
+                    
+                    # 대안: HTML 파일을 먼저 생성한 후 PDF 변환
                     try:
-                        html_doc = HTML(string=html_content)
-                        html_doc.write_pdf(pdf_path)
-                        logger.info("✅ 방법 2로 PDF 생성 성공")
+                        logger.warning("🔄 대안 방법: HTML 파일에서 PDF 생성 시도")
                         
-                    except Exception as method2_error:
-                        logger.warning(f"방법 2 실패: {method2_error}")
+                        # HTML 파일에 내용 저장
+                        with open(tmp_html_path, 'w', encoding='utf-8') as f:
+                            f.write(html_content)
                         
-                        # 방법 3: CSS 없이 기본 HTML로 PDF 생성
-                        try:
-                            basic_html = f"""
-                            <!DOCTYPE html>
-                            <html>
-                            <head>
-                                <meta charset="utf-8">
-                                <title>TCFD 보고서</title>
-                                <style>
-                                    body {{ font-family: Arial, sans-serif; margin: 20px; }}
-                                    h1 {{ color: #333; }}
-                                    .content {{ line-height: 1.6; }}
-                                </style>
-                            </head>
-                            <body>
-                                <div class="content">{html_content}</div>
-                            </body>
-                            </html>
-                            """
-                            
-                            with open(tmp_html_path, 'w', encoding='utf-8') as f:
-                                f.write(basic_html)
-                            
-                            html_doc = HTML(filename=tmp_html_path)
-                            html_doc.write_pdf(pdf_path)
-                            logger.info("✅ 방법 3으로 PDF 생성 성공")
-                            
-                        except Exception as method3_error:
-                            logger.error(f"모든 WeasyPrint 방법 실패: {method3_error}")
-                            raise Exception(f"WeasyPrint PDF 생성 실패: {method3_error}")
+                        # HTML 파일에서 PDF 생성
+                        pdf_bytes = HTML(
+                            filename=tmp_html_path,
+                            base_url="."
+                        ).write_pdf(
+                            stylesheets=[default_css]
+                        )
+                        
+                        # PDF 바이트를 파일로 저장
+                        with open(pdf_path, 'wb') as f:
+                            f.write(pdf_bytes)
+                        
+                        logger.info("✅ 대안 방법으로 PDF 생성 성공")
+                        
+                    except Exception as fallback_error:
+                        logger.error(f"대안 방법도 실패: {fallback_error}")
+                        raise Exception(f"WeasyPrint PDF 생성 실패: {fallback_error}")
                 
                 # PDF 파일이 실제로 생성되었는지 확인
                 if not os.path.exists(pdf_path) or os.path.getsize(pdf_path) == 0:
