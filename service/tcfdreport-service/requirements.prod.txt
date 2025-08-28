@@ -19,8 +19,8 @@ weasyprint==60.2
 cairocffi>=0.9.0
 cffi>=1.1.0
 
-# PDF 생성 대안
-pdfkit==1.0.0
+# PDF 생성 대안 (Debian 13 호환)
+# pdfkit==1.0.0  # wkhtmltopdf 의존성으로 인해 제거
 
 # Utility (기본)
 pydantic==2.7.4

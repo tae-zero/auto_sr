@@ -23,7 +23,6 @@ RUN apt-get update && apt-get install -y \
     libgirepository-1.0-1 \
     libglib2.0-0 \
     shared-mime-info \
-    wkhtmltopdf \
     && rm -rf /var/lib/apt/lists/*
 
 # Python 의존성 파일 복사 및 설치 (배포용)

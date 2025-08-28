@@ -408,11 +408,15 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
             # PDF 파일 경로
             pdf_path = tmp_html_path.replace('.html', '.pdf')
             
-            # HTML을 PDF로 변환 (WeasyPrint 오류 수정)
+            # HTML을 PDF로 변환 (WeasyPrint 사용)
             try:
                 # HTML 문자열을 직접 사용하여 PDF 생성
                 html_doc = HTML(string=html_content)
+                logger.info("🔄 WeasyPrint HTML 객체 생성 성공")
+                
+                # PDF 파일 생성
                 html_doc.write_pdf(pdf_path)
+                logger.info("🔄 WeasyPrint PDF 파일 생성 시도 완료")
                 
                 # PDF 파일이 실제로 생성되었는지 확인
                 if not os.path.exists(pdf_path) or os.path.getsize(pdf_path) == 0:
@@ -455,55 +459,8 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
                 if os.path.exists(tmp_html_path):
                     os.unlink(tmp_html_path)
                 
-                # 대안 방법: pdfkit 사용 시도
-                try:
-                    import pdfkit
-                    logger.info("🔄 pdfkit을 사용하여 PDF 생성 시도")
-                    
-                    # wkhtmltopdf 옵션 설정
-                    options = {
-                        'page-size': 'A4',
-                        'margin-top': '0.75in',
-                        'margin-right': '0.75in',
-                        'margin-bottom': '0.75in',
-                        'margin-left': '0.75in',
-                        'encoding': "UTF-8",
-                        'no-outline': None
-                    }
-                    
-                    # HTML을 PDF로 변환
-                    pdfkit.from_string(html_content, pdf_path, options=options)
-                    
-                    # PDF 파일 확인
-                    if os.path.exists(pdf_path) and os.path.getsize(pdf_path) > 0:
-                        filename = f"{safe_company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-                        logger.info(f"✅ pdfkit PDF 생성 성공: {filename}")
-                        
-                        response = FileResponse(
-                            path=pdf_path,
-                            filename=filename,
-                            media_type="application/pdf"
-                        )
-                        
-                        # 한글 파일명 인코딩
-                        try:
-                            import urllib.parse
-                            encoded_filename = urllib.parse.quote(filename)
-                            response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{encoded_filename}"
-                        except Exception:
-                            response.headers["Content-Disposition"] = f"attachment; filename={filename}"
-                        
-                        response.headers["Cache-Control"] = "no-cache"
-                        response.headers["Pragma"] = "no-cache"
-                        
-                        return response
-                    else:
-                        raise Exception("pdfkit PDF 생성 실패")
-                        
-                except Exception as pdfkit_error:
-                    logger.warning(f"pdfkit PDF 생성도 실패: {pdfkit_error}")
-                    # HTML fallback으로 처리
-                    return _return_html_fallback(html_content, data, "weasyprint_pdfkit_error")
+                # HTML fallback으로 처리
+                return _return_html_fallback(html_content, data, "weasyprint_error")
                 
         except ImportError as import_error:
             # weasyprint가 없는 경우 HTML을 그대로 반환
