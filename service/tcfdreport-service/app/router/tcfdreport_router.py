@@ -12,6 +12,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 import io
 import zipfile
 import urllib.parse
+from weasyprint import HTML, CSS
 
 logger = logging.getLogger(__name__)
 
@@ -256,14 +257,13 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
         # 회사명 추출
         company_name = data.get('company_name', 'TCFD')
         if company_name == 'TCFD' and data.get('draft'):
-            # draft 내용에서 회사명 추출 시도
             draft_content = data['draft']
             if '**회사명**:' in draft_content:
                 company_name = draft_content.split('**회사명**:')[1].split('\n')[0].strip()
             elif '회사명:' in draft_content:
                 company_name = draft_content.split('회사명:')[1].split('\n')[0].strip()
         
-        # 파일명에 사용할 수 없는 특수문자 제거
+        # 파일명에 사용할 수 없는 특수문자 제거 (한글은 유지)
         safe_company_name = company_name.replace('*', '').replace('/', '_').replace('\\', '_').replace(':', '_').replace('|', '_').replace('<', '_').replace('>', '_').replace('"', '_').replace('?', '_')
         if len(safe_company_name) > 20:
             safe_company_name = safe_company_name[:20]
@@ -287,7 +287,7 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
         doc.add_heading('✨ 윤문된 텍스트', level=1)
         doc.add_paragraph(data.get('polished', ''))
         
-        # 파일명 생성
+        # 파일명 생성 (한글 포함)
         filename = f"{safe_company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
         
         # 메모리에 저장
@@ -302,7 +302,7 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
             io.BytesIO(doc_bytes.getvalue()),
             media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             headers={
-                "Content-Disposition": f"attachment; filename*=UTF-8''{filename}",
+                "Content-Disposition": f"attachment; filename*=UTF-8''{urllib.parse.quote(filename)}",
                 "Cache-Control": "no-cache, no-store, must-revalidate",
                 "Pragma": "no-cache",
                 "Expires": "0",
@@ -315,7 +315,7 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
         return response
         
     except Exception as e:
-        logger.error(f"Word 문서 생성 실패: {str(e)}")
+        logger.error(f"❌ Word 문서 생성 실패: {e}")
         raise HTTPException(status_code=500, detail=f"Word 문서 생성 실패: {str(e)}")
 
 @tcfdreport_router.post("/download/pdf")
@@ -539,8 +539,6 @@ async def _generate_pdf_in_memory(data: Dict[str, Any]) -> bytes:
         """
         
         # WeasyPrint로 PDF 생성 (메모리에서)
-        from weasyprint import HTML, CSS
-        
         html = HTML(string=html_content, base_url=None)
         css = CSS(string=css_content)
         
