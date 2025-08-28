@@ -410,27 +410,61 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
             
             # HTML을 PDF로 변환 (WeasyPrint 사용)
             try:
-                # HTML 문자열을 직접 사용하여 PDF 생성
-                html_doc = HTML(string=html_content)
-                logger.info("🔄 WeasyPrint HTML 객체 생성 성공")
+                logger.info("🔄 WeasyPrint PDF 생성 시작")
                 
-                # PDF 파일 생성 (더 안전한 방식)
+                # 방법 1: HTML 파일을 먼저 생성한 후 PDF 변환 (가장 안정적)
                 try:
+                    # HTML 파일에 내용 저장
+                    with open(tmp_html_path, 'w', encoding='utf-8') as f:
+                        f.write(html_content)
+                    
+                    # HTML 파일에서 PDF 생성
+                    html_doc = HTML(filename=tmp_html_path)
                     html_doc.write_pdf(pdf_path)
-                    logger.info("🔄 WeasyPrint PDF 파일 생성 시도 완료")
-                except TypeError as type_error:
-                    if "takes 1 positional argument but 3 were given" in str(type_error):
-                        logger.warning("🔄 WeasyPrint 버전 호환성 문제 감지, 대안 방법 시도")
-                        # 대안: HTML 파일을 먼저 생성한 후 PDF 변환
-                        with open(tmp_html_path, 'w', encoding='utf-8') as f:
-                            f.write(html_content)
-                        
-                        # HTML 파일에서 PDF 생성
-                        html_doc = HTML(filename=tmp_html_path)
+                    logger.info("✅ 방법 1로 PDF 생성 성공")
+                    
+                except Exception as method1_error:
+                    logger.warning(f"방법 1 실패: {method1_error}")
+                    
+                    # 방법 2: HTML 문자열을 직접 사용하여 PDF 생성
+                    try:
+                        html_doc = HTML(string=html_content)
                         html_doc.write_pdf(pdf_path)
-                        logger.info("🔄 대안 방법으로 PDF 생성 완료")
-                    else:
-                        raise type_error
+                        logger.info("✅ 방법 2로 PDF 생성 성공")
+                        
+                    except Exception as method2_error:
+                        logger.warning(f"방법 2 실패: {method2_error}")
+                        
+                        # 방법 3: CSS 없이 기본 HTML로 PDF 생성
+                        try:
+                            basic_html = f"""
+                            <!DOCTYPE html>
+                            <html>
+                            <head>
+                                <meta charset="utf-8">
+                                <title>TCFD 보고서</title>
+                                <style>
+                                    body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                                    h1 {{ color: #333; }}
+                                    .content {{ line-height: 1.6; }}
+                                </style>
+                            </head>
+                            <body>
+                                <div class="content">{html_content}</div>
+                            </body>
+                            </html>
+                            """
+                            
+                            with open(tmp_html_path, 'w', encoding='utf-8') as f:
+                                f.write(basic_html)
+                            
+                            html_doc = HTML(filename=tmp_html_path)
+                            html_doc.write_pdf(pdf_path)
+                            logger.info("✅ 방법 3으로 PDF 생성 성공")
+                            
+                        except Exception as method3_error:
+                            logger.error(f"모든 WeasyPrint 방법 실패: {method3_error}")
+                            raise Exception(f"WeasyPrint PDF 생성 실패: {method3_error}")
                 
                 # PDF 파일이 실제로 생성되었는지 확인
                 if not os.path.exists(pdf_path) or os.path.getsize(pdf_path) == 0:
