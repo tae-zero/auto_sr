@@ -144,18 +144,13 @@ class RAGService:
             if isinstance(self.doc_store, dict):
                 # dict 형태인 경우
                 for doc_id, doc_content in self.doc_store.items():
-                    # 간단한 키워드 매칭 점수 계산
-                    score = 0
-                    doc_tokens = str(doc_content).lower().split()
+                    # 개선된 키워드 매칭 점수 계산
+                    score = self._calculate_relevance_score(query_tokens, str(doc_content))
                     
-                    for token in query_tokens:
-                        if token in doc_tokens:
-                            score += 1
-                    
-                    if score > 0:
+                    if score > 0.1:  # 임계값을 낮춰서 더 많은 문서 포함
                         relevant_docs.append({
                             'content': str(doc_content),
-                            'score': score / len(query_tokens),  # 정규화된 점수
+                            'score': score,
                             'source': f'Document_{doc_id}',
                             'metadata': {
                                 'category': 'TCFD',
@@ -166,18 +161,13 @@ class RAGService:
                 # list나 tuple 형태인 경우
                 logger.info(f"문서 저장소가 {type(self.doc_store).__name__} 형태로 로딩됨")
                 for i, doc_content in enumerate(self.doc_store):
-                    # 간단한 키워드 매칭 점수 계산
-                    score = 0
-                    doc_tokens = str(doc_content).lower().split()
+                    # 개선된 키워드 매칭 점수 계산
+                    score = self._calculate_relevance_score(query_tokens, str(doc_content))
                     
-                    for token in query_tokens:
-                        if token in doc_tokens:
-                            score += 1
-                    
-                    if score > 0:
+                    if score > 0.1:  # 임계값을 낮춰서 더 많은 문서 포함
                         relevant_docs.append({
                             'content': str(doc_content),
-                            'score': score / len(query_tokens),  # 정규화된 점수
+                            'score': score,
                             'source': f'Document_{i}',
                             'metadata': {
                                 'category': 'TCFD',
@@ -192,6 +182,16 @@ class RAGService:
             relevant_docs.sort(key=lambda x: x['score'], reverse=True)
             results = relevant_docs[:top_k]
             
+            # 디버깅을 위한 상세 로그
+            logger.info(f"🔍 검색 결과 요약:")
+            logger.info(f"  - 전체 문서 수: {len(self.doc_store)}")
+            logger.info(f"  - 관련 문서 후보: {len(relevant_docs)}")
+            logger.info(f"  - 최종 결과: {len(results)}")
+            
+            if results:
+                for i, doc in enumerate(results):
+                    logger.info(f"  📄 결과 {i+1}: 점수={doc['score']}, 소스={doc['source']}")
+            
             if not results:
                 logger.info("관련 문서를 찾을 수 없어 더미 결과를 반환합니다.")
                 return self._get_dummy_results(query, top_k)
@@ -202,6 +202,45 @@ class RAGService:
         except Exception as e:
             logger.error(f"RAG 검색 중 오류 발생: {str(e)}")
             return self._get_dummy_results(query, top_k)
+    
+    def _calculate_relevance_score(self, query_tokens: List[str], doc_content: str) -> float:
+        """개선된 관련성 점수 계산"""
+        try:
+            doc_content_lower = doc_content.lower()
+            doc_tokens = doc_content_lower.split()
+            
+            # 기본 키워드 매칭 점수
+            basic_score = 0
+            for token in query_tokens:
+                if token in doc_content_lower:
+                    basic_score += 1
+            
+            # 가중치 계산
+            # 1. TCFD 관련 키워드에 높은 가중치
+            tcfd_keywords = ['tcfd', '기후', '기후변화', '탄소', '온실가스', 'esg', '지속가능']
+            tcfd_weight = 0
+            for keyword in tcfd_keywords:
+                if keyword in doc_content_lower:
+                    tcfd_weight += 0.5
+            
+            # 2. 회사명 매칭에 높은 가중치
+            company_keywords = ['한온시스템', '현대모비스', 'hl만도', '금호타이어']
+            company_weight = 0
+            for company in company_keywords:
+                if company in doc_content_lower:
+                    company_weight += 1.0
+            
+            # 3. 문서 길이에 따른 정규화
+            length_factor = min(1.0, len(doc_content) / 1000)  # 1000자 기준
+            
+            # 최종 점수 계산
+            final_score = (basic_score * 0.3 + tcfd_weight * 0.4 + company_weight * 0.3) * length_factor
+            
+            return round(final_score, 3)
+            
+        except Exception as e:
+            logger.warning(f"관련성 점수 계산 실패: {e}")
+            return 0.0
     
     def _get_dummy_results(self, query: str, top_k: int) -> List[Dict[str, Any]]:
         """더미 검색 결과 반환 (테스트용)"""

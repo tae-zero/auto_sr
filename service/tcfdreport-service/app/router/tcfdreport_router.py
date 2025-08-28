@@ -25,8 +25,23 @@ def _return_html_fallback(html_content: str, data: Dict[str, Any], error_type: s
             tmp_file.write(html_content)
             tmp_file_path = tmp_file.name
         
+        # 회사명 추출 및 안전한 파일명 생성
+        company_name = data.get('company_name', 'TCFD')
+        if company_name == 'TCFD' and data.get('draft'):
+            # draft 내용에서 회사명 추출 시도
+            draft_content = data['draft']
+            if '**회사명**:' in draft_content:
+                company_name = draft_content.split('**회사명**:')[1].split('\n')[0].strip()
+            elif '회사명:' in draft_content:
+                company_name = draft_content.split('회사명:')[1].split('\n')[0].strip()
+        
+        # 파일명에 사용할 수 없는 특수문자 제거
+        safe_company_name = company_name.replace('*', '').replace('/', '_').replace('\\', '_').replace(':', '_').replace('|', '_').replace('<', '_').replace('>', '_').replace('"', '_').replace('?', '_')
+        if len(safe_company_name) > 20:
+            safe_company_name = safe_company_name[:20]
+        
         # 파일명 생성 (오류 타입 포함)
-        filename = f"{data.get('company_name', 'TCFD')}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{error_type}.html"
+        filename = f"{safe_company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{error_type}.html"
         
         logger.info(f"HTML fallback 반환: {filename}")
         
@@ -36,7 +51,17 @@ def _return_html_fallback(html_content: str, data: Dict[str, Any], error_type: s
             filename=filename,
             media_type="text/html"
         )
-        response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{filename}"
+        
+        # 한글 파일명 인코딩 문제 해결
+        try:
+            # UTF-8로 인코딩된 파일명을 URL 인코딩
+            import urllib.parse
+            encoded_filename = urllib.parse.quote(filename)
+            response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{encoded_filename}"
+        except Exception as header_error:
+            logger.warning(f"HTML fallback 파일명 인코딩 실패, 기본값 사용: {header_error}")
+            response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        
         response.headers["Cache-Control"] = "no-cache"
         response.headers["Pragma"] = "no-cache"
         
@@ -238,8 +263,12 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
             elif '회사명:' in draft_content:
                 company_name = draft_content.split('회사명:')[1].split('\n')[0].strip()
         
-        # 파일명에 사용할 수 없는 특수문자 제거
+        # 파일명에 사용할 수 없는 특수문자 제거 (한글 호환)
         safe_company_name = company_name.replace('*', '').replace('/', '_').replace('\\', '_').replace(':', '_').replace('|', '_').replace('<', '_').replace('>', '_').replace('"', '_').replace('?', '_')
+        
+        # 한글 파일명이 너무 길 경우 축약
+        if len(safe_company_name) > 20:
+            safe_company_name = safe_company_name[:20]
         
         # Word 문서 생성
         doc = Document()
@@ -285,7 +314,17 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
                 filename=filename,
                 media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
-            response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{filename}"
+            
+            # 한글 파일명 인코딩 문제 해결
+            try:
+                # UTF-8로 인코딩된 파일명을 URL 인코딩
+                import urllib.parse
+                encoded_filename = urllib.parse.quote(filename)
+                response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{encoded_filename}"
+            except Exception as header_error:
+                logger.warning(f"파일명 인코딩 실패, 기본값 사용: {header_error}")
+                response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+            
             response.headers["Cache-Control"] = "no-cache"
             response.headers["Pragma"] = "no-cache"
             
@@ -319,8 +358,12 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
             elif '회사명:' in draft_content:
                 company_name = draft_content.split('회사명:')[1].split('\n')[0].strip()
         
-        # 파일명에 사용할 수 없는 특수문자 제거
+        # 파일명에 사용할 수 없는 특수문자 제거 (한글 호환)
         safe_company_name = company_name.replace('*', '').replace('/', '_').replace('\\', '_').replace(':', '_').replace('|', '_').replace('<', '_').replace('>', '_').replace('"', '_').replace('?', '_')
+        
+        # 한글 파일명이 너무 길 경우 축약
+        if len(safe_company_name) > 20:
+            safe_company_name = safe_company_name[:20]
         
         # PDF 생성을 위한 HTML 생성 (간단한 버전)
         html_content = f"""
@@ -388,7 +431,17 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
                     filename=filename,
                     media_type="application/pdf"
                 )
-                response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{filename}"
+                
+                # 한글 파일명 인코딩 문제 해결
+                try:
+                    # UTF-8로 인코딩된 파일명을 URL 인코딩
+                    import urllib.parse
+                    encoded_filename = urllib.parse.quote(filename)
+                    response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{encoded_filename}"
+                except Exception as header_error:
+                    logger.warning(f"PDF 파일명 인코딩 실패, 기본값 사용: {header_error}")
+                    response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+                
                 response.headers["Cache-Control"] = "no-cache"
                 response.headers["Pragma"] = "no-cache"
                 
