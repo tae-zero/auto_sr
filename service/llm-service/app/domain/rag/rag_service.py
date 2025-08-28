@@ -139,25 +139,54 @@ class RAGService:
             
             # 문서 저장소에서 관련성 높은 문서 검색
             relevant_docs = []
-            for doc_id, doc_content in self.doc_store.items():
-                # 간단한 키워드 매칭 점수 계산
-                score = 0
-                doc_tokens = doc_content.lower().split()
-                
-                for token in query_tokens:
-                    if token in doc_tokens:
-                        score += 1
-                
-                if score > 0:
-                    relevant_docs.append({
-                        'content': doc_content,
-                        'score': score / len(query_tokens),  # 정규화된 점수
-                        'source': f'Document_{doc_id}',
-                        'metadata': {
-                            'category': 'TCFD',
-                            'type': 'corpus'
-                        }
-                    })
+            
+            # 문서 저장소 타입 확인 및 안전한 처리
+            if isinstance(self.doc_store, dict):
+                # dict 형태인 경우
+                for doc_id, doc_content in self.doc_store.items():
+                    # 간단한 키워드 매칭 점수 계산
+                    score = 0
+                    doc_tokens = str(doc_content).lower().split()
+                    
+                    for token in query_tokens:
+                        if token in doc_tokens:
+                            score += 1
+                    
+                    if score > 0:
+                        relevant_docs.append({
+                            'content': str(doc_content),
+                            'score': score / len(query_tokens),  # 정규화된 점수
+                            'source': f'Document_{doc_id}',
+                            'metadata': {
+                                'category': 'TCFD',
+                                'type': 'corpus'
+                            }
+                        })
+            elif isinstance(self.doc_store, (list, tuple)):
+                # list나 tuple 형태인 경우
+                logger.info(f"문서 저장소가 {type(self.doc_store).__name__} 형태로 로딩됨")
+                for i, doc_content in enumerate(self.doc_store):
+                    # 간단한 키워드 매칭 점수 계산
+                    score = 0
+                    doc_tokens = str(doc_content).lower().split()
+                    
+                    for token in query_tokens:
+                        if token in doc_tokens:
+                            score += 1
+                    
+                    if score > 0:
+                        relevant_docs.append({
+                            'content': str(doc_content),
+                            'score': score / len(query_tokens),  # 정규화된 점수
+                            'source': f'Document_{i}',
+                            'metadata': {
+                                'category': 'TCFD',
+                                'type': 'corpus'
+                            }
+                        })
+            else:
+                logger.warning(f"알 수 없는 문서 저장소 타입: {type(self.doc_store)}")
+                return self._get_dummy_results(query, top_k)
             
             # 점수 기준으로 정렬하고 top_k만 반환
             relevant_docs.sort(key=lambda x: x['score'], reverse=True)

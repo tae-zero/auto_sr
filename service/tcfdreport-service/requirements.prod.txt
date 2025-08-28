@@ -12,6 +12,10 @@ sqlalchemy==2.0.23
 # JWT 인증
 PyJWT==2.8.0
 
+# 문서 처리 (Word, PDF 생성용)
+python-docx==1.1.0
+weasyprint==60.2
+
 # Utility (기본)
 pydantic==2.7.4
 pydantic-settings==2.3.4

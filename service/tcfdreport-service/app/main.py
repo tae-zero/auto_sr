@@ -145,8 +145,14 @@ try:
     from app.router import tcfdreport_router
     app.include_router(tcfdreport_router, prefix="/api/v1/tcfdreport")
     logger.info("✅ TCFD Report 라우터 등록 완료")
+except ImportError as e:
+    logger.error(f"❌ TCFD Report 라우터 import 실패: {e}")
+    logger.error(f"❌ 누락된 모듈: {e.name if hasattr(e, 'name') else 'unknown'}")
+    logger.info("⚠️ 서비스는 계속 실행됩니다")
 except Exception as e:
     logger.error(f"❌ TCFD Report 라우터 등록 실패: {e}")
+    logger.error(f"❌ 오류 타입: {type(e).__name__}")
+    logger.error(f"❌ 상세 오류: {str(e)}")
     logger.info("⚠️ 서비스는 계속 실행됩니다")
 
 if __name__ == "__main__":
