@@ -29,11 +29,18 @@ def _return_html_fallback(html_content: str, data: Dict[str, Any], error_type: s
         filename = f"{data.get('company_name', 'TCFD')}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{error_type}.html"
         
         logger.info(f"HTML fallback 반환: {filename}")
-        return FileResponse(
+        
+        # 브라우저에서 강제 다운로드되도록 헤더 설정
+        response = FileResponse(
             path=tmp_file_path,
             filename=filename,
             media_type="text/html"
         )
+        response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{filename}"
+        response.headers["Cache-Control"] = "no-cache"
+        response.headers["Pragma"] = "no-cache"
+        
+        return response
     except Exception as e:
         logger.error(f"HTML fallback 생성 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=f"HTML fallback 생성 실패: {str(e)}")
@@ -231,6 +238,9 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
             elif '회사명:' in draft_content:
                 company_name = draft_content.split('회사명:')[1].split('\n')[0].strip()
         
+        # 파일명에 사용할 수 없는 특수문자 제거
+        safe_company_name = company_name.replace('*', '').replace('/', '_').replace('\\', '_').replace(':', '_').replace('|', '_').replace('<', '_').replace('>', '_').replace('"', '_').replace('?', '_')
+        
         # Word 문서 생성
         doc = Document()
         
@@ -264,16 +274,23 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
             if not os.path.exists(tmp_file_path) or os.path.getsize(tmp_file_path) == 0:
                 raise Exception("Word 문서 파일 생성 실패")
             
-            # 파일명 생성
-            filename = f"{company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+            # 파일명 생성 (안전한 회사명 사용)
+            filename = f"{safe_company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
             
             logger.info(f"✅ Word 문서 생성 성공: {filename}, 파일 크기: {os.path.getsize(tmp_file_path)} bytes")
             
-            return FileResponse(
+            # 브라우저에서 강제 다운로드되도록 헤더 설정
+            response = FileResponse(
                 path=tmp_file_path,
                 filename=filename,
                 media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
+            response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{filename}"
+            response.headers["Cache-Control"] = "no-cache"
+            response.headers["Pragma"] = "no-cache"
+            
+            logger.info(f"📤 Word 문서 응답 전송: {filename}")
+            return response
         except Exception as save_error:
             logger.error(f"Word 문서 저장 실패: {save_error}")
             raise HTTPException(status_code=500, detail=f"Word 문서 저장 실패: {save_error}")
@@ -301,6 +318,9 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
                 company_name = draft_content.split('**회사명**:')[1].split('\n')[0].strip()
             elif '회사명:' in draft_content:
                 company_name = draft_content.split('회사명:')[1].split('\n')[0].strip()
+        
+        # 파일명에 사용할 수 없는 특수문자 제거
+        safe_company_name = company_name.replace('*', '').replace('/', '_').replace('\\', '_').replace(':', '_').replace('|', '_').replace('<', '_').replace('>', '_').replace('"', '_').replace('?', '_')
         
         # PDF 생성을 위한 HTML 생성 (간단한 버전)
         html_content = f"""
@@ -357,15 +377,23 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
                 # 임시 HTML 파일 삭제
                 os.unlink(tmp_html_path)
                 
-                # 파일명 생성
-                filename = f"{company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+                # 파일명 생성 (안전한 회사명 사용)
+                filename = f"{safe_company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
                 
                 logger.info(f"✅ PDF 생성 성공: {filename}, 파일 크기: {os.path.getsize(pdf_path)} bytes")
-                return FileResponse(
+                
+                # 브라우저에서 강제 다운로드되도록 헤더 설정
+                response = FileResponse(
                     path=pdf_path,
                     filename=filename,
                     media_type="application/pdf"
                 )
+                response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{filename}"
+                response.headers["Cache-Control"] = "no-cache"
+                response.headers["Pragma"] = "no-cache"
+                
+                logger.info(f"📤 PDF 응답 전송: {filename}")
+                return response
                 
             except Exception as pdf_error:
                 logger.warning(f"WeasyPrint PDF 생성 실패: {pdf_error}")
