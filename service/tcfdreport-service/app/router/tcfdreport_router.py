@@ -414,9 +414,23 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
                 html_doc = HTML(string=html_content)
                 logger.info("🔄 WeasyPrint HTML 객체 생성 성공")
                 
-                # PDF 파일 생성
-                html_doc.write_pdf(pdf_path)
-                logger.info("🔄 WeasyPrint PDF 파일 생성 시도 완료")
+                # PDF 파일 생성 (더 안전한 방식)
+                try:
+                    html_doc.write_pdf(pdf_path)
+                    logger.info("🔄 WeasyPrint PDF 파일 생성 시도 완료")
+                except TypeError as type_error:
+                    if "takes 1 positional argument but 3 were given" in str(type_error):
+                        logger.warning("🔄 WeasyPrint 버전 호환성 문제 감지, 대안 방법 시도")
+                        # 대안: HTML 파일을 먼저 생성한 후 PDF 변환
+                        with open(tmp_html_path, 'w', encoding='utf-8') as f:
+                            f.write(html_content)
+                        
+                        # HTML 파일에서 PDF 생성
+                        html_doc = HTML(filename=tmp_html_path)
+                        html_doc.write_pdf(pdf_path)
+                        logger.info("🔄 대안 방법으로 PDF 생성 완료")
+                    else:
+                        raise type_error
                 
                 # PDF 파일이 실제로 생성되었는지 확인
                 if not os.path.exists(pdf_path) or os.path.getsize(pdf_path) == 0:
@@ -455,6 +469,9 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
                 
             except Exception as pdf_error:
                 logger.warning(f"WeasyPrint PDF 생성 실패: {pdf_error}")
+                logger.warning(f"에러 타입: {type(pdf_error).__name__}")
+                logger.warning(f"에러 상세: {str(pdf_error)}")
+                
                 # 임시 HTML 파일 삭제
                 if os.path.exists(tmp_html_path):
                     os.unlink(tmp_html_path)

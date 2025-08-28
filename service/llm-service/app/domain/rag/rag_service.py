@@ -147,7 +147,10 @@ class RAGService:
                     # 개선된 키워드 매칭 점수 계산
                     score = self._calculate_relevance_score(query_tokens, str(doc_content))
                     
-                    if score > 0.1:  # 임계값을 낮춰서 더 많은 문서 포함
+                    # 디버깅: 모든 문서의 점수 출력
+                    logger.info(f"📄 문서 {doc_id}: 점수={score}, 내용 미리보기={str(doc_content)[:100]}...")
+                    
+                    if score > 0:  # 임계값을 0으로 설정하여 모든 문서 포함
                         relevant_docs.append({
                             'content': str(doc_content),
                             'score': score,
@@ -164,7 +167,10 @@ class RAGService:
                     # 개선된 키워드 매칭 점수 계산
                     score = self._calculate_relevance_score(query_tokens, str(doc_content))
                     
-                    if score > 0.1:  # 임계값을 낮춰서 더 많은 문서 포함
+                    # 디버깅: 모든 문서의 점수 출력
+                    logger.info(f"📄 문서 {i}: 점수={score}, 내용 미리보기={str(doc_content)[:100]}...")
+                    
+                    if score > 0:  # 임계값을 0으로 설정하여 모든 문서 포함
                         relevant_docs.append({
                             'content': str(doc_content),
                             'score': score,
@@ -209,19 +215,25 @@ class RAGService:
             doc_content_lower = doc_content.lower()
             doc_tokens = doc_content_lower.split()
             
-            # 기본 키워드 매칭 점수
+            # 기본 키워드 매칭 점수 (부분 매칭도 고려)
             basic_score = 0
             for token in query_tokens:
                 if token in doc_content_lower:
                     basic_score += 1
+                else:
+                    # 부분 매칭 점수 (토큰의 일부가 포함된 경우)
+                    for doc_token in doc_tokens:
+                        if len(token) > 2 and (token in doc_token or doc_token in token):
+                            basic_score += 0.3
+                            break
             
             # 가중치 계산
             # 1. TCFD 관련 키워드에 높은 가중치
-            tcfd_keywords = ['tcfd', '기후', '기후변화', '탄소', '온실가스', 'esg', '지속가능']
+            tcfd_keywords = ['tcfd', '기후', '기후변화', '탄소', '온실가스', 'esg', '지속가능', '재무', '공시', '위험', '기회']
             tcfd_weight = 0
             for keyword in tcfd_keywords:
                 if keyword in doc_content_lower:
-                    tcfd_weight += 0.5
+                    tcfd_weight += 0.3
             
             # 2. 회사명 매칭에 높은 가중치
             company_keywords = ['한온시스템', '현대모비스', 'hl만도', '금호타이어']
@@ -230,11 +242,11 @@ class RAGService:
                 if company in doc_content_lower:
                     company_weight += 1.0
             
-            # 3. 문서 길이에 따른 정규화
-            length_factor = min(1.0, len(doc_content) / 1000)  # 1000자 기준
+            # 3. 문서 길이에 따른 정규화 (더 관대하게)
+            length_factor = min(1.0, len(doc_content) / 500)  # 500자 기준으로 변경
             
-            # 최종 점수 계산
-            final_score = (basic_score * 0.3 + tcfd_weight * 0.4 + company_weight * 0.3) * length_factor
+            # 최종 점수 계산 (기본 점수에 더 높은 가중치)
+            final_score = (basic_score * 0.5 + tcfd_weight * 0.3 + company_weight * 0.2) * length_factor
             
             return round(final_score, 3)
             
