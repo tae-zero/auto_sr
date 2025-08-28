@@ -3239,7 +3239,7 @@ export default function TcfdSrPage() {
 
                 {/* 대응 방안 */}
                 <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
-                  <h4 className="text-lg font-semibold text-yellow-800 mb-3">⚡ 대응 방안</h4>
+                  <h4 className="text-lg font-semibold text-yellow-800 mb-3">⚡ 대응 방안 (EX)</h4>
                   <div className="space-y-4">
                     <div className="bg-white p-4 rounded-lg">
                       <h5 className="font-semibold text-yellow-700 mb-2">🌧️ 호우일수 ↑</h5>
