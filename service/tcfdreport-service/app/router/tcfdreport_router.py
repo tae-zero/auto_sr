@@ -280,19 +280,52 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
         </html>
         """
         
-        # 임시 HTML 파일 생성
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w', encoding='utf-8') as tmp_file:
-            tmp_file.write(html_content)
-            tmp_file_path = tmp_file.name
-        
-        # 파일명 생성
-        filename = f"{data.get('company_name', 'TCFD')}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-        
-        return FileResponse(
-            path=tmp_file_path,
-            filename=filename,
-            media_type="text/html"
-        )
+        # HTML을 PDF로 변환
+        try:
+            from weasyprint import HTML
+            import tempfile
+            
+            # 임시 HTML 파일 생성
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w', encoding='utf-8') as tmp_html:
+                tmp_html.write(html_content)
+                tmp_html_path = tmp_html.name
+            
+            # PDF 파일 경로
+            pdf_path = tmp_html_path.replace('.html', '.pdf')
+            
+            # HTML을 PDF로 변환
+            HTML(filename=tmp_html_path).write_pdf(pdf_path)
+            
+            # 임시 HTML 파일 삭제
+            import os
+            os.unlink(tmp_html_path)
+            
+            # 파일명 생성
+            filename = f"{data.get('company_name', 'TCFD')}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            
+            return FileResponse(
+                path=pdf_path,
+                filename=filename,
+                media_type="application/pdf"
+            )
+            
+        except ImportError:
+            # weasyprint가 없는 경우 HTML을 그대로 반환
+            logger.warning("weasyprint가 설치되지 않아 HTML을 반환합니다")
+            
+            # 임시 HTML 파일 생성
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w', encoding='utf-8') as tmp_file:
+                tmp_file.write(html_content)
+                tmp_file_path = tmp_file.name
+            
+            # 파일명 생성
+            filename = f"{data.get('company_name', 'TCFD')}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+            
+            return FileResponse(
+                path=tmp_file_path,
+                filename=filename,
+                media_type="text/html"
+            )
         
     except Exception as e:
         logger.error(f"PDF 생성 실패: {str(e)}")

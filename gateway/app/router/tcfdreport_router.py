@@ -278,3 +278,107 @@ async def get_tcfd_inputs(request: Request):
     except Exception as e:
         logger.error(f"❌ TCFD Report Service 요청 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=f"TCFD Report Service 요청 실패: {str(e)}")
+
+@router.post("/download/word")
+async def download_tcfd_report_as_word(request: Request, data: dict):
+    """TCFD 보고서를 Word 문서로 다운로드"""
+    try:
+        logger.info(f"🔍 TCFD Report Service - Word 문서 다운로드 요청 시작: {data.get('company_name', 'Unknown')}")
+        
+        # Service Discovery를 통해 TCFD Report Service 인스턴스 가져오기
+        service_discovery: ServiceDiscovery = request.app.state.service_discovery
+        tcfdreport_service = service_discovery.get_service_instance("tcfdreport-service")
+        
+        if not tcfdreport_service:
+            logger.error("❌ TCFD Report Service를 찾을 수 없습니다")
+            raise HTTPException(status_code=503, detail="TCFD Report Service를 찾을 수 없습니다")
+        
+        # TCFD Report Service로 요청 전달
+        host = tcfdreport_service.host
+        port = tcfdreport_service.port
+        
+        # Docker 환경에서는 직접 연결, Railway 환경에서는 Service Discovery 사용
+        if os.getenv("RAILWAY_ENVIRONMENT") == "production":
+            # Railway 환경: Service Discovery에서 가져온 host 사용
+            final_url = host
+        else:
+            # Docker 환경: 직접 연결 시도
+            final_url = get_docker_service_url()
+        
+        url = f"{final_url}/api/v1/tcfdreport/download/word"
+        logger.info(f"📤 최종 요청 URL: {url}")
+        logger.info(f"📤 요청 데이터: {data}")
+        
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(url, json=data)
+            response.raise_for_status()
+            
+            # 파일 응답을 그대로 전달
+            from fastapi.responses import Response
+            return Response(
+                content=response.content,
+                media_type=response.headers.get("content-type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+                headers={
+                    "Content-Disposition": response.headers.get("content-disposition", "attachment"),
+                    "Content-Length": str(len(response.content))
+                }
+            )
+            
+    except httpx.HTTPStatusError as e:
+        logger.error(f"❌ TCFD Report Service HTTP 응답 오류: {e.response.status_code}")
+        raise HTTPException(status_code=e.response.status_code, detail=f"TCFD Report Service 응답 오류: {e.response.status_code}")
+    except Exception as e:
+        logger.error(f"❌ TCFD Report Service Word 다운로드 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"TCFD Report Service Word 다운로드 실패: {str(e)}")
+
+@router.post("/download/pdf")
+async def download_tcfd_report_as_pdf(request: Request, data: dict):
+    """TCFD 보고서를 PDF로 다운로드"""
+    try:
+        logger.info(f"🔍 TCFD Report Service - PDF 다운로드 요청 시작: {data.get('company_name', 'Unknown')}")
+        
+        # Service Discovery를 통해 TCFD Report Service 인스턴스 가져오기
+        service_discovery: ServiceDiscovery = request.app.state.service_discovery
+        tcfdreport_service = service_discovery.get_service_instance("tcfdreport-service")
+        
+        if not tcfdreport_service:
+            logger.error("❌ TCFD Report Service를 찾을 수 없습니다")
+            raise HTTPException(status_code=503, detail="TCFD Report Service를 찾을 수 없습니다")
+        
+        # TCFD Report Service로 요청 전달
+        host = tcfdreport_service.host
+        port = tcfdreport_service.port
+        
+        # Docker 환경에서는 직접 연결, Railway 환경에서는 Service Discovery 사용
+        if os.getenv("RAILWAY_ENVIRONMENT") == "production":
+            # Railway 환경: Service Discovery에서 가져온 host 사용
+            final_url = host
+        else:
+            # Docker 환경: 직접 연결 시도
+            final_url = get_docker_service_url()
+        
+        url = f"{final_url}/api/v1/tcfdreport/download/pdf"
+        logger.info(f"📤 최종 요청 URL: {url}")
+        logger.info(f"📤 요청 데이터: {data}")
+        
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(url, json=data)
+            response.raise_for_status()
+            
+            # 파일 응답을 그대로 전달
+            from fastapi.responses import Response
+            return Response(
+                content=response.content,
+                media_type=response.headers.get("content-type", "application/pdf"),
+                headers={
+                    "Content-Disposition": response.headers.get("content-disposition", "attachment"),
+                    "Content-Length": str(len(response.content))
+                }
+            )
+            
+    except httpx.HTTPStatusError as e:
+        logger.error(f"❌ TCFD Report Service HTTP 응답 오류: {e.response.status_code}")
+        raise HTTPException(status_code=e.response.status_code, detail=f"TCFD Report Service 응답 오류: {e.response.status_code}")
+    except Exception as e:
+        logger.error(f"❌ TCFD Report Service PDF 다운로드 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"TCFD Report Service PDF 다운로드 실패: {str(e)}")
