@@ -372,7 +372,15 @@ async def download_tcfd_report_as_pdf(request: Request, data: dict):
                 media_type=response.headers.get("content-type", "application/pdf"),
                 headers={
                     "Content-Disposition": response.headers.get("content-disposition", "attachment"),
-                    "Content-Length": str(len(response.content))
+                    "Content-Length": str(len(response.content)),
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                    "Expires": "0",
+                    "X-Content-Type-Options": "nosniff",
+                    "X-Frame-Options": "DENY",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization"
                 }
             )
             
@@ -382,3 +390,43 @@ async def download_tcfd_report_as_pdf(request: Request, data: dict):
     except Exception as e:
         logger.error(f"❌ TCFD Report Service PDF 다운로드 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=f"TCFD Report Service PDF 다운로드 실패: {str(e)}")
+
+@router.post("/download/combined")
+async def download_tcfd_report_combined(request: Request, data: dict):
+    """TCFD 보고서를 Word와 PDF로 생성하여 ZIP 파일로 다운로드"""
+    try:
+        # TCFD Report Service로 요청 전달
+        response = await make_request_to_tcfdreport_service(
+            "/download/combined", 
+            data, 
+            "POST"
+        )
+        
+        if response.status_code != 200:
+            logger.error(f"TCFD Report Service 오류: {response.status_code}")
+            raise HTTPException(
+                status_code=response.status_code,
+                detail="TCFD Report Service에서 오류가 발생했습니다."
+            )
+        
+        # 응답 헤더 설정
+        return Response(
+            content=response.content,
+            media_type=response.headers.get("content-type", "application/zip"),
+            headers={
+                "Content-Disposition": response.headers.get("content-disposition", "attachment"),
+                "Content-Length": str(len(response.content)),
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+                "X-Content-Type-Options": "nosniff",
+                "X-Frame-Options": "DENY",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Combined 다운로드 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"Combined 다운로드 실패: {str(e)}")
