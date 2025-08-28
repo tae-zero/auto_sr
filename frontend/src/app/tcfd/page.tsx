@@ -1243,6 +1243,18 @@ export default function TcfdSrPage() {
                          🏢 접근 가능한 회사: {userCompanyName}
                        </p>
                      )}
+                     
+                     {/* TCFD 알아보기 버튼 추가 */}
+                     <div className="mt-4">
+                       <button
+                         onClick={() => window.open('https://www.fsb-tcfd.org/', '_blank')}
+                         className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                       >
+                         <span className="mr-2">🌐</span>
+                         TCFD 알아보기
+                         <span className="ml-2">→</span>
+                       </button>
+                     </div>
                    </div>
                                        <button
                       onClick={() => setIsGuideOpen(true)}
@@ -2172,6 +2184,13 @@ export default function TcfdSrPage() {
                           >
                             <span>❓</span>
                             <span>사용법</span>
+                          </button>
+                          <button
+                            onClick={() => window.open('/기후시나리오(SSP).pdf', '_blank')}
+                            className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors flex items-center space-x-1"
+                          >
+                            <span>📄</span>
+                            <span>PDF로 보기</span>
                           </button>
                         </div>
                       </div>
