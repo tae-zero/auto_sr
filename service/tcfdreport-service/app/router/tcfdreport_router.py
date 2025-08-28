@@ -255,18 +255,28 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
         doc.add_paragraph(data['polished'])
         
         # 임시 파일로 저장
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp_file:
-            doc.save(tmp_file.name)
-            tmp_file_path = tmp_file.name
-        
-        # 파일명 생성
-        filename = f"{company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
-        
-        return FileResponse(
-            path=tmp_file_path,
-            filename=filename,
-            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        )
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp_file:
+                doc.save(tmp_file.name)
+                tmp_file_path = tmp_file.name
+            
+            # 파일이 실제로 생성되었는지 확인
+            if not os.path.exists(tmp_file_path) or os.path.getsize(tmp_file_path) == 0:
+                raise Exception("Word 문서 파일 생성 실패")
+            
+            # 파일명 생성
+            filename = f"{company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+            
+            logger.info(f"✅ Word 문서 생성 성공: {filename}, 파일 크기: {os.path.getsize(tmp_file_path)} bytes")
+            
+            return FileResponse(
+                path=tmp_file_path,
+                filename=filename,
+                media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
+        except Exception as save_error:
+            logger.error(f"Word 문서 저장 실패: {save_error}")
+            raise HTTPException(status_code=500, detail=f"Word 문서 저장 실패: {save_error}")
         
     except Exception as e:
         logger.error(f"Word 문서 생성 실패: {str(e)}")
@@ -335,32 +345,42 @@ async def download_tcfd_report_as_pdf(data: Dict[str, Any]):
             # PDF 파일 경로
             pdf_path = tmp_html_path.replace('.html', '.pdf')
             
-            # HTML을 PDF로 변환
-            HTML(filename=tmp_html_path).write_pdf(pdf_path)
-            
-            # 임시 HTML 파일 삭제
-            import os
-            os.unlink(tmp_html_path)
-            
-            # 파일명 생성
-            filename = f"{company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-            
-            logger.info(f"✅ PDF 생성 성공: {filename}")
-            return FileResponse(
-                path=pdf_path,
-                filename=filename,
-                media_type="application/pdf"
-            )
-            
+            # HTML을 PDF로 변환 (더 안전한 방식)
+            try:
+                html_doc = HTML(filename=tmp_html_path)
+                html_doc.write_pdf(pdf_path)
+                
+                # PDF 파일이 실제로 생성되었는지 확인
+                if not os.path.exists(pdf_path) or os.path.getsize(pdf_path) == 0:
+                    raise Exception("PDF 파일 생성 실패")
+                
+                # 임시 HTML 파일 삭제
+                os.unlink(tmp_html_path)
+                
+                # 파일명 생성
+                filename = f"{company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+                
+                logger.info(f"✅ PDF 생성 성공: {filename}, 파일 크기: {os.path.getsize(pdf_path)} bytes")
+                return FileResponse(
+                    path=pdf_path,
+                    filename=filename,
+                    media_type="application/pdf"
+                )
+                
+            except Exception as pdf_error:
+                logger.warning(f"WeasyPrint PDF 생성 실패: {pdf_error}")
+                # 임시 HTML 파일 삭제
+                if os.path.exists(tmp_html_path):
+                    os.unlink(tmp_html_path)
+                # HTML fallback으로 처리
+                return _return_html_fallback(html_content, data, "weasyprint_pdf_error")
+                
         except ImportError as import_error:
             # weasyprint가 없는 경우 HTML을 그대로 반환
             logger.warning(f"weasyprint가 설치되지 않아 HTML을 반환합니다: {import_error}")
             return _return_html_fallback(html_content, data, "weasyprint_import_error")
             
-        except Exception as weasyprint_error:
-            # WeasyPrint 실행 중 오류 (시스템 라이브러리 문제 등)
-            logger.warning(f"WeasyPrint 실행 오류로 HTML을 반환합니다: {weasyprint_error}")
-            return _return_html_fallback(html_content, data, "weasyprint_runtime_error")
+
         
     except Exception as e:
         logger.error(f"PDF 생성 실패: {str(e)}")
