@@ -11,7 +11,7 @@ import axios from 'axios';
 
 // 컬럼명 한국어 매핑 객체
 const COLUMN_LABELS: { [key: string]: string } = {
-  // 1️⃣ 전체기업 정보
+  // 1️⃣ 기업 정보
   id: '아이디',
   stock_code: '종목코드',
   companyname: '회사명',
@@ -857,10 +857,10 @@ export default function TcfdSrPage() {
     const columns = Object.keys(data[0] || {});
     console.log(`🔍 ${title} 컬럼명:`, columns);
 
-    // 재무상태, 전체기업 정보, 직원정보, 임원정보는 세로형태로 표시
+    // 재무상태, 기업 정보, 직원정보, 임원정보는 세로형태로 표시
     if (
       title === '재무상태' ||
-      title === '전체기업 정보' ||
+      title === '기업 정보' ||
       title === '직원 정보' ||
       title === '임원 정보'
     ) {
@@ -878,7 +878,7 @@ export default function TcfdSrPage() {
 
               if (title === '재무상태' && (row as any).companyname) {
                 recordName = String((row as any).companyname);
-              } else if (title === '전체기업 정보' && (row as any).companyname) {
+              } else if (title === '기업 정보' && (row as any).companyname) {
                 recordName = String((row as any).companyname);
               } else if (title === '직원 정보' && (row as any).name) {
                 recordName = String((row as any).name);
@@ -1454,7 +1454,7 @@ export default function TcfdSrPage() {
                     {/* 5개 테이블 데이터 표시 - 순서 변경 */}
                       {renderFinancialTable(
                         companyFinancialData.data?.corporation,
-                        '전체기업 정보',
+                        '기업 정보',
                       )}
                     {renderFinancialTable(companyFinancialData.data?.financial, '재무상태')}
                     {renderFinancialTable(companyFinancialData.data?.profit, '손익계산')}
@@ -2591,8 +2591,8 @@ export default function TcfdSrPage() {
                       </div>
                       <ul className="text-sm text-gray-600 space-y-1">
                         <li>• 한국어 특화 자연스러운 표현</li>
-                        <li>• 한국 기업 문화 이해</li>
-                        <li>• ESG/TCFD 전문 용어</li>
+                        <li>• 모델 소유권으로 서버내에서 유출 가능성 낮음</li>
+                        <li>• 저비용</li>
                       </ul>
                     </div>
                   </div>
@@ -2972,30 +2972,8 @@ export default function TcfdSrPage() {
                       </div>
                     )}
 
-                    {/* 결과 요약 및 비교 */}
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                      <h4 className="text-lg font-semibold text-gray-800 mb-4">📊 AI 모델별 특징 비교</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-white p-4 rounded-lg border border-blue-200">
-                          <h5 className="font-semibold text-blue-700 mb-2">OpenAI GPT-4o-mini</h5>
-                          <ul className="text-sm text-gray-600 space-y-1">
-                            <li>• 글로벌 최고 수준의 언어 이해력</li>
-                            <li>• 영어 기반 다국어 지원</li>
-                            <li>• 정확한 사실 기반 응답</li>
-                            <li>• 전문적인 비즈니스 용어</li>
-                          </ul>
-                        </div>
-                        <div className="bg-white p-4 rounded-lg border border-purple-200">
-                          <h5 className="font-semibold text-purple-700 mb-2">KoAlpaca/RoLA</h5>
-                          <ul className="text-sm text-gray-600 space-y-1">
-                            <li>• 한국어 특화 자연스러운 표현</li>
-                            <li>• 한국 기업 문화 이해</li>
-                            <li>• ESG/TCFD 전문 용어</li>
-                            <li>• 로컬 컨텍스트 적합성</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
+                    결과 요약 및 비교
+
                   </div>
                 ) : (
                   <div className="text-center py-16">
@@ -3416,7 +3394,7 @@ export default function TcfdSrPage() {
                      </div>
                      <div>
                        <h3 className="font-semibold text-gray-800 mb-1">기후시나리오 탭</h3>
-                       <p className="text-gray-600 text-sm">SSP 1-2.6과 SSP 5-8.5 시나리오의 기후 변화 예측을 확인하세요</p>
+                       <p className="text-gray-600 text-sm">SSP 1-2.6과 SSP 5-8.5 시나리오의 기후 변화 예측을 확인하세요<br/>※ 해당 기업의 사업장 및 한반도의 기후시나리오에 따른 기후변화 예측 가능</p>
                      </div>
                    </div>
                    
@@ -3426,7 +3404,7 @@ export default function TcfdSrPage() {
                      </div>
                      <div>
                        <h3 className="font-semibold text-gray-800 mb-1">AI보고서 초안 탭</h3>
-                       <p className="text-gray-600 text-sm">입력된 정보를 바탕으로 AI가 자동으로 보고서를 생성합니다</p>
+                       <p className="text-gray-600 text-sm">입력된 정보를 바탕으로 AI가 자동으로 보고서를 생성합니다<br/>필요한 윤문들은 Word,Pdf로 받으세요</p>
                      </div>
                    </div>
                  </div>
