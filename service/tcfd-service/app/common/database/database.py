@@ -13,23 +13,11 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localho
 # URL 디버깅
 print(f"Original DATABASE_URL: {DATABASE_URL}")
 
-# 환경별 URL 처리
+# 환경별 URL 처리 - 원래 URL 그대로 사용
 railway_env = os.getenv("RAILWAY_ENVIRONMENT")
-if railway_env in ["true", "production"]:  # "production"도 인식
-    # Railway 환경: asyncpg 사용
-    if not DATABASE_URL.startswith("postgresql+asyncpg://"):
-        if DATABASE_URL.startswith("postgresql://"):
-            DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL[len("postgresql://"):]
-        elif DATABASE_URL.startswith("postgres://"):
-            DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL[len("postgres://"):]
-        else:
-            DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL
-else:
-    # Docker 환경: psycopg2 사용 (동기)
-    if DATABASE_URL.startswith("postgresql+asyncpg://"):
-        DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgresql+asyncpg://"):]
-    elif DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
+# postgres:// 스키마만 postgresql://로 변환 (필요한 경우)
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 print(f"Final DATABASE_URL: {DATABASE_URL}")
 
