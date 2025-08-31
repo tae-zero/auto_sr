@@ -363,17 +363,22 @@ class TCFDService:
             # 경고 무시 설정
             warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
             
-            # 한글 폰트 설정 (간단하고 직접적인 방식)
-            try:
-                mpl.rcParams['font.family'] = 'Malgun Gothic'
-                mpl.rcParams['axes.unicode_minus'] = False
-                korean_font_available = True
-                logger.info("✅ 한글 폰트 설정 완료 (Malgun Gothic)")
-            except Exception as e:
-                # Malgun Gothic이 없으면 기본 폰트 사용
-                mpl.rcParams['font.family'] = 'DejaVu Sans'
-                korean_font_available = False
-                logger.warning(f"⚠️ Malgun Gothic 폰트 설정 실패: {str(e)}, 기본 폰트 사용")
+             # Railway 환경에서는 영어 폰트 사용 (한글 폰트 문제 해결)
+            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+                 mpl.rcParams['font.family'] = 'DejaVu Sans'
+                 korean_font_available = False
+                 logger.info("✅ Railway 환경: 영어 폰트 사용 (DejaVu Sans)")
+            else:
+                 # Docker 환경에서만 한글 폰트 시도
+                 try:
+                     mpl.rcParams['font.family'] = 'Malgun Gothic'
+                     mpl.rcParams['axes.unicode_minus'] = False
+                     korean_font_available = True
+                     logger.info("✅ Docker 환경: 한글 폰트 설정 완료 (Malgun Gothic)")
+                 except Exception as e:
+                     mpl.rcParams['font.family'] = 'DejaVu Sans'
+                     korean_font_available = False
+                     logger.warning(f"⚠️ Malgun Gothic 폰트 설정 실패: {str(e)}, 기본 폰트 사용")
             
             # 데이터를 연도별로 정리하고 집계
             year_data = {}
