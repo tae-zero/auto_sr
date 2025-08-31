@@ -342,8 +342,20 @@ class TCFDService:
             import io
             import base64
             
-            # 한글 폰트 설정
-            plt.rcParams['font.family'] = 'DejaVu Sans'
+            # 한글 폰트 설정 (한글이 지원되는 폰트 사용)
+            try:
+                # 한글 폰트 찾기
+                font_list = fm.findSystemFonts()
+                korean_fonts = [f for f in font_list if any(name in f.lower() for name in ['nanum', 'malgun', 'gulim', 'dotum'])]
+                
+                if korean_fonts:
+                    plt.rcParams['font.family'] = 'sans-serif'
+                    plt.rcParams['font.sans-serif'] = ['NanumGothic', 'Malgun Gothic', 'Gulim', 'Dotum']
+                else:
+                    # 한글 폰트가 없으면 기본 폰트 사용
+                    plt.rcParams['font.family'] = 'DejaVu Sans'
+            except:
+                plt.rcParams['font.family'] = 'DejaVu Sans'
             
             # 데이터를 연도별로 정리
             years = []
@@ -357,7 +369,7 @@ class TCFDService:
             if not years or not values:
                 raise Exception("유효한 기후 데이터가 없습니다")
             
-            # 테이블 데이터 생성
+            # 테이블 데이터 생성 (연도별로 정렬)
             table_data = []
             for i, year in enumerate(years):
                 if start_year <= year <= end_year:
@@ -366,8 +378,23 @@ class TCFDService:
             if not table_data:
                 raise Exception("지정된 연도 범위에 데이터가 없습니다")
             
+            # 연도별로 정렬
+            table_data.sort(key=lambda x: x[0])
+            
+            # 이미지 크기 계산 (데이터 개수에 따라 동적 조정)
+            data_count = len(table_data)
+            if data_count <= 20:
+                fig_height = 8
+                font_size = 12
+            elif data_count <= 50:
+                fig_height = 12
+                font_size = 10
+            else:
+                fig_height = 16
+                font_size = 8
+            
             # 테이블 이미지 생성
-            fig, ax = plt.subplots(figsize=(10, 6))
+            fig, ax = plt.subplots(figsize=(12, fig_height))
             ax.axis('tight')
             ax.axis('off')
             
@@ -381,7 +408,7 @@ class TCFDService:
             
             # 테이블 스타일링
             table.auto_set_font_size(False)
-            table.set_fontsize(12)
+            table.set_fontsize(font_size)
             table.scale(1.2, 1.5)
             
             # 제목 설정
