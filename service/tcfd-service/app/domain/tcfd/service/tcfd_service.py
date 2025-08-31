@@ -354,7 +354,7 @@ class TCFDService:
         """기후 데이터를 막대그래프 차트로 변환"""
         try:
             import matplotlib.pyplot as plt
-            import matplotlib.font_manager as fm
+            import matplotlib as mpl
             import io
             import base64
             import numpy as np
@@ -363,24 +363,17 @@ class TCFDService:
             # 경고 무시 설정
             warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
             
-            # 한글 폰트 설정 (한글이 지원되는 폰트 사용)
-            korean_font_available = False
+            # 한글 폰트 설정 (간단하고 직접적인 방식)
             try:
-                # 한글 폰트 찾기
-                font_list = fm.findSystemFonts()
-                korean_fonts = [f for f in font_list if any(name in f.lower() for name in ['nanum', 'malgun', 'gulim', 'dotum'])]
-                
-                if korean_fonts:
-                    plt.rcParams['font.family'] = 'sans-serif'
-                    plt.rcParams['font.sans-serif'] = ['NanumGothic', 'Malgun Gothic', 'Gulim', 'Dotum']
-                    korean_font_available = True
-                    logger.info("✅ 한글 폰트 설정 완료")
-                else:
-                    plt.rcParams['font.family'] = 'DejaVu Sans'
-                    logger.info("⚠️ 한글 폰트를 찾을 수 없어 기본 폰트 사용")
+                mpl.rcParams['font.family'] = 'Malgun Gothic'
+                mpl.rcParams['axes.unicode_minus'] = False
+                korean_font_available = True
+                logger.info("✅ 한글 폰트 설정 완료 (Malgun Gothic)")
             except Exception as e:
-                plt.rcParams['font.family'] = 'DejaVu Sans'
-                logger.warning(f"⚠️ 폰트 설정 중 오류 발생: {str(e)}, 기본 폰트 사용")
+                # Malgun Gothic이 없으면 기본 폰트 사용
+                mpl.rcParams['font.family'] = 'DejaVu Sans'
+                korean_font_available = False
+                logger.warning(f"⚠️ Malgun Gothic 폰트 설정 실패: {str(e)}, 기본 폰트 사용")
             
             # 데이터를 연도별로 정리하고 집계
             year_data = {}
@@ -444,8 +437,11 @@ class TCFDService:
             # 차트 생성
             fig, ax = plt.subplots(figsize=(12, 8))
             
-            # 막대그래프 생성 (깔끔한 단일 색상 사용)
-            bars = ax.bar(chart_years, chart_values, 
+            # x축 위치를 연속적인 인덱스로 변경 (간격 문제 해결)
+            x_positions = list(range(len(chart_years)))
+            
+            # 막대그래프 생성 (연속적인 x축 위치 사용)
+            bars = ax.bar(x_positions, chart_values, 
                          color='#3B82F6',  # 파란색
                          alpha=0.8, 
                          edgecolor='#1E40AF', 
@@ -469,12 +465,12 @@ class TCFDService:
             ax.grid(True, alpha=0.2, linestyle='-', color='#E5E7EB')
             ax.set_axisbelow(True)
             
-            # x축 눈금 설정 (간격 조정)
-            ax.set_xticks(chart_years)
+            # x축 눈금 설정 (연속적인 인덱스 사용)
+            ax.set_xticks(x_positions)
             ax.set_xticklabels(chart_years, rotation=0, fontsize=11, fontweight='bold')
             
-            # x축 간격 조정 (막대 사이 간격을 적당하게)
-            ax.set_xlim(chart_years[0] - 0.5, chart_years[-1] + 0.5)
+            # x축 간격 조정 (연속적인 인덱스 기반)
+            ax.set_xlim(-0.5, len(x_positions) - 0.5)
             
             # y축 범위 설정 (값이 0부터 시작하도록)
             y_min = 0
