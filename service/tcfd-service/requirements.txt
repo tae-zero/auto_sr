@@ -17,6 +17,9 @@ PyJWT==2.8.0
 pydantic==2.5.0
 pydantic-settings==2.1.0
 
+# 데이터 시각화
+matplotlib==3.8.2
+
 # 로깅 및 모니터링
 structlog==23.2.0
 

@@ -70,7 +70,7 @@ class AdministrativeRegion(Base):
     id = Column(Integer, primary_key=True, index=True)
     region_code = Column(String(20), unique=True, index=True, nullable=False)  # sgg261
     region_name = Column(String(100), nullable=False)  # 행정구역명
-    parent_region = Column(String(100))  # 상위 행정구역
+    sub_region_name = Column(String(100), unique=True, nullable=False)  # 세부 행정구역명
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
