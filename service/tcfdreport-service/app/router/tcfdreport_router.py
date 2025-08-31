@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse, HTMLResponse
 from typing import Dict, Any, List
 import logging
 import asyncpg
@@ -13,6 +13,14 @@ import io
 import zipfile
 import urllib.parse
 from weasyprint import HTML, CSS
+
+from app.common.database.database import get_db_connection
+from app.domain.tcfd.entity.tcfd_input_entity import TCFDInputEntity
+from app.domain.tcfd.entity.tcfd_draft_entity import TCFDDraftEntity
+from app.domain.tcfd.schema.tcfd_input_schema import TCFDInputCreateSchema, TCFDInputUpdateSchema, TCFDInputResponseSchema
+from app.domain.tcfd.schema.tcfd_draft_schema import TCFDDraftCreateSchema, TCFDDraftUpdateSchema, TCFDDraftResponseSchema
+from app.domain.tcfd.repository.tcfd_input_repository import TCFDInputRepository
+from app.domain.tcfd.repository.tcfd_draft_repository import TCFDDraftRepository
 
 logger = logging.getLogger(__name__)
 
@@ -192,16 +200,34 @@ async def create_tcfd_inputs(data: Dict[str, Any]):
     try:
         conn = await get_db_connection()
         
-        # asyncpg Record를 dict로 캐스팅
+        # 실제 테이블 구조에 맞춰 INSERT 쿼리 수정
         result = await conn.fetchrow(
             """
-            INSERT INTO tcfd_inputs (company_name, draft, polished, created_at)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO tcfd_inputs (
+                company_name, user_id,
+                governance_g1, governance_g2,
+                strategy_s1, strategy_s2, strategy_s3,
+                risk_management_r1, risk_management_r2, risk_management_r3,
+                metrics_targets_m1, metrics_targets_m2, metrics_targets_m3,
+                created_at, updated_at
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
             RETURNING *
             """,
             data.get('company_name'),
-            data.get('draft'),
-            data.get('polished'),
+            data.get('user_id'),
+            data.get('governance_g1'),
+            data.get('governance_g2'),
+            data.get('strategy_s1'),
+            data.get('strategy_s2'),
+            data.get('strategy_s3'),
+            data.get('risk_management_r1'),
+            data.get('risk_management_r2'),
+            data.get('risk_management_r3'),
+            data.get('metrics_targets_m1'),
+            data.get('metrics_targets_m2'),
+            data.get('metrics_targets_m3'),
+            datetime.now(),
             datetime.now()
         )
         
@@ -247,6 +273,92 @@ async def get_tcfd_inputs(company_name: str):
     except Exception as e:
         logger.error(f"TCFD 데이터 조회 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=f"TCFD 데이터 조회 실패: {str(e)}")
+
+@tcfdreport_router.post("/drafts")
+async def create_tcfd_draft(data: TCFDDraftCreateSchema):
+    """TCFD 초안 데이터 생성"""
+    try:
+        conn = await get_db_connection()
+        
+        # Entity 생성
+        draft_entity = TCFDDraftEntity(
+            company_name=data.company_name,
+            user_id=data.user_id,
+            tcfd_input_id=data.tcfd_input_id,
+            draft_content=data.draft_content,
+            draft_type=data.draft_type,
+            file_path=data.file_path,
+            status=data.status
+        )
+        
+        # Repository를 통해 저장
+        repository = TCFDDraftRepository()
+        saved_draft = await repository.save(conn, draft_entity)
+        
+        await conn.close()
+        return {"success": True, "data": saved_draft.to_dict()}
+        
+    except Exception as e:
+        logger.error(f"TCFD 초안 데이터 생성 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"TCFD 초안 데이터 생성 실패: {str(e)}")
+
+@tcfdreport_router.get("/drafts/{company_name}")
+async def get_tcfd_drafts(company_name: str):
+    """회사별 TCFD 초안 데이터 조회"""
+    try:
+        conn = await get_db_connection()
+        
+        repository = TCFDDraftRepository()
+        drafts = await repository.find_by_company_name(conn, company_name)
+        
+        await conn.close()
+        
+        drafts_data = [draft.to_dict() for draft in drafts]
+        return {"success": True, "data": drafts_data, "total_count": len(drafts_data)}
+        
+    except Exception as e:
+        logger.error(f"TCFD 초안 데이터 조회 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"TCFD 초안 데이터 조회 실패: {str(e)}")
+
+@tcfdreport_router.get("/drafts/id/{draft_id}")
+async def get_tcfd_draft_by_id(draft_id: int):
+    """ID로 TCFD 초안 데이터 조회"""
+    try:
+        conn = await get_db_connection()
+        
+        repository = TCFDDraftRepository()
+        draft = await repository.find_by_id(conn, draft_id)
+        
+        await conn.close()
+        
+        if draft:
+            return {"success": True, "data": draft.to_dict()}
+        else:
+            raise HTTPException(status_code=404, detail="초안 데이터를 찾을 수 없습니다")
+        
+    except Exception as e:
+        logger.error(f"TCFD 초안 데이터 조회 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"TCFD 초안 데이터 조회 실패: {str(e)}")
+
+@tcfdreport_router.put("/drafts/{draft_id}/status")
+async def update_draft_status(draft_id: int, status: str):
+    """TCFD 초안 데이터 상태 업데이트"""
+    try:
+        conn = await get_db_connection()
+        
+        repository = TCFDDraftRepository()
+        success = await repository.update_status(conn, draft_id, status)
+        
+        await conn.close()
+        
+        if success:
+            return {"success": True, "message": "상태 업데이트 완료"}
+        else:
+            raise HTTPException(status_code=404, detail="초안 데이터를 찾을 수 없습니다")
+        
+    except Exception as e:
+        logger.error(f"TCFD 초안 데이터 상태 업데이트 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"TCFD 초안 데이터 상태 업데이트 실패: {str(e)}")
 
 @tcfdreport_router.post("/download/word")
 async def download_tcfd_report_as_word(data: Dict[str, Any]):

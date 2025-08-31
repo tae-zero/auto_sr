@@ -220,7 +220,30 @@ export const tcfdReportAPI = {
   getTcfdStandards: () => apiClient.get('/api/v1/tcfdreport/standards'),
   // TCFD 입력 데이터 관련 API
   createTcfdInput: (data: TCFDInputData) => apiClient.post('/api/v1/tcfdreport/inputs', data),
-  getTcfdInputs: () => apiClient.get('/api/v1/tcfdreport/inputs'),
+  getTcfdInputs: (companyName: string) => 
+    apiClient.get(`/api/v1/tcfdreport/inputs/${companyName}`),
+  
+  createTcfdInputs: (data: any) => 
+    apiClient.post('/api/v1/tcfdreport/inputs', data),
+  
+  downloadWord: (data: any) => 
+    apiClient.post('/api/v1/tcfdreport/download/word', data, { responseType: 'blob' }),
+  
+  downloadPdf: (data: any) => 
+    apiClient.post('/api/v1/tcfdreport/download/pdf', data, { responseType: 'blob' }),
+  
+  // 새로운 TCFD Draft 관련 API 함수들 - Gateway를 거치도록 수정
+  createTcfdDraft: (data: any) => 
+    apiClient.post('/api/v1/tcfdreport/drafts', data),
+  
+  getTcfdDrafts: (companyName: string) => 
+    apiClient.get(`/api/v1/tcfdreport/drafts/${companyName}`),
+  
+  getTcfdDraftById: (draftId: number) => 
+    apiClient.get(`/api/v1/tcfdreport/drafts/id/${draftId}`),
+  
+  updateDraftStatus: (draftId: number, status: string) => 
+    apiClient.put(`/api/v1/tcfdreport/drafts/${draftId}/status`, { status }),
 };
 
 // LLM Service API (TCFD 보고서 생성용)

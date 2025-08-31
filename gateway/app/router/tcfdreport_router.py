@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Request, HTTPException
-from app.domain.discovery.service_discovery import ServiceDiscovery
-import httpx
+from fastapi import APIRouter, Request, HTTPException, Header
+from fastapi.responses import FileResponse, StreamingResponse
+from typing import Dict, Any, List
 import logging
-import traceback
+import httpx
 import os
+from datetime import datetime
+
+from app.common.utility.utility import verify_token
+from app.domain.discovery.service_discovery import ServiceDiscovery
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/tcfdreport", tags=["tcfdreport"])
@@ -492,3 +496,273 @@ async def download_tcfd_report_combined(request: Request, data: dict):
     except Exception as e:
         logger.error(f"TCFD Report Service Combined 다운로드 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=f"TCFD Report Service Combined 다운로드 실패: {str(e)}")
+
+@router.post("/drafts")
+async def create_tcfd_draft(request: Request, data: Dict[str, Any], authorization: str = Header(None)):
+    """TCFD 초안 데이터 생성"""
+    try:
+        logger.info("🔍 TCFD 초안 데이터 생성 요청 시작")
+        
+        # JWT 토큰 검증
+        if not authorization or not authorization.startswith('Bearer '):
+            raise HTTPException(status_code=401, detail="Bearer 토큰이 필요합니다")
+        
+        # 토큰 검증 및 사용자 정보 추출
+        user_info = await verify_token(authorization)
+        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_info', {}).get('user_id', 'unknown')}")
+        
+        # Service Discovery를 통해 TCFD Report Service 인스턴스 가져오기
+        service_discovery: ServiceDiscovery = request.app.state.service_discovery
+        logger.info(f"📡 Service Discovery 상태: {service_discovery}")
+        
+        tcfdreport_service = service_discovery.get_service_instance("tcfdreport-service")
+        logger.info(f"🎯 선택된 TCFD Report Service 인스턴스: {tcfdreport_service}")
+        
+        if not tcfdreport_service:
+            logger.error("❌ TCFD Report Service를 찾을 수 없습니다")
+            raise HTTPException(status_code=503, detail="TCFD Report Service를 찾을 수 없습니다")
+        
+        # TCFD Report Service로 요청 전달
+        host = tcfdreport_service.host
+        port = tcfdreport_service.port
+        logger.info(f"🔍 원본 TCFD Report Service host: {host}")
+        logger.info(f"🔍 TCFD Report Service port: {port}")
+        logger.info(f"🔍 RAILWAY_ENVIRONMENT: {os.getenv('RAILWAY_ENVIRONMENT')}")
+        
+        # URL이 이미 완전한 형태인지 확인
+        if host.startswith('http://') or host.startswith('https://'):
+            url = f"{host}/api/v1/tcfdreport/drafts"
+        else:
+            # Railway/Vercel 환경에서는 환경변수에서 직접 TCFD Report Service URL 가져오기
+            if os.getenv("RAILWAY_ENVIRONMENT") == "true" or os.getenv("VERCEL_ENVIRONMENT") == "true":
+                railway_tcfdreport_url = os.getenv("RAILWAY_TCFDREPORT_SERVICE_URL")
+                if railway_tcfdreport_url:
+                    url = f"{railway_tcfdreport_url}/api/v1/tcfdreport/drafts"
+                    logger.info(f"🔧 Railway/Vercel 환경에서 환경변수 TCFD Report Service URL: {url}")
+                else:
+                    # 환경변수가 없으면 Service Discovery에서 가져온 URL 사용
+                    url = f"http://{host}:{port}/api/v1/tcfdreport/drafts"
+                    logger.info(f"🔧 Railway/Vercel 환경에서 Service Discovery TCFD Report Service URL: {url}")
+            else:
+                # Docker 환경에서는 컨테이너 이름과 포트 사용
+                url = f"http://tcfdreport-service:8004/api/v1/tcfdreport/drafts"
+                logger.info(f"🔧 Docker 환경에서 TCFD Report Service URL: {url}")
+        
+        logger.info(f"📤 최종 요청 URL: {url}")
+        
+        # TCFD Report Service로 요청 전달
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url,
+                json=data,
+                headers={"Authorization": authorization},
+                timeout=30.0
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                logger.info(f"✅ TCFD 초안 데이터 생성 성공: {result}")
+                return result
+            else:
+                logger.error(f"❌ TCFD Report Service HTTP 응답 오류: {response.status_code}")
+                raise HTTPException(status_code=response.status_code, detail=f"TCFD Report Service 오류: {response.text}")
+                
+    except httpx.ConnectError as e:
+        logger.error(f"❌ TCFD Report Service 연결 실패: {str(e)}")
+        raise HTTPException(status_code=503, detail=f"TCFD Report Service 연결 실패: {str(e)}")
+    except Exception as e:
+        logger.error(f"❌ TCFD 초안 데이터 생성 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"TCFD 초안 데이터 생성 실패: {str(e)}")
+
+@router.get("/drafts/{company_name}")
+async def get_tcfd_drafts(request: Request, company_name: str, authorization: str = Header(None)):
+    """회사별 TCFD 초안 데이터 조회"""
+    try:
+        logger.info(f"🔍 TCFD 초안 데이터 조회 요청 시작: {company_name}")
+        
+        # JWT 토큰 검증
+        if not authorization or not authorization.startswith('Bearer '):
+            raise HTTPException(status_code=401, detail="Bearer 토큰이 필요합니다")
+        
+        # 토큰 검증 및 사용자 정보 추출
+        user_info = await verify_token(authorization)
+        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_info', {}).get('user_id', 'unknown')}")
+        
+        # Service Discovery를 통해 TCFD Report Service 인스턴스 가져오기
+        service_discovery: ServiceDiscovery = request.app.state.service_discovery
+        tcfdreport_service = service_discovery.get_service_instance("tcfdreport-service")
+        
+        if not tcfdreport_service:
+            logger.error("❌ TCFD Report Service를 찾을 수 없습니다")
+            raise HTTPException(status_code=503, detail="TCFD Report Service를 찾을 수 없습니다")
+        
+        # TCFD Report Service로 요청 전달
+        host = tcfdreport_service.host
+        port = tcfdreport_service.port
+        
+        # URL 구성
+        if host.startswith('http://') or host.startswith('https://'):
+            url = f"{host}/api/v1/tcfdreport/drafts/{company_name}"
+        else:
+            if os.getenv("RAILWAY_ENVIRONMENT") == "true" or os.getenv("VERCEL_ENVIRONMENT") == "true":
+                railway_tcfdreport_url = os.getenv("RAILWAY_TCFDREPORT_SERVICE_URL")
+                if railway_tcfdreport_url:
+                    url = f"{railway_tcfdreport_url}/api/v1/tcfdreport/drafts/{company_name}"
+                else:
+                    url = f"http://{host}:{port}/api/v1/tcfdreport/drafts/{company_name}"
+            else:
+                url = f"http://tcfdreport-service:8004/api/v1/tcfdreport/drafts/{company_name}"
+        
+        logger.info(f"📤 최종 요청 URL: {url}")
+        
+        # TCFD Report Service로 요청 전달
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                url,
+                headers={"Authorization": authorization},
+                timeout=30.0
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                logger.info(f"✅ TCFD 초안 데이터 조회 성공: {result}")
+                return result
+            else:
+                logger.error(f"❌ TCFD Report Service HTTP 응답 오류: {response.status_code}")
+                raise HTTPException(status_code=response.status_code, detail=f"TCFD Report Service 오류: {response.text}")
+                
+    except httpx.ConnectError as e:
+        logger.error(f"❌ TCFD Report Service 연결 실패: {str(e)}")
+        raise HTTPException(status_code=503, detail=f"TCFD Report Service 연결 실패: {str(e)}")
+    except Exception as e:
+        logger.error(f"❌ TCFD 초안 데이터 조회 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"TCFD 초안 데이터 조회 실패: {str(e)}")
+
+@router.get("/drafts/id/{draft_id}")
+async def get_tcfd_draft_by_id(request: Request, draft_id: int, authorization: str = Header(None)):
+    """ID로 TCFD 초안 데이터 조회"""
+    try:
+        logger.info(f"🔍 TCFD 초안 데이터 ID 조회 요청 시작: {draft_id}")
+        
+        # JWT 토큰 검증
+        if not authorization or not authorization.startswith('Bearer '):
+            raise HTTPException(status_code=401, detail="Bearer 토큰이 필요합니다")
+        
+        # 토큰 검증 및 사용자 정보 추출
+        user_info = await verify_token(authorization)
+        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_info', {}).get('user_id', 'unknown')}")
+        
+        # Service Discovery를 통해 TCFD Report Service 인스턴스 가져오기
+        service_discovery: ServiceDiscovery = request.app.state.service_discovery
+        tcfdreport_service = service_discovery.get_service_instance("tcfdreport-service")
+        
+        if not tcfdreport_service:
+            logger.error("❌ TCFD Report Service를 찾을 수 없습니다")
+            raise HTTPException(status_code=503, detail="TCFD Report Service를 찾을 수 없습니다")
+        
+        # TCFD Report Service로 요청 전달
+        host = tcfdreport_service.host
+        port = tcfdreport_service.port
+        
+        # URL 구성
+        if host.startswith('http://') or host.startswith('https://'):
+            url = f"{host}/api/v1/tcfdreport/drafts/id/{draft_id}"
+        else:
+            if os.getenv("RAILWAY_ENVIRONMENT") == "true" or os.getenv("VERCEL_ENVIRONMENT") == "true":
+                railway_tcfdreport_url = os.getenv("RAILWAY_TCFDREPORT_SERVICE_URL")
+                if railway_tcfdreport_url:
+                    url = f"{railway_tcfdreport_url}/api/v1/tcfdreport/drafts/id/{draft_id}"
+                else:
+                    url = f"http://{host}:{port}/api/v1/tcfdreport/drafts/id/{draft_id}"
+            else:
+                url = f"http://tcfdreport-service:8004/api/v1/tcfdreport/drafts/id/{draft_id}"
+        
+        logger.info(f"📤 최종 요청 URL: {url}")
+        
+        # TCFD Report Service로 요청 전달
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                url,
+                headers={"Authorization": authorization},
+                timeout=30.0
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                logger.info(f"✅ TCFD 초안 데이터 ID 조회 성공: {result}")
+                return result
+            else:
+                logger.error(f"❌ TCFD Report Service HTTP 응답 오류: {response.status_code}")
+                raise HTTPException(status_code=response.status_code, detail=f"TCFD Report Service 오류: {response.text}")
+                
+    except httpx.ConnectError as e:
+        logger.error(f"❌ TCFD Report Service 연결 실패: {str(e)}")
+        raise HTTPException(status_code=503, detail=f"TCFD Report Service 연결 실패: {str(e)}")
+    except Exception as e:
+        logger.error(f"❌ TCFD 초안 데이터 ID 조회 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"TCFD 초안 데이터 ID 조회 실패: {str(e)}")
+
+@router.put("/drafts/{draft_id}/status")
+async def update_draft_status(request: Request, draft_id: int, status: str, authorization: str = Header(None)):
+    """TCFD 초안 데이터 상태 업데이트"""
+    try:
+        logger.info(f"🔍 TCFD 초안 데이터 상태 업데이트 요청 시작: {draft_id} -> {status}")
+        
+        # JWT 토큰 검증
+        if not authorization or not authorization.startswith('Bearer '):
+            raise HTTPException(status_code=401, detail="Bearer 토큰이 필요합니다")
+        
+        # 토큰 검증 및 사용자 정보 추출
+        user_info = await verify_token(authorization)
+        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_info', {}).get('user_id', 'unknown')}")
+        
+        # Service Discovery를 통해 TCFD Report Service 인스턴스 가져오기
+        service_discovery: ServiceDiscovery = request.app.state.service_discovery
+        tcfdreport_service = service_discovery.get_service_instance("tcfdreport-service")
+        
+        if not tcfdreport_service:
+            logger.error("❌ TCFD Report Service를 찾을 수 없습니다")
+            raise HTTPException(status_code=503, detail="TCFD Report Service를 찾을 수 없습니다")
+        
+        # TCFD Report Service로 요청 전달
+        host = tcfdreport_service.host
+        port = tcfdreport_service.port
+        
+        # URL 구성
+        if host.startswith('http://') or host.startswith('https://'):
+            url = f"{host}/api/v1/tcfdreport/drafts/{draft_id}/status"
+        else:
+            if os.getenv("RAILWAY_ENVIRONMENT") == "true" or os.getenv("VERCEL_ENVIRONMENT") == "true":
+                railway_tcfdreport_url = os.getenv("RAILWAY_TCFDREPORT_SERVICE_URL")
+                if railway_tcfdreport_url:
+                    url = f"{railway_tcfdreport_url}/api/v1/tcfdreport/drafts/{draft_id}/status"
+                else:
+                    url = f"http://{host}:{port}/api/v1/tcfdreport/drafts/{draft_id}/status"
+            else:
+                url = f"http://tcfdreport-service:8004/api/v1/tcfdreport/drafts/{draft_id}/status"
+        
+        logger.info(f"📤 최종 요청 URL: {url}")
+        
+        # TCFD Report Service로 요청 전달
+        async with httpx.AsyncClient() as client:
+            response = await client.put(
+                url,
+                json={"status": status},
+                headers={"Authorization": authorization},
+                timeout=30.0
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                logger.info(f"✅ TCFD 초안 데이터 상태 업데이트 성공: {result}")
+                return result
+            else:
+                logger.error(f"❌ TCFD Report Service HTTP 응답 오류: {response.status_code}")
+                raise HTTPException(status_code=response.status_code, detail=f"TCFD Report Service 오류: {response.text}")
+                
+    except httpx.ConnectError as e:
+        logger.error(f"❌ TCFD Report Service 연결 실패: {str(e)}")
+        raise HTTPException(status_code=503, detail=f"TCFD Report Service 연결 실패: {str(e)}")
+    except Exception as e:
+        logger.error(f"❌ TCFD 초안 데이터 상태 업데이트 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"TCFD 초안 데이터 상태 업데이트 실패: {str(e)}")
