@@ -723,19 +723,43 @@ async def generate_tcfd_report(request: Request, authorization: str = Header(Non
 
 @router.get("/climate-scenarios")
 async def get_climate_scenarios(
+    request: Request,
     scenario_code: Optional[str] = Query(None, description="시나리오 코드 (SSP126, SSP585)"),
     variable_code: Optional[str] = Query(None, description="기후변수 코드 (HW33, RN, TA, TR25, RAIN80)"),
     year: Optional[int] = Query(None, description="연도 (2021-2100)"),
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    authorization: str = Header(None)
 ):
     """
     기후 시나리오 데이터 조회
     """
     try:
-        # TCFD Service로 요청 전달
-        tcfd_service_url = await get_tcfd_service_url()
-        if not tcfd_service_url:
+        logger.info("🔍 기후 시나리오 데이터 조회 요청 시작")
+        
+        # JWT 토큰 검증
+        if not authorization or not authorization.startswith('Bearer '):
+            raise HTTPException(status_code=401, detail="Bearer 토큰이 필요합니다")
+        
+        # 토큰 검증 및 사용자 정보 추출
+        user_info = await verify_token(authorization)
+        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_info', {}).get('user_id', 'unknown')}")
+        
+        # Service Discovery를 통해 TCFD Service 인스턴스 가져오기
+        service_discovery: ServiceDiscovery = request.app.state.service_discovery
+        tcfd_service = service_discovery.get_service_instance("tcfd-service")
+        
+        if not tcfd_service:
+            logger.error("❌ TCFD Service를 찾을 수 없습니다")
             raise HTTPException(status_code=503, detail="TCFD Service를 찾을 수 없습니다")
+        
+        # TCFD Service URL 구성
+        host = tcfd_service.host
+        port = tcfd_service.port
+        
+        if not host.startswith(('http://', 'https://')):
+            if os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]:
+                host = f"https://{host}"
+            else:
+                host = f"http://{host}"
         
         # 쿼리 파라미터 구성
         params = {}
@@ -747,15 +771,23 @@ async def get_climate_scenarios(
             params["year"] = year
         
         # TCFD Service 호출
-        async with httpx.AsyncClient() as client:
+        url = f"{host}/api/v1/tcfd/climate-scenarios"
+        if not host.startswith("https://") and port:
+            url = f"{host}:{port}/api/v1/tcfd/climate-scenarios"
+        
+        logger.info(f"📤 TCFD Service 호출: {url}")
+        logger.info(f"📤 파라미터: {params}")
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(
-                f"{tcfd_service_url}/api/v1/tcfd/climate-scenarios",
+                url,
                 params=params,
-                headers={"Authorization": f"Bearer {current_user.get('token', '')}"},
+                headers={"Authorization": authorization},
                 timeout=30.0
             )
             
             if response.status_code == 200:
+                logger.info("✅ 기후 시나리오 데이터 조회 성공")
                 return response.json()
             else:
                 logger.error(f"❌ TCFD Service 응답 오류: {response.status_code}")
@@ -768,20 +800,44 @@ async def get_climate_scenarios(
 
 @router.get("/climate-scenarios/table-image")
 async def generate_climate_table_image(
+    request: Request,
     scenario_code: str = Query(..., description="시나리오 코드 (SSP126, SSP585)"),
     variable_code: str = Query(..., description="기후변수 코드 (HW33, RN, TA, TR25, RAIN80)"),
     start_year: int = Query(2021, description="시작 연도"),
     end_year: int = Query(2030, description="종료 연도"),
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    authorization: str = Header(None)
 ):
     """
     기후 시나리오 데이터를 테이블 이미지로 생성
     """
     try:
-        # TCFD Service로 요청 전달
-        tcfd_service_url = await get_tcfd_service_url()
-        if not tcfd_service_url:
+        logger.info("🔍 기후 시나리오 테이블 이미지 생성 요청 시작")
+        
+        # JWT 토큰 검증
+        if not authorization or not authorization.startswith('Bearer '):
+            raise HTTPException(status_code=401, detail="Bearer 토큰이 필요합니다")
+        
+        # 토큰 검증 및 사용자 정보 추출
+        user_info = await verify_token(authorization)
+        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_info', {}).get('user_id', 'unknown')}")
+        
+        # Service Discovery를 통해 TCFD Service 인스턴스 가져오기
+        service_discovery: ServiceDiscovery = request.app.state.service_discovery
+        tcfd_service = service_discovery.get_service_instance("tcfd-service")
+        
+        if not tcfd_service:
+            logger.error("❌ TCFD Service를 찾을 수 없습니다")
             raise HTTPException(status_code=503, detail="TCFD Service를 찾을 수 없습니다")
+        
+        # TCFD Service URL 구성
+        host = tcfd_service.host
+        port = tcfd_service.port
+        
+        if not host.startswith(('http://', 'https://')):
+            if os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]:
+                host = f"https://{host}"
+            else:
+                host = f"http://{host}"
         
         # 쿼리 파라미터 구성
         params = {
@@ -792,15 +848,23 @@ async def generate_climate_table_image(
         }
         
         # TCFD Service 호출
-        async with httpx.AsyncClient() as client:
+        url = f"{host}/api/v1/tcfd/climate-scenarios/table-image"
+        if not host.startswith("https://") and port:
+            url = f"{host}:{port}/api/v1/tcfd/climate-scenarios/table-image"
+        
+        logger.info(f"📤 TCFD Service 호출: {url}")
+        logger.info(f"📤 파라미터: {params}")
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(
-                f"{tcfd_service_url}/api/v1/tcfd/climate-scenarios/table-image",
+                url,
                 params=params,
-                headers={"Authorization": f"Bearer {current_user.get('token', '')}"},
+                headers={"Authorization": authorization},
                 timeout=30.0
             )
             
             if response.status_code == 200:
+                logger.info("✅ 기후 시나리오 테이블 이미지 생성 성공")
                 return response.json()
             else:
                 logger.error(f"❌ TCFD Service 응답 오류: {response.status_code}")
