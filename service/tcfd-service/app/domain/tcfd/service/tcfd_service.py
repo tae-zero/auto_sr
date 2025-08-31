@@ -291,7 +291,7 @@ class TCFDService:
             logger.error(f"기후 시나리오 데이터 조회 실패: {str(e)}")
             raise Exception(f"기후 시나리오 데이터 조회 실패: {str(e)}")
     
-    async def generate_climate_table_image(
+    async def generate_climate_chart_image(
         self,
         scenario_code: str,
         variable_code: str,
@@ -299,7 +299,7 @@ class TCFDService:
         end_year: int,
         current_user: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        """기후 시나리오 데이터를 테이블 이미지로 생성"""
+        """기후 시나리오 데이터를 막대그래프 차트로 생성"""
         try:
             # 데이터베이스에서 기후 데이터 조회
             climate_data = await self.repository.get_climate_scenarios(
@@ -312,7 +312,7 @@ class TCFDService:
             if not climate_data:
                 raise Exception("해당 조건의 기후 데이터를 찾을 수 없습니다")
             
-            # 테이블 이미지 생성
+            # 막대그래프 차트 생성
             image_data = await self._create_climate_table_image(
                 climate_data, scenario_code, variable_code, start_year, end_year
             )
@@ -320,12 +320,12 @@ class TCFDService:
             return {
                 "success": True,
                 "image_data": image_data,
-                "message": "기후 시나리오 테이블 이미지 생성 완료"
+                "message": "기후 시나리오 막대그래프 차트 생성 완료"
             }
             
         except Exception as e:
-            logger.error(f"기후 시나리오 테이블 이미지 생성 실패: {str(e)}")
-            raise Exception(f"기후 시나리오 테이블 이미지 생성 실패: {str(e)}")
+            logger.error(f"기후 시나리오 막대그래프 차트 생성 실패: {str(e)}")
+            raise Exception(f"기후 시나리오 막대그래프 차트 생성 실패: {str(e)}")
     
     async def _create_climate_table_image(
         self,
@@ -335,12 +335,13 @@ class TCFDService:
         start_year: int,
         end_year: int
     ) -> str:
-        """기후 데이터를 테이블 이미지로 변환"""
+        """기후 데이터를 막대그래프 차트로 변환"""
         try:
             import matplotlib.pyplot as plt
             import matplotlib.font_manager as fm
             import io
             import base64
+            import numpy as np
             
             # 한글 폰트 설정 (한글이 지원되는 폰트 사용)
             try:
@@ -369,47 +370,52 @@ class TCFDService:
             if not years or not values:
                 raise Exception("유효한 기후 데이터가 없습니다")
             
-            # 테이블 데이터 생성 (연도별로 정렬)
-            table_data = []
+            # 연도 범위에 맞는 데이터만 필터링
+            filtered_data = []
             for i, year in enumerate(years):
                 if start_year <= year <= end_year:
-                    table_data.append([year, f"{values[i]:.2f}"])
+                    filtered_data.append((year, values[i]))
             
-            if not table_data:
+            if not filtered_data:
                 raise Exception("지정된 연도 범위에 데이터가 없습니다")
             
             # 연도별로 정렬
-            table_data.sort(key=lambda x: x[0])
+            filtered_data.sort(key=lambda x: x[0])
             
-            # 이미지 크기 계산 (데이터 개수에 따라 동적 조정)
-            data_count = len(table_data)
-            if data_count <= 20:
-                fig_height = 8
-                font_size = 12
-            elif data_count <= 50:
-                fig_height = 12
-                font_size = 10
-            else:
-                fig_height = 16
-                font_size = 8
+            # 연도와 값 분리
+            chart_years = [item[0] for item in filtered_data]
+            chart_values = [item[1] for item in filtered_data]
             
-            # 테이블 이미지 생성
-            fig, ax = plt.subplots(figsize=(12, fig_height))
-            ax.axis('tight')
-            ax.axis('off')
+            # 차트 생성
+            fig, ax = plt.subplots(figsize=(12, 8))
             
-            # 테이블 생성
-            table = ax.table(
-                cellText=table_data,
-                colLabels=['연도', '값'],
-                cellLoc='center',
-                loc='center'
-            )
+            # 막대그래프 생성
+            bars = ax.bar(chart_years, chart_values, 
+                         color=plt.cm.Blues(np.linspace(0.3, 0.8, len(chart_years))),
+                         alpha=0.8, edgecolor='white', linewidth=1)
             
-            # 테이블 스타일링
-            table.auto_set_font_size(False)
-            table.set_fontsize(font_size)
-            table.scale(1.2, 1.5)
+            # 막대 위에 값 표시
+            for bar, value in zip(bars, chart_values):
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width()/2., height + max(chart_values) * 0.01,
+                       f'{value:.1f}', ha='center', va='bottom', fontsize=10, fontweight='bold')
+            
+            # 축 설정
+            ax.set_xlabel('연도', fontsize=12, fontweight='bold')
+            ax.set_ylabel('값', fontsize=12, fontweight='bold')
+            
+            # 그리드 설정
+            ax.grid(True, alpha=0.3, linestyle='--')
+            ax.set_axisbelow(True)
+            
+            # x축 눈금 설정
+            ax.set_xticks(chart_years)
+            ax.set_xticklabels(chart_years, rotation=0)
+            
+            # y축 범위 설정 (값이 0부터 시작하도록)
+            y_min = min(0, min(chart_values) * 0.9)
+            y_max = max(chart_values) * 1.1
+            ax.set_ylim(y_min, y_max)
             
             # 제목 설정
             scenario_names = {"SSP126": "SSP1-2.6 (저탄소)", "SSP585": "SSP5-8.5 (고탄소)"}
@@ -419,11 +425,15 @@ class TCFDService:
             }
             
             title = f"{scenario_names.get(scenario_code, scenario_code)} - {variable_names.get(variable_code, variable_code)}\n({start_year}년 ~ {end_year}년)"
-            ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
+            ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
+            
+            # 레이아웃 조정
+            plt.tight_layout()
             
             # 이미지를 base64로 인코딩
             buffer = io.BytesIO()
-            plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
+            plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight', 
+                       facecolor='white', edgecolor='none')
             buffer.seek(0)
             
             image_base64 = base64.b64encode(buffer.getvalue()).decode()
@@ -432,8 +442,8 @@ class TCFDService:
             return f"data:image/png;base64,{image_base64}"
             
         except Exception as e:
-            logger.error(f"테이블 이미지 생성 실패: {str(e)}")
-            raise Exception(f"테이블 이미지 생성 실패: {str(e)}")
+            logger.error(f"막대그래프 차트 생성 실패: {str(e)}")
+            raise Exception(f"막대그래프 차트 생성 실패: {str(e)}")
     
     async def get_tcfd_inputs(self, db) -> List[Dict[str, Any]]:
         """TCFD 입력 데이터 조회 (가장 최신 데이터 포함)"""

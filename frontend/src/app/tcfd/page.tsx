@@ -1167,7 +1167,7 @@ export default function TcfdSrPage() {
       console.log('📊 설정:', climateDataSettings);
       
       // API 호출하여 그래프 생성
-      const response = await apiClient.get('/api/v1/tcfd/climate-scenarios/table-image', {
+              const response = await apiClient.get('/api/v1/tcfd/climate-scenarios/chart-image', {
         params: {
           scenario_code: climateDataSettings.scenario,
           variable_code: climateDataSettings.variable,

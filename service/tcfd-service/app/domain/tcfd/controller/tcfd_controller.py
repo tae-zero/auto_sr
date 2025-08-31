@@ -291,8 +291,8 @@ async def get_climate_scenarios(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"기후 시나리오 데이터 조회 실패: {str(e)}")
 
-@router.get("/climate-scenarios/table-image")
-async def generate_climate_table_image(
+@router.get("/climate-scenarios/chart-image")
+async def generate_climate_chart_image(
     scenario_code: str = Query(..., description="시나리오 코드 (SSP126, SSP585)"),
     variable_code: str = Query(..., description="기후변수 코드 (HW33, RN, TA, TR25, RAIN80)"),
     start_year: int = Query(2021, description="시작 연도"),
@@ -300,13 +300,13 @@ async def generate_climate_table_image(
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
-    기후 시나리오 데이터를 테이블 이미지로 생성
+    기후 시나리오 데이터를 막대그래프 차트로 생성
     """
     try:
         # controller = TCFDController() # This line was removed as per the new_code, as TCFDController is not defined.
         # Assuming the intent was to call a service method directly or that TCFDController is meant to be imported.
         # For now, I'll call tcfd_service directly as TCFDController is not defined.
-        result = await tcfd_service.generate_climate_table_image(
+        result = await tcfd_service.generate_climate_chart_image(
             scenario_code=scenario_code,
             variable_code=variable_code,
             start_year=start_year,
@@ -315,7 +315,7 @@ async def generate_climate_table_image(
         )
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"테이블 이미지 생성 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"막대그래프 차트 생성 실패: {str(e)}")
 
 @router.get("/company-overview")
 async def get_company_overview(company_name: str = Query(...)):

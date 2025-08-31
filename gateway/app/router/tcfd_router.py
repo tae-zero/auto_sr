@@ -798,8 +798,8 @@ async def get_climate_scenarios(
         logger.error(f"❌ 기후 시나리오 데이터 조회 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=f"기후 시나리오 데이터 조회 실패: {str(e)}")
 
-@router.get("/climate-scenarios/table-image")
-async def generate_climate_table_image(
+@router.get("/climate-scenarios/chart-image")
+async def generate_climate_chart_image(
     request: Request,
     scenario_code: str = Query(..., description="시나리오 코드 (SSP126, SSP585)"),
     variable_code: str = Query(..., description="기후변수 코드 (HW33, RN, TA, TR25, RAIN80)"),
@@ -808,10 +808,10 @@ async def generate_climate_table_image(
     authorization: str = Header(None)
 ):
     """
-    기후 시나리오 데이터를 테이블 이미지로 생성
+    기후 시나리오 데이터를 막대그래프 차트로 생성
     """
     try:
-        logger.info("🔍 기후 시나리오 테이블 이미지 생성 요청 시작")
+        logger.info("🔍 기후 시나리오 막대그래프 차트 생성 요청 시작")
         
         # JWT 토큰 검증
         if not authorization or not authorization.startswith('Bearer '):
@@ -848,9 +848,9 @@ async def generate_climate_table_image(
         }
         
         # TCFD Service 호출
-        url = f"{host}/api/v1/tcfd/climate-scenarios/table-image"
+        url = f"{host}/api/v1/tcfd/climate-scenarios/chart-image"
         if not host.startswith("https://") and port:
-            url = f"{host}:{port}/api/v1/tcfd/climate-scenarios/table-image"
+            url = f"{host}:{port}/api/v1/tcfd/climate-scenarios/chart-image"
         
         logger.info(f"📤 TCFD Service 호출: {url}")
         logger.info(f"📤 파라미터: {params}")
@@ -864,16 +864,16 @@ async def generate_climate_table_image(
             )
             
             if response.status_code == 200:
-                logger.info("✅ 기후 시나리오 테이블 이미지 생성 성공")
+                logger.info("✅ 기후 시나리오 막대그래프 차트 생성 성공")
                 return response.json()
             else:
                 logger.error(f"❌ TCFD Service 응답 오류: {response.status_code}")
                 logger.error(f"❌ 응답 내용: {response.text}")
-                raise HTTPException(status_code=response.status_code, detail="TCFD Service 오류")
+                raise HTTPException(status_code=500, detail="TCFD Service 오류")
                 
     except Exception as e:
-        logger.error(f"❌ 테이블 이미지 생성 실패: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"테이블 이미지 생성 실패: {str(e)}")
+        logger.error(f"❌ 막대그래프 차트 생성 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"막대그래프 차트 생성 실패: {str(e)}")
 
 @router.get("/administrative-regions")
 async def get_administrative_regions(
