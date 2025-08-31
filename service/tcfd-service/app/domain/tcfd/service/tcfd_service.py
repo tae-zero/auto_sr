@@ -344,8 +344,13 @@ class TCFDService:
             import io
             import base64
             import numpy as np
+            import warnings
+            
+            # 경고 무시 설정
+            warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
             
             # 한글 폰트 설정 (한글이 지원되는 폰트 사용)
+            korean_font_available = False
             try:
                 # 한글 폰트 찾기
                 font_list = fm.findSystemFonts()
@@ -354,23 +359,14 @@ class TCFDService:
                 if korean_fonts:
                     plt.rcParams['font.family'] = 'sans-serif'
                     plt.rcParams['font.sans-serif'] = ['NanumGothic', 'Malgun Gothic', 'Gulim', 'Dotum']
-                    # 한글 폰트가 있으면 경고 무시
-                    import warnings
-                    warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
+                    korean_font_available = True
+                    logger.info("✅ 한글 폰트 설정 완료")
                 else:
-                    # 한글 폰트가 없으면 기본 폰트 사용하고 한글 대신 영어 사용
                     plt.rcParams['font.family'] = 'DejaVu Sans'
-                    # 영어로 제목 변경
-                    scenario_names = {"SSP126": "SSP1-2.6 (Low Carbon)", "SSP585": "SSP5-8.5 (High Carbon)"}
-                    variable_names = {
-                        "HW33": "Heatwave Days", "RN": "Annual Rainfall", "TA": "Annual Temperature", 
-                        "TR25": "Tropical Nights", "RAIN80": "Heavy Rain Days"
-                    }
-                    title = f"{scenario_names.get(scenario_code, scenario_code)} - {variable_names.get(variable_code, variable_code)}\n({start_year} ~ {end_year})"
-                    ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
-                    return
-            except:
+                    logger.info("⚠️ 한글 폰트를 찾을 수 없어 기본 폰트 사용")
+            except Exception as e:
                 plt.rcParams['font.family'] = 'DejaVu Sans'
+                logger.warning(f"⚠️ 폰트 설정 중 오류 발생: {str(e)}, 기본 폰트 사용")
             
             # 데이터를 연도별로 정리하고 집계
             year_data = {}
@@ -386,20 +382,23 @@ class TCFDService:
                             year_data[year] = []
                         year_data[year].append(value)
             
-            # 추가 연도 데이터 수집
-            if additional_years:
+            # 추가 연도 데이터 수집 (기존 데이터에서 찾기)
+            if additional_years and len(additional_years) > 0:
                 for additional_year in additional_years:
                     if additional_year not in year_data:
                         year_data[additional_year] = []
                     
+                    # 기존 climate_data에서 해당 연도 데이터 찾기
                     for data in climate_data:
                         if 'year' in data and 'value' in data and data['year'] == additional_year:
                             year_data[additional_year].append(data['value'])
+                    
+                    logger.info(f"🔍 추가 연도 {additional_year}년 데이터: {len(year_data[additional_year])}개")
             
             if not year_data:
                 raise Exception("지정된 연도 범위에 데이터가 없습니다")
             
-            # 연도별로 평균값 계산 (또는 합계, 최대값 등 원하는 집계 방식)
+            # 연도별로 평균값 계산
             filtered_data = []
             
             # 시작 연도부터 종료 연도까지 순서대로 추가
@@ -410,16 +409,21 @@ class TCFDService:
                     filtered_data.append((year, avg_value))
             
             # 추가 연도들을 마지막에 추가
-            if additional_years:
+            if additional_years and len(additional_years) > 0:
                 for additional_year in additional_years:
                     if additional_year in year_data and year_data[additional_year]:
                         values = year_data[additional_year]
                         avg_value = sum(values) / len(values)
                         filtered_data.append((additional_year, avg_value))
+                        logger.info(f"✅ 추가 연도 {additional_year}년 데이터 추가: {avg_value:.1f}")
+                    else:
+                        logger.warning(f"⚠️ 추가 연도 {additional_year}년 데이터를 찾을 수 없음")
             
             # 연도와 값 분리
             chart_years = [item[0] for item in filtered_data]
             chart_values = [item[1] for item in filtered_data]
+            
+            logger.info(f"📊 차트 데이터: {len(chart_years)}개 연도, 값 범위: {min(chart_values):.1f} ~ {max(chart_values):.1f}")
             
             # 차트 생성
             fig, ax = plt.subplots(figsize=(12, 8))
@@ -438,8 +442,12 @@ class TCFDService:
                        f'{value:.1f}', ha='center', va='bottom', fontsize=11, fontweight='bold', color='#1E40AF')
             
             # 축 설정
-            ax.set_xlabel('연도', fontsize=12, fontweight='bold', color='#374151', labelpad=15)
-            ax.set_ylabel('값', fontsize=12, fontweight='bold', color='#374151', labelpad=15)
+            if korean_font_available:
+                ax.set_xlabel('연도', fontsize=12, fontweight='bold', color='#374151', labelpad=15)
+                ax.set_ylabel('값', fontsize=12, fontweight='bold', color='#374151', labelpad=15)
+            else:
+                ax.set_xlabel('Year', fontsize=12, fontweight='bold', color='#374151', labelpad=15)
+                ax.set_ylabel('Value', fontsize=12, fontweight='bold', color='#374151', labelpad=15)
             
             # 그리드 설정 (더 깔끔하게)
             ax.grid(True, alpha=0.2, linestyle='-', color='#E5E7EB')
@@ -458,18 +466,34 @@ class TCFDService:
             ax.tick_params(axis='y', labelsize=10, colors='#374151')
             
             # 제목 설정
-            scenario_names = {"SSP126": "SSP1-2.6 (저탄소)", "SSP585": "SSP5-8.5 (고탄소)"}
-            variable_names = {
-                "HW33": "폭염일수", "RN": "연강수량", "TA": "연평균기온", 
-                "TR25": "열대야일수", "RAIN80": "호우일수"
-            }
-            
-            # 제목에 추가 연도 정보 포함
-            if additional_years and len(additional_years) > 0:
-                additional_years_str = ", " + ", ".join([f"{year}년" for year in additional_years])
-                title = f"{scenario_names.get(scenario_code, scenario_code)} - {variable_names.get(variable_code, variable_code)}\n({start_year}년 ~ {end_year}년 + 추가: {additional_years_str})"
+            if korean_font_available:
+                scenario_names = {"SSP126": "SSP1-2.6 (저탄소)", "SSP585": "SSP5-8.5 (고탄소)"}
+                variable_names = {
+                    "HW33": "폭염일수", "RN": "연강수량", "TA": "연평균기온", 
+                    "TR25": "열대야일수", "RAIN80": "호우일수"
+                }
+                
+                # 제목에 추가 연도 정보 포함
+                if additional_years and len(additional_years) > 0:
+                    additional_years_str = ", " + ", ".join([f"{year}년" for year in additional_years])
+                    title = f"{scenario_names.get(scenario_code, scenario_code)} - {variable_names.get(variable_code, variable_code)}\n({start_year}년 ~ {end_year}년 + 추가: {additional_years_str})"
+                else:
+                    title = f"{scenario_names.get(scenario_code, scenario_code)} - {variable_names.get(variable_code, variable_code)}\n({start_year}년 ~ {end_year}년)"
             else:
-                title = f"{scenario_names.get(scenario_code, scenario_code)} - {variable_names.get(variable_code, variable_code)}\n({start_year}년 ~ {end_year}년)"
+                # 영어로 제목 설정
+                scenario_names = {"SSP126": "SSP1-2.6 (Low Carbon)", "SSP585": "SSP5-8.5 (High Carbon)"}
+                variable_names = {
+                    "HW33": "Heatwave Days", "RN": "Annual Rainfall", "TA": "Annual Temperature", 
+                    "TR25": "Tropical Nights", "RAIN80": "Heavy Rain Days"
+                }
+                
+                # 제목에 추가 연도 정보 포함
+                if additional_years and len(additional_years) > 0:
+                    additional_years_str = ", " + ", ".join([f"{year}" for year in additional_years])
+                    title = f"{scenario_names.get(scenario_code, scenario_code)} - {variable_names.get(variable_code, variable_code)}\n({start_year} ~ {end_year} + Additional: {additional_years_str})"
+                else:
+                    title = f"{scenario_names.get(scenario_code, scenario_code)} - {variable_names.get(variable_code, variable_code)}\n({start_year} ~ {end_year})"
+            
             ax.set_title(title, fontsize=18, fontweight='bold', pad=25, color='#1F2937')
             
             # 레이아웃 조정
@@ -483,6 +507,8 @@ class TCFDService:
             
             image_base64 = base64.b64encode(buffer.getvalue()).decode()
             plt.close()
+            
+            logger.info("✅ 막대그래프 차트 생성 완료")
             
             # 순수 base64 문자열만 반환 (프론트엔드에서 data URL 구성)
             return image_base64
