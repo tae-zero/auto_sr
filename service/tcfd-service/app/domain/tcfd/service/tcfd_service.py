@@ -118,14 +118,15 @@ class TCFDService:
             # Railway 환경변수에서 데이터베이스 URL 가져오기
             database_url = os.getenv('DATABASE_URL')
             if not database_url:
-                logger.error("❌ DATABASE_URL 환경변수가 설정되지 않았습니다")
+                logger.error("❌ DATABASE_URL 환경변수 설정되지 않았습니다")
                 return None
             
             # Railway 환경변수 형식을 SQLAlchemy 비동기 형식으로 변환
+            # asyncpg는 postgresql+asyncpg 스키마를 지원하지 않음
             if database_url.startswith('postgres://'):
-                database_url = database_url.replace('postgres://', 'postgresql+asyncpg://', 1)
-            elif database_url.startswith('postgresql://'):
-                database_url = database_url.replace('postgresql://', 'postgresql+asyncpg://', 1)
+                database_url = database_url.replace('postgres://', 'postgresql://', 1)
+            elif database_url.startswith('postgresql+asyncpg://'):
+                database_url = database_url.replace('postgresql+asyncpg://', 'postgresql://', 1)
             
             engine = create_async_engine(database_url)
             

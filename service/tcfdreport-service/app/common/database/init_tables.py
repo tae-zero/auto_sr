@@ -10,6 +10,13 @@ logger = logging.getLogger(__name__)
 async def init_tables(database_url: str):
     """데이터베이스 테이블 초기화"""
     try:
+        # asyncpg는 postgresql+asyncpg 스키마를 지원하지 않음
+        # postgresql:// 또는 postgres:// 스키마만 지원
+        if database_url.startswith('postgresql+asyncpg://'):
+            database_url = database_url.replace('postgresql+asyncpg://', 'postgresql://', 1)
+        elif database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        
         conn = await asyncpg.connect(database_url)
         logger.info("✅ 데이터베이스 연결 성공")
         

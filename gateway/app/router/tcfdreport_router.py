@@ -1,10 +1,8 @@
 from fastapi import APIRouter, Request, HTTPException, Header
-from fastapi.responses import FileResponse, StreamingResponse
-from typing import Dict, Any, List
+from typing import Dict, Any
 import logging
 import httpx
 import os
-from datetime import datetime
 
 from app.router.auth_router import verify_token
 from app.domain.discovery.service_discovery import ServiceDiscovery
