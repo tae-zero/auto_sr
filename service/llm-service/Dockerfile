@@ -28,7 +28,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # 애플리케이션 코드 복사
 COPY app/ ./app/
-COPY railway-start.sh .
 COPY railway.json .
 COPY Procfile .
 COPY runtime.txt .
@@ -37,12 +36,9 @@ COPY runtime.txt .
 # Docker 빌드 컨텍스트 내에서 vectordb 폴더를 직접 복사
 COPY vectordb/ ./vectordb/
 
-# 스크립트 실행 권한 부여
-RUN chmod +x railway-start.sh
-
 # 환경변수 설정
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
-# 애플리케이션 실행
-CMD ["./railway-start.sh"]
+# 애플리케이션 실행 (직접 uvicorn 실행)
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002"]
