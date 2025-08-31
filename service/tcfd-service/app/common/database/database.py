@@ -16,31 +16,21 @@ print(f"Original DATABASE_URL: {DATABASE_URL}")
 # 환경별 URL 처리
 railway_env = os.getenv("RAILWAY_ENVIRONMENT")
 if railway_env in ["true", "production"]:  # "production"도 인식
-    # Railway 환경: asyncpg 사용
-    # 이미 postgresql+asyncpg:// 스키마가 있으면 그대로 사용
-    if not DATABASE_URL.startswith("postgresql+asyncpg://"):
-        if DATABASE_URL.startswith("postgresql://"):
-            DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL[len("postgresql://"):]
-        elif DATABASE_URL.startswith("postgres://"):
-            DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL[len("postgres://"):]
-        else:
-            DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL
+    # Railway 환경: postgresql:// 스키마 사용 (asyncpg는 URL에서 제거)
+    if DATABASE_URL.startswith("postgresql+asyncpg://"):
+        DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgresql+asyncpg://"):]
+    elif DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
     
-    # Railway 환경에서는 asyncpg가 설치되어 있는지 확인
-    try:
-        import asyncpg
-        print(f"✅ asyncpg 패키지 확인됨: {asyncpg.__version__}")
-    except ImportError:
-        print("❌ asyncpg 패키지가 설치되지 않음. psycopg2로 대체합니다.")
-        # asyncpg가 없으면 postgresql:// 스키마 사용
-        if DATABASE_URL.startswith("postgresql+asyncpg://"):
-            DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgresql+asyncpg://"):]
+    print(f"🚂 Railway 환경 감지 - postgresql:// 스키마 사용")
 else:
     # Docker 환경: psycopg2 사용 (동기)
     if DATABASE_URL.startswith("postgresql+asyncpg://"):
         DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgresql+asyncpg://"):]
     elif DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
+    
+    print(f"🐳 Docker 환경 감지 - psycopg2 사용")
 
 print(f"Final DATABASE_URL: {DATABASE_URL}")
 
