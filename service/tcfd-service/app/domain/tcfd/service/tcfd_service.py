@@ -352,9 +352,21 @@ class TCFDService:
                 if korean_fonts:
                     plt.rcParams['font.family'] = 'sans-serif'
                     plt.rcParams['font.sans-serif'] = ['NanumGothic', 'Malgun Gothic', 'Gulim', 'Dotum']
+                    # 한글 폰트가 있으면 경고 무시
+                    import warnings
+                    warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
                 else:
-                    # 한글 폰트가 없으면 기본 폰트 사용
+                    # 한글 폰트가 없으면 기본 폰트 사용하고 한글 대신 영어 사용
                     plt.rcParams['font.family'] = 'DejaVu Sans'
+                    # 영어로 제목 변경
+                    scenario_names = {"SSP126": "SSP1-2.6 (Low Carbon)", "SSP585": "SSP5-8.5 (High Carbon)"}
+                    variable_names = {
+                        "HW33": "Heatwave Days", "RN": "Annual Rainfall", "TA": "Annual Temperature", 
+                        "TR25": "Tropical Nights", "RAIN80": "Heavy Rain Days"
+                    }
+                    title = f"{scenario_names.get(scenario_code, scenario_code)} - {variable_names.get(variable_code, variable_code)}\n({start_year} ~ {end_year})"
+                    ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
+                    return
             except:
                 plt.rcParams['font.family'] = 'DejaVu Sans'
             

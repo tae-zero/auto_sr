@@ -72,7 +72,6 @@ class AdministrativeRegion(Base):
     region_name = Column(String(100), nullable=False)  # 행정구역명
     sub_region_name = Column(String(100), unique=True, nullable=False)  # 세부 행정구역명
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class ClimateData(Base):
     __tablename__ = "climate_data"

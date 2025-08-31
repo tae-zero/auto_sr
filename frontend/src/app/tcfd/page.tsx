@@ -1163,49 +1163,72 @@ export default function TcfdSrPage() {
   const generateClimateData = async () => {
     setIsGeneratingClimateData(true);
     try {
-      console.log('🚀 기후 시나리오 테이블 이미지 생성 시작');
+              console.log('🚀 기후 시나리오 막대그래프 차트 생성 시작');
       console.log('📊 설정:', climateDataSettings);
+      console.log('🌐 API 엔드포인트: /api/v1/tcfd/climate-scenarios/chart-image');
+      console.log('⏱️ 타임아웃: 30초');
       
-      // API 호출하여 그래프 생성
-              const response = await apiClient.get('/api/v1/tcfd/climate-scenarios/chart-image', {
+      // API 호출하여 그래프 생성 (타임아웃 30초 설정)
+      const response = await apiClient.get('/api/v1/tcfd/climate-scenarios/chart-image', {
         params: {
           scenario_code: climateDataSettings.scenario,
           variable_code: climateDataSettings.variable,
           start_year: climateDataSettings.startYear,
           end_year: climateDataSettings.endYear
-        }
+        },
+        timeout: 30000 // 30초 타임아웃
       });
 
       console.log('📥 API 응답:', response.data);
       
-      if (response.data && response.data.image_data) {
+      // TCFD Service 응답 구조 확인
+      if (response.data && response.data.success && response.data.image_data) {
         // base64 이미지 데이터를 data URL로 변환
         const imageData = `data:image/png;base64,${response.data.image_data}`;
         setGeneratedClimateData(imageData);
-        console.log('✅ 테이블 이미지 생성 성공');
+        console.log('✅ 막대그래프 차트 생성 성공');
+        console.log('📊 생성된 이미지 데이터 길이:', response.data.image_data.length);
+      } else if (response.data && response.data.image_data) {
+        // image_data가 직접 있는 경우 (기존 구조)
+        const imageData = `data:image/png;base64,${response.data.image_data}`;
+        setGeneratedClimateData(imageData);
+        console.log('✅ 막대그래프 차트 생성 성공 (기존 구조)');
       } else {
         console.error('❌ API 응답에 이미지 데이터가 없습니다:', response.data);
+        console.error('❌ 응답 구조:', {
+          success: response.data?.success,
+          hasImageData: !!response.data?.image_data,
+          message: response.data?.message,
+          fullResponse: response.data
+        });
         alert('그래프 생성에 실패했습니다. 응답 데이터를 확인해주세요.');
       }
     } catch (error: any) {
-      console.error('❌ 그래프 생성 오류:', error);
+      console.error('❌ 막대그래프 차트 생성 오류:', error);
+      console.error('❌ 오류 타입:', error.constructor.name);
+      console.error('❌ 오류 메시지:', error.message);
       
       if (error.response) {
         console.error('📥 오류 응답:', error.response.data);
         console.error('📊 오류 상태:', error.response.status);
+        console.error('📊 오류 헤더:', error.response.headers);
         
         if (error.response.status === 401) {
           alert('인증이 필요합니다. 다시 로그인해주세요.');
         } else if (error.response.status === 503) {
           alert('TCFD Service를 찾을 수 없습니다. 서비스 상태를 확인해주세요.');
+        } else if (error.response.status === 500) {
+          alert(`서버 내부 오류가 발생했습니다. (${error.response.status})\n${error.response.data?.detail || '알 수 없는 오류'}`);
         } else {
-          alert(`그래프 생성 중 오류가 발생했습니다. (${error.response.status})`);
+          alert(`그래프 생성 중 오류가 발생했습니다. (${error.response.status})\n${error.response.data?.detail || '알 수 없는 오류'}`);
         }
       } else if (error.request) {
         console.error('📡 네트워크 오류:', error.request);
-        alert('네트워크 연결을 확인해주세요.');
+        console.error('📡 요청 타임아웃:', error.code);
+        alert('네트워크 연결을 확인해주세요. 요청이 타임아웃되었을 수 있습니다.');
       } else {
-        alert('그래프 생성 중 오류가 발생했습니다.');
+        console.error('❌ 기타 오류:', error);
+        alert('그래프 생성 중 예상치 못한 오류가 발생했습니다.');
       }
     } finally {
       setIsGeneratingClimateData(false);
@@ -3429,8 +3452,8 @@ export default function TcfdSrPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div className="text-sm text-blue-800">
-                      <p className="font-medium mb-1">💡 기후 시나리오 테이블 이미지 생성</p>
-                      <p>선택한 조건에 맞는 기후 데이터를 테이블 형태로 시각화하여 이미지로 생성합니다.</p>
+                      <p className="font-medium mb-1">💡 기후 시나리오 막대그래프 차트 생성</p>
+                                              <p>선택한 조건에 맞는 기후 데이터를 막대그래프 차트로 시각화하여 이미지로 생성합니다.</p>
                       <p className="mt-1 text-blue-600">• SSP1-2.6: 저탄소 시나리오 (온실가스 배출량 감소)</p>
                       <p className="text-blue-600">• SSP5-8.5: 고탄소 시나리오 (온실가스 배출량 증가)</p>
                     </div>

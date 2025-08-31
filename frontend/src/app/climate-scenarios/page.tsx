@@ -678,7 +678,7 @@ export default function ClimateScenariosPage() {
   const generateGraph = async () => {
     setIsGenerating(true);
     try {
-      console.log('🚀 기후 시나리오 테이블 이미지 생성 시작');
+              console.log('🚀 기후 시나리오 막대그래프 차트 생성 시작');
       console.log('📊 설정:', graphSettings);
       
       // API 호출하여 그래프 생성
@@ -1150,8 +1150,8 @@ export default function ClimateScenariosPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-1">💡 기후 시나리오 테이블 이미지 생성</p>
-                    <p>선택한 조건에 맞는 기후 데이터를 테이블 형태로 시각화하여 이미지로 생성합니다.</p>
+                    <p className="font-medium mb-1">💡 기후 시나리오 막대그래프 차트 생성</p>
+                                          <p>선택한 조건에 맞는 기후 데이터를 막대그래프 차트로 시각화하여 이미지로 생성합니다.</p>
                     <p className="mt-1 text-blue-600">• SSP1-2.6: 저탄소 시나리오 (온실가스 배출량 감소)</p>
                     <p className="text-blue-600">• SSP5-8.5: 고탄소 시나리오 (온실가스 배출량 증가)</p>
                   </div>
