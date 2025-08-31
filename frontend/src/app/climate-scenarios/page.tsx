@@ -678,6 +678,9 @@ export default function ClimateScenariosPage() {
   const generateGraph = async () => {
     setIsGenerating(true);
     try {
+      console.log('🚀 기후 시나리오 테이블 이미지 생성 시작');
+      console.log('📊 설정:', graphSettings);
+      
       // API 호출하여 그래프 생성
       const response = await apiClient.get('/api/v1/tcfd/climate-scenarios/table-image', {
         params: {
@@ -688,14 +691,37 @@ export default function ClimateScenariosPage() {
         }
       });
 
-      if (response.data.success) {
-        setGeneratedGraph(response.data.image_data);
+      console.log('📥 API 응답:', response.data);
+      
+      if (response.data && response.data.image_data) {
+        // base64 이미지 데이터를 data URL로 변환
+        const imageData = `data:image/png;base64,${response.data.image_data}`;
+        setGeneratedGraph(imageData);
+        console.log('✅ 테이블 이미지 생성 성공');
       } else {
-        alert('그래프 생성에 실패했습니다.');
+        console.error('❌ API 응답에 이미지 데이터가 없습니다:', response.data);
+        alert('그래프 생성에 실패했습니다. 응답 데이터를 확인해주세요.');
       }
-    } catch (error) {
-      console.error('그래프 생성 오류:', error);
-      alert('그래프 생성 중 오류가 발생했습니다.');
+    } catch (error: any) {
+      console.error('❌ 그래프 생성 오류:', error);
+      
+      if (error.response) {
+        console.error('📥 오류 응답:', error.response.data);
+        console.error('📊 오류 상태:', error.response.status);
+        
+        if (error.response.status === 401) {
+          alert('인증이 필요합니다. 다시 로그인해주세요.');
+        } else if (error.response.status === 503) {
+          alert('TCFD Service를 찾을 수 없습니다. 서비스 상태를 확인해주세요.');
+        } else {
+          alert(`그래프 생성 중 오류가 발생했습니다. (${error.response.status})`);
+        }
+      } else if (error.request) {
+        console.error('📡 네트워크 오류:', error.request);
+        alert('네트워크 연결을 확인해주세요.');
+      } else {
+        alert('그래프 생성 중 오류가 발생했습니다.');
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -703,12 +729,60 @@ export default function ClimateScenariosPage() {
 
   const downloadGeneratedGraph = () => {
     if (generatedGraph) {
-      const link = document.createElement('a');
-      link.href = generatedGraph;
-      link.download = `${graphSettings.scenario}_${graphSettings.variable}_${graphSettings.startYear}_${graphSettings.endYear}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      try {
+        console.log('💾 테이블 이미지 다운로드 시작');
+        
+        // base64 데이터를 Blob으로 변환
+        const base64Data = generatedGraph.split(',')[1];
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/png' });
+        
+        // 다운로드 링크 생성
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        
+        // 파일명 생성 (한글 변수명 포함)
+        const variableNames: { [key: string]: string } = {
+          'HW33': '폭염일수',
+          'RN': '연강수량',
+          'TA': '연평균기온',
+          'TR25': '열대야일수',
+          'RAIN80': '호우일수'
+        };
+        
+        const scenarioNames: { [key: string]: string } = {
+          'SSP126': 'SSP1-2.6_저탄소',
+          'SSP585': 'SSP5-8.5_고탄소'
+        };
+        
+        const variableName = variableNames[graphSettings.variable] || graphSettings.variable;
+        const scenarioName = scenarioNames[graphSettings.scenario] || graphSettings.scenario;
+        
+        const filename = `${scenarioName}_${variableName}_${graphSettings.startYear}년_${graphSettings.endYear}년.png`;
+        link.download = filename;
+        
+        console.log('📁 다운로드 파일명:', filename);
+        
+        // 다운로드 실행
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // 메모리 정리
+        URL.revokeObjectURL(link.href);
+        
+        console.log('✅ 테이블 이미지 다운로드 완료');
+      } catch (error) {
+        console.error('❌ 다운로드 오류:', error);
+        alert('이미지 다운로드 중 오류가 발생했습니다.');
+      }
     }
   };
 
@@ -752,6 +826,9 @@ export default function ClimateScenariosPage() {
             await apiClient.get('/api/v1/auth/verify');
             console.log('✅ 인증 토큰이 유효합니다');
             setIsAuthenticated(true);
+            
+            // 인증 성공 후 기후 데이터 가용성 확인
+            await checkClimateDataAvailability();
           } catch (error: any) {
             if (error.response?.status === 401) {
               console.log('❌ 인증 토큰이 만료되었습니다');
@@ -760,6 +837,9 @@ export default function ClimateScenariosPage() {
               if (refreshed) {
                 console.log('✅ 토큰이 갱신되었습니다');
                 setIsAuthenticated(true);
+                
+                // 토큰 갱신 후 기후 데이터 가용성 확인
+                await checkClimateDataAvailability();
               } else {
                 console.log('❌ 토큰 갱신 실패');
                 router.push('/login');
@@ -778,6 +858,33 @@ export default function ClimateScenariosPage() {
       checkAuth();
     }
   }, [router]);
+
+  // 기후 데이터 가용성 확인
+  const checkClimateDataAvailability = async () => {
+    try {
+      console.log('🔍 기후 데이터 가용성 확인 중...');
+      
+      const response = await apiClient.get('/api/v1/tcfd/climate-scenarios', {
+        params: {
+          scenario_code: 'SSP126',
+          variable_code: 'HW33',
+          year: 2021
+        }
+      });
+      
+      if (response.data && response.data.length > 0) {
+        console.log('✅ 기후 데이터 사용 가능:', response.data.length, '개 데이터');
+      } else {
+        console.log('⚠️ 기후 데이터가 없습니다. 데이터베이스에 데이터를 먼저 로드해야 합니다.');
+      }
+    } catch (error: any) {
+      if (error.response?.status === 503) {
+        console.log('⚠️ TCFD Service를 찾을 수 없습니다. 서비스가 실행 중인지 확인해주세요.');
+      } else {
+        console.log('⚠️ 기후 데이터 확인 중 오류:', error.message);
+      }
+    }
+  };
 
   // 인증되지 않은 경우 로딩 화면 표시
   if (!isAuthenticated) {
@@ -822,7 +929,7 @@ export default function ClimateScenariosPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-                <span>더보기</span>
+                <span>기후 데이터 생성</span>
               </button>
             </div>
             <p className="text-gray-600">SSP 2.6과 SSP 8.5 시나리오에 따른 기후 변화 예측 이미지</p>
@@ -1036,6 +1143,21 @@ export default function ClimateScenariosPage() {
                 </button>
               </div>
 
+              {/* 도움말 */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start">
+                  <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium mb-1">💡 기후 시나리오 테이블 이미지 생성</p>
+                    <p>선택한 조건에 맞는 기후 데이터를 테이블 형태로 시각화하여 이미지로 생성합니다.</p>
+                    <p className="mt-1 text-blue-600">• SSP1-2.6: 저탄소 시나리오 (온실가스 배출량 감소)</p>
+                    <p className="text-blue-600">• SSP5-8.5: 고탄소 시나리오 (온실가스 배출량 증가)</p>
+                  </div>
+                </div>
+              </div>
+
               {/* 그래프 설정 폼 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 {/* 시나리오 선택 */}
@@ -1129,34 +1251,60 @@ export default function ClimateScenariosPage() {
 
               {/* 생성된 그래프 표시 */}
               {generatedGraph && (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                <div className="border-2 border-dashed border-green-300 rounded-lg p-4 bg-green-50">
                   <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <div className="flex items-center justify-center mb-2">
+                      <svg className="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <h3 className="text-lg font-semibold text-green-900">
+                        테이블 이미지 생성 완료!
+                      </h3>
+                    </div>
+                    <p className="text-sm text-green-700 mb-3">
                       {graphSettings.scenario === 'SSP126' ? 'SSP1-2.6 (저탄소)' : 'SSP5-8.5 (고탄소)'} - 
                       {graphSettings.variable === 'HW33' ? '폭염일수' : 
                        graphSettings.variable === 'RN' ? '연강수량' :
                        graphSettings.variable === 'TA' ? '연평균기온' :
                        graphSettings.variable === 'TR25' ? '열대야일수' : '호우일수'}
                       ({graphSettings.startYear}년 ~ {graphSettings.endYear}년)
-                    </h3>
+                    </p>
                   </div>
                   
                   <div className="flex justify-center mb-4">
                     <img
                       src={generatedGraph}
-                      alt="생성된 기후 그래프"
-                      className="max-w-full h-auto rounded-lg shadow-lg"
+                      alt="생성된 기후 테이블 이미지"
+                      className="max-w-full h-auto rounded-lg shadow-lg border border-gray-200"
                     />
                   </div>
                   
-                  <div className="flex justify-center">
+                  <div className="flex justify-center space-x-4">
                     <button
                       onClick={downloadGeneratedGraph}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 shadow-md"
                     >
-                      <span>⬇️</span>
-                      <span>그래프 다운로드</span>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span>PNG 다운로드</span>
                     </button>
+                    
+                    <button
+                      onClick={() => setGeneratedGraph(null)}
+                      className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center space-x-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span>새로 만들기</span>
+                    </button>
+                  </div>
+                  
+                  <div className="mt-4 text-center">
+                    <p className="text-xs text-green-600">
+                      💡 생성된 이미지는 보고서, 프레젠테이션, 문서 등에 활용할 수 있습니다.
+                    </p>
                   </div>
                 </div>
               )}
