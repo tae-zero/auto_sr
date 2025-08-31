@@ -1704,7 +1704,7 @@ export default function TcfdSrPage() {
                             >
                               🚀 KoAlpaca로 문장 생성
                             </button>
-                          </div>
+                        </div>
                         </div>
 
                       </div>
@@ -2068,7 +2068,7 @@ export default function TcfdSrPage() {
                   <div className="space-y-6">
                     {/* SSP 시나리오별 탭 */}
                     <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
-                      <button
+                    <button
                         onClick={() => setSelectedSSP('SSP126')}
                         className={`flex-1 py-3 px-6 rounded-md font-medium transition-colors ${
                           selectedSSP === 'SSP126'
@@ -2087,12 +2087,12 @@ export default function TcfdSrPage() {
                         }`}
                       >
                         SSP 5-8.5 (고탄소)
-                      </button>
-                    </div>
+                    </button>
+                  </div>
 
                     {/* 기후지표 카테고리별 탭 */}
                     <div className="flex flex-wrap gap-2 mb-6">
-                      <button
+                    <button
                         onClick={() => setSelectedCategory('all')}
                         className={`px-4 py-2 rounded-md font-medium transition-colors ${
                           selectedCategory === 'all'
@@ -2131,8 +2131,8 @@ export default function TcfdSrPage() {
                         }`}
                       >
                         극한 현상
-                      </button>
-                    </div>
+                    </button>
+                  </div>
 
                     {/* SSP 126 (저탄소) 시나리오 설명 */}
                     {selectedSSP === 'SSP126' && (
@@ -2208,27 +2208,27 @@ export default function TcfdSrPage() {
                       </div>
                     )}
 
-                    {/* 기후 시나리오 이미지 갤러리로 이동하는 More 버튼 */}
+                  {/* 기후 시나리오 이미지 갤러리로 이동하는 More 버튼 */}
                     <div className="mt-8 text-center">
-                      <button
-                        onClick={() => {
-                          const token = localStorage.getItem('auth_token');
-                          if (token) {
-                            router.push('/climate-scenarios');
-                          } else {
-                            alert('로그인이 필요합니다. 먼저 로그인해주세요.');
-                            router.push('/login');
-                          }
-                        }}
+                    <button
+                      onClick={() => {
+                        const token = localStorage.getItem('auth_token');
+                        if (token) {
+                          router.push('/climate-scenarios');
+                        } else {
+                          alert('로그인이 필요합니다. 먼저 로그인해주세요.');
+                          router.push('/login');
+                        }
+                      }}
                         className="px-8 py-3 bg-success-600 text-black rounded-brand shadow-soft hover:bg-success-700 transition-colors font-medium text-lg focus:outline-none focus:ring-2 focus:ring-success-100"
-                      >
-                        🌍 기후 시나리오 이미지 더보기
-                      </button>
+                    >
+                      🌍 기후 시나리오 이미지 더보기
+                    </button>
                       <p className="text-sm text-black mt-2">
-                        SSP 2.6과 SSP 8.5 시나리오의 상세한 기후 변화 예측 이미지를 확인하세요
-                      </p>
-                    </div>
+                      SSP 2.6과 SSP 8.5 시나리오의 상세한 기후 변화 예측 이미지를 확인하세요
+                    </p>
                   </div>
+                </div>
                 )}
 
                 {/* 회사 검색이 완료된 경우 회사별 기후시나리오 이미지 표시 */}
@@ -2653,7 +2653,7 @@ export default function TcfdSrPage() {
                   <div className="text-center mb-6">
                     <h3 className="text-2xl font-bold text-gray-800 mb-2">🤖 AI 기반 TCFD 보고서 생성</h3>
                     <p className="text-gray-600">두 개의 AI 모델이 동시에 분석하여 비교 가능한 보고서를 생성합니다</p>
-                  </div>
+                    </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="bg-white p-4 rounded-lg border border-blue-200 shadow-sm">
@@ -2735,10 +2735,10 @@ export default function TcfdSrPage() {
                         }`}
                       >
                         {isGenerating ? (
-                          <div className="flex items-center">
+                    <div className="flex items-center">
                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
                             {selectedLLMModel === 'openai' ? 'OpenAI' : 'KoAlpaca'} 모델로 보고서를 생성하고 있습니다...
-                          </div>
+                    </div>
                         ) : (
                           `🚀 ${selectedLLMModel === 'openai' ? 'OpenAI' : selectedLLMModel === 'huggingface' ? 'KoAlpaca' : 'AI'} 보고서 생성 시작`
                         )}
@@ -2750,10 +2750,10 @@ export default function TcfdSrPage() {
                         className="px-6 py-4 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-brand shadow-lg hover:from-green-700 hover:to-teal-700 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
                       >
                         {isLoadingDatabaseData ? (
-                          <div className="flex items-center">
+                    <div className="flex items-center">
                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
                             최신 데이터 로딩 중...
-                          </div>
+                    </div>
                         ) : (
                           '🔄 TCFD 데이터 새로고침 (최신 데이터 자동 선택)'
                         )}
@@ -2903,10 +2903,10 @@ export default function TcfdSrPage() {
                 ) : (
                   <div className="mb-8">
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                      <div className="flex items-center">
+                    <div className="flex items-center">
                         <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center mr-3">
                           <span className="text-white text-sm">⚠️</span>
-                        </div>
+                    </div>
                         <div>
                           <h3 className="text-lg font-semibold text-yellow-800 mb-2">TCFD 데이터가 로드되지 않았습니다</h3>
                           <p className="text-yellow-700 mb-4">
@@ -2919,7 +2919,7 @@ export default function TcfdSrPage() {
                           >
                             {isLoadingDatabaseData ? '로딩 중...' : '🔄 TCFD 데이터 로드'}
                           </button>
-                        </div>
+                  </div>
                       </div>
                     </div>
                   </div>
@@ -2993,11 +2993,11 @@ export default function TcfdSrPage() {
                             >
                               <span>📕</span>
                               <span>PDF 다운로드</span>
-                            </button>
+                  </button>
                           </div>
-                        </div>
-                      </div>
-                    )}
+                </div>
+              </div>
+            )}
 
                     {/* Hugging Face RAG 결과 */}
                     {ragResults.huggingface && (

@@ -630,6 +630,18 @@ export default function ClimateScenariosPage() {
   const [selectedScenario, setSelectedScenario] = useState<'ssp26' | 'ssp85'>('ssp26');
   const [selectedImage, setSelectedImage] = useState<ClimateImage | ClimateAnalysisImage | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  // 그래프 생성 모달을 위한 새로운 상태들
+  const [showGraphModal, setShowGraphModal] = useState(false);
+  const [graphSettings, setGraphSettings] = useState({
+    scenario: 'SSP126',
+    variable: 'HW33',
+    startYear: 2021,
+    endYear: 2030,
+    region: '전체 지역'
+  });
+  const [generatedGraph, setGeneratedGraph] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleBack = () => {
     router.push('/tcfd');
@@ -650,6 +662,54 @@ export default function ClimateScenariosPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // 그래프 생성 모달 관련 함수들
+  const openGraphModal = () => {
+    setShowGraphModal(true);
+    setGeneratedGraph(null);
+  };
+
+  const closeGraphModal = () => {
+    setShowGraphModal(false);
+    setGeneratedGraph(null);
+  };
+
+  const generateGraph = async () => {
+    setIsGenerating(true);
+    try {
+      // API 호출하여 그래프 생성
+      const response = await apiClient.get('/api/v1/tcfd/climate-scenarios/table-image', {
+        params: {
+          scenario_code: graphSettings.scenario,
+          variable_code: graphSettings.variable,
+          start_year: graphSettings.startYear,
+          end_year: graphSettings.endYear
+        }
+      });
+
+      if (response.data.success) {
+        setGeneratedGraph(response.data.image_data);
+      } else {
+        alert('그래프 생성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('그래프 생성 오류:', error);
+      alert('그래프 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const downloadGeneratedGraph = () => {
+    if (generatedGraph) {
+      const link = document.createElement('a');
+      link.href = generatedGraph;
+      link.download = `${graphSettings.scenario}_${graphSettings.variable}_${graphSettings.startYear}_${graphSettings.endYear}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const getCurrentImages = () => {
@@ -753,7 +813,18 @@ export default function ClimateScenariosPage() {
               TCFD 페이지로 돌아가기
             </button>
             
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">기후 시나리오 분석</h1>
+            <div className="flex items-center justify-between mb-2">
+              <h1 className="text-3xl font-bold text-gray-900">기후 시나리오 분석</h1>
+              <button
+                onClick={openGraphModal}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <span>더보기</span>
+              </button>
+            </div>
             <p className="text-gray-600">SSP 2.6과 SSP 8.5 시나리오에 따른 기후 변화 예측 이미지</p>
           </div>
 
@@ -943,6 +1014,152 @@ export default function ClimateScenariosPage() {
                   <p>시나리오: {selectedScenario === 'ssp26' ? 'SSP 2.6' : 'SSP 8.5'}</p>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 그래프 생성 모달 */}
+      {showGraphModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">직접 그래프 생성</h2>
+                <button
+                  onClick={closeGraphModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* 그래프 설정 폼 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* 시나리오 선택 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    기후 시나리오
+                  </label>
+                  <select
+                    value={graphSettings.scenario}
+                    onChange={(e) => setGraphSettings({...graphSettings, scenario: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="SSP126">SSP1-2.6 (저탄소 시나리오)</option>
+                    <option value="SSP585">SSP5-8.5 (고탄소 시나리오)</option>
+                  </select>
+                </div>
+
+                {/* 기후 변수 선택 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    기후 변수
+                  </label>
+                  <select
+                    value={graphSettings.variable}
+                    onChange={(e) => setGraphSettings({...graphSettings, variable: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="HW33">폭염일수 (최고기온 33°C 이상)</option>
+                    <option value="RN">연강수량 (mm)</option>
+                    <option value="TA">연평균기온 (°C)</option>
+                    <option value="TR25">열대야일수 (최저기온 25°C 이상)</option>
+                    <option value="RAIN80">호우일수 (일강수량 80mm 이상)</option>
+                  </select>
+                </div>
+
+                {/* 시작 연도 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    시작 연도
+                  </label>
+                  <select
+                    value={graphSettings.startYear}
+                    onChange={(e) => setGraphSettings({...graphSettings, startYear: parseInt(e.target.value)})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {Array.from({length: 80}, (_, i) => 2021 + i).map(year => (
+                      <option key={year} value={year}>{year}년</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 종료 연도 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    종료 연도
+                  </label>
+                  <select
+                    value={graphSettings.endYear}
+                    onChange={(e) => setGraphSettings({...graphSettings, endYear: parseInt(e.target.value)})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {Array.from({length: 80}, (_, i) => 2021 + i).map(year => (
+                      <option key={year} value={year}>{year}년</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* 그래프 생성 버튼 */}
+              <div className="flex justify-center mb-6">
+                <button
+                  onClick={generateGraph}
+                  disabled={isGenerating}
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                >
+                  {isGenerating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <span>생성 중...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      <span>그래프 생성</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* 생성된 그래프 표시 */}
+              {generatedGraph && (
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {graphSettings.scenario === 'SSP126' ? 'SSP1-2.6 (저탄소)' : 'SSP5-8.5 (고탄소)'} - 
+                      {graphSettings.variable === 'HW33' ? '폭염일수' : 
+                       graphSettings.variable === 'RN' ? '연강수량' :
+                       graphSettings.variable === 'TA' ? '연평균기온' :
+                       graphSettings.variable === 'TR25' ? '열대야일수' : '호우일수'}
+                      ({graphSettings.startYear}년 ~ {graphSettings.endYear}년)
+                    </h3>
+                  </div>
+                  
+                  <div className="flex justify-center mb-4">
+                    <img
+                      src={generatedGraph}
+                      alt="생성된 기후 그래프"
+                      className="max-w-full h-auto rounded-lg shadow-lg"
+                    />
+                  </div>
+                  
+                  <div className="flex justify-center">
+                    <button
+                      onClick={downloadGeneratedGraph}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                    >
+                      <span>⬇️</span>
+                      <span>그래프 다운로드</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

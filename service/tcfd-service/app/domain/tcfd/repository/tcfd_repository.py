@@ -456,24 +456,95 @@ class TCFDRepository:
             logger.error(f"보고서 결과 저장 실패: {str(e)}")
             raise Exception(f"보고서 결과 저장 실패: {str(e)}")
     
-    async def get_climate_scenarios(self) -> Dict[str, Any]:
+    async def get_climate_scenarios(
+        self,
+        scenario_code: Optional[str] = None,
+        variable_code: Optional[str] = None,
+        year: Optional[int] = None,
+        start_year: Optional[int] = None,
+        end_year: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
         """기후 시나리오 데이터 조회"""
         try:
             conn = await self.get_connection()
             
-            query = "SELECT * FROM climate_scenarios ORDER BY scenario_id"
-            scenarios = await conn.fetch(query)
+            # 기본 쿼리 구성
+            query = """
+                SELECT 
+                    cd.year,
+                    cd.value,
+                    cs.scenario_code,
+                    cs.scenario_name,
+                    cv.variable_code,
+                    cv.variable_name,
+                    cv.unit,
+                    ar.region_code,
+                    ar.region_name
+                FROM climate_data cd
+                JOIN climate_scenarios cs ON cd.scenario_id = cs.id
+                JOIN climate_variables cv ON cd.variable_id = cv.id
+                JOIN administrative_regions ar ON cd.region_id = ar.id
+                WHERE 1=1
+            """
             
-            await self.pool.release(conn)
+            params = []
+            param_count = 0
             
-            return {
-                "scenarios": [dict(row) for row in scenarios],
-                "total_count": len(scenarios)
-            }
+            # 시나리오 코드 필터
+            if scenario_code:
+                param_count += 1
+                query += f" AND cs.scenario_code = ${param_count}"
+                params.append(scenario_code)
+            
+            # 변수 코드 필터
+            if variable_code:
+                param_count += 1
+                query += f" AND cv.variable_code = ${param_count}"
+                params.append(variable_code)
+            
+            # 연도 필터
+            if year:
+                param_count += 1
+                query += f" AND cd.year = ${param_count}"
+                params.append(year)
+            elif start_year and end_year:
+                param_count += 1
+                query += f" AND cd.year BETWEEN ${param_count}"
+                params.append(start_year)
+                param_count += 1
+                query += f" AND ${param_count}"
+                params.append(end_year)
+            
+            # 정렬
+            query += " ORDER BY cd.year ASC"
+            
+            # 쿼리 실행
+            rows = await conn.fetch(query, *params)
+            
+            # 결과를 딕셔너리 리스트로 변환
+            result = []
+            for row in rows:
+                result.append({
+                    'year': row['year'],
+                    'value': row['value'],
+                    'scenario_code': row['scenario_code'],
+                    'scenario_name': row['scenario_name'],
+                    'variable_code': row['variable_code'],
+                    'variable_name': row['variable_name'],
+                    'unit': row['unit'],
+                    'region_code': row['region_code'],
+                    'region_name': row['region_name']
+                })
+            
+            logger.info(f"✅ 기후 시나리오 데이터 조회 완료: {len(result)}개 레코드")
+            return result
             
         except Exception as e:
-            logger.error(f"기후 시나리오 조회 실패: {str(e)}")
-            raise Exception(f"기후 시나리오 조회 실패: {str(e)}")
+            logger.error(f"❌ 기후 시나리오 데이터 조회 실패: {str(e)}")
+            raise Exception(f"기후 시나리오 데이터 조회 실패: {str(e)}")
+        finally:
+            if conn:
+                await self.pool.release(conn)
     
     # 테이블별 삽입 메서드들
     async def _insert_employee(self, conn, data: Dict[str, Any]) -> Dict[str, Any]:

@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Request, HTTPException, Header, Depends
+from fastapi import APIRouter, Request, HTTPException, Header, Depends, Query
 from app.domain.discovery.service_discovery import ServiceDiscovery
 from app.router.auth_router import verify_token
 import httpx
 import logging
 import traceback
 import os
-from typing import Optional
+from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/tcfd", tags=["tcfd"])
@@ -720,4 +720,94 @@ async def generate_tcfd_report(request: Request, authorization: str = Header(Non
         logger.error(f"❌ 오류 타입: {type(e).__name__}")
         logger.error(f"❌ 스택 트레이스: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"LLM Service 요청 실패: {str(e)}")
+
+@router.get("/climate-scenarios")
+async def get_climate_scenarios(
+    scenario_code: Optional[str] = Query(None, description="시나리오 코드 (SSP126, SSP585)"),
+    variable_code: Optional[str] = Query(None, description="기후변수 코드 (HW33, RN, TA, TR25, RAIN80)"),
+    year: Optional[int] = Query(None, description="연도 (2021-2100)"),
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    기후 시나리오 데이터 조회
+    """
+    try:
+        # TCFD Service로 요청 전달
+        tcfd_service_url = await get_tcfd_service_url()
+        if not tcfd_service_url:
+            raise HTTPException(status_code=503, detail="TCFD Service를 찾을 수 없습니다")
+        
+        # 쿼리 파라미터 구성
+        params = {}
+        if scenario_code:
+            params["scenario_code"] = scenario_code
+        if variable_code:
+            params["variable_code"] = variable_code
+        if year:
+            params["year"] = year
+        
+        # TCFD Service 호출
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{tcfd_service_url}/api/v1/tcfd/climate-scenarios",
+                params=params,
+                headers={"Authorization": f"Bearer {current_user.get('token', '')}"},
+                timeout=30.0
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"❌ TCFD Service 응답 오류: {response.status_code}")
+                logger.error(f"❌ 응답 내용: {response.text}")
+                raise HTTPException(status_code=response.status_code, detail="TCFD Service 오류")
+                
+    except Exception as e:
+        logger.error(f"❌ 기후 시나리오 데이터 조회 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"기후 시나리오 데이터 조회 실패: {str(e)}")
+
+@router.get("/climate-scenarios/table-image")
+async def generate_climate_table_image(
+    scenario_code: str = Query(..., description="시나리오 코드 (SSP126, SSP585)"),
+    variable_code: str = Query(..., description="기후변수 코드 (HW33, RN, TA, TR25, RAIN80)"),
+    start_year: int = Query(2021, description="시작 연도"),
+    end_year: int = Query(2030, description="종료 연도"),
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    기후 시나리오 데이터를 테이블 이미지로 생성
+    """
+    try:
+        # TCFD Service로 요청 전달
+        tcfd_service_url = await get_tcfd_service_url()
+        if not tcfd_service_url:
+            raise HTTPException(status_code=503, detail="TCFD Service를 찾을 수 없습니다")
+        
+        # 쿼리 파라미터 구성
+        params = {
+            "scenario_code": scenario_code,
+            "variable_code": variable_code,
+            "start_year": start_year,
+            "end_year": end_year
+        }
+        
+        # TCFD Service 호출
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{tcfd_service_url}/api/v1/tcfd/climate-scenarios/table-image",
+                params=params,
+                headers={"Authorization": f"Bearer {current_user.get('token', '')}"},
+                timeout=30.0
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"❌ TCFD Service 응답 오류: {response.status_code}")
+                logger.error(f"❌ 응답 내용: {response.text}")
+                raise HTTPException(status_code=response.status_code, detail="TCFD Service 오류")
+                
+    except Exception as e:
+        logger.error(f"❌ 테이블 이미지 생성 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"테이블 이미지 생성 실패: {str(e)}")
 

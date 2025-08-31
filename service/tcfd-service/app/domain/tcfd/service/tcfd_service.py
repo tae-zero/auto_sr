@@ -226,20 +226,153 @@ class TCFDService:
             logger.error(f"재무 데이터 생성 실패: {str(e)}")
             raise Exception(f"재무 데이터 생성 실패: {str(e)}")
     
-    async def get_climate_scenarios(self) -> Dict[str, Any]:
-        """기후 시나리오 조회"""
+    async def get_climate_scenarios(
+        self, 
+        scenario_code: Optional[str] = None,
+        variable_code: Optional[str] = None,
+        year: Optional[int] = None,
+        current_user: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """기후 시나리오 데이터 조회"""
         try:
-            # 기후 시나리오 데이터 조회
-            result = await self.repository.get_climate_scenarios()
+            # 데이터베이스에서 기후 데이터 조회
+            result = await self.repository.get_climate_scenarios(
+                scenario_code=scenario_code,
+                variable_code=variable_code,
+                year=year
+            )
+            
             return {
                 "success": True,
                 "data": result,
-                "message": "기후 시나리오 조회 완료"
+                "filters": {
+                    "scenario_code": scenario_code,
+                    "variable_code": variable_code,
+                    "year": year
+                },
+                "message": "기후 시나리오 데이터 조회 완료"
             }
             
         except Exception as e:
-            logger.error(f"기후 시나리오 조회 실패: {str(e)}")
-            raise Exception(f"기후 시나리오 조회 실패: {str(e)}")
+            logger.error(f"기후 시나리오 데이터 조회 실패: {str(e)}")
+            raise Exception(f"기후 시나리오 데이터 조회 실패: {str(e)}")
+    
+    async def generate_climate_table_image(
+        self,
+        scenario_code: str,
+        variable_code: str,
+        start_year: int,
+        end_year: int,
+        current_user: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """기후 시나리오 데이터를 테이블 이미지로 생성"""
+        try:
+            # 데이터베이스에서 기후 데이터 조회
+            climate_data = await self.repository.get_climate_scenarios(
+                scenario_code=scenario_code,
+                variable_code=variable_code,
+                start_year=start_year,
+                end_year=end_year
+            )
+            
+            if not climate_data:
+                raise Exception("해당 조건의 기후 데이터를 찾을 수 없습니다")
+            
+            # 테이블 이미지 생성
+            image_data = await self._create_climate_table_image(
+                climate_data, scenario_code, variable_code, start_year, end_year
+            )
+            
+            return {
+                "success": True,
+                "image_data": image_data,
+                "message": "기후 시나리오 테이블 이미지 생성 완료"
+            }
+            
+        except Exception as e:
+            logger.error(f"기후 시나리오 테이블 이미지 생성 실패: {str(e)}")
+            raise Exception(f"기후 시나리오 테이블 이미지 생성 실패: {str(e)}")
+    
+    async def _create_climate_table_image(
+        self,
+        climate_data: List[Dict[str, Any]],
+        scenario_code: str,
+        variable_code: str,
+        start_year: int,
+        end_year: int
+    ) -> str:
+        """기후 데이터를 테이블 이미지로 변환"""
+        try:
+            import matplotlib.pyplot as plt
+            import matplotlib.font_manager as fm
+            import io
+            import base64
+            
+            # 한글 폰트 설정
+            plt.rcParams['font.family'] = 'DejaVu Sans'
+            
+            # 데이터를 연도별로 정리
+            years = []
+            values = []
+            
+            for data in climate_data:
+                if 'year' in data and 'value' in data:
+                    years.append(data['year'])
+                    values.append(data['value'])
+            
+            if not years or not values:
+                raise Exception("유효한 기후 데이터가 없습니다")
+            
+            # 테이블 데이터 생성
+            table_data = []
+            for i, year in enumerate(years):
+                if start_year <= year <= end_year:
+                    table_data.append([year, f"{values[i]:.2f}"])
+            
+            if not table_data:
+                raise Exception("지정된 연도 범위에 데이터가 없습니다")
+            
+            # 테이블 이미지 생성
+            fig, ax = plt.subplots(figsize=(10, 6))
+            ax.axis('tight')
+            ax.axis('off')
+            
+            # 테이블 생성
+            table = ax.table(
+                cellText=table_data,
+                colLabels=['연도', '값'],
+                cellLoc='center',
+                loc='center'
+            )
+            
+            # 테이블 스타일링
+            table.auto_set_font_size(False)
+            table.set_fontsize(12)
+            table.scale(1.2, 1.5)
+            
+            # 제목 설정
+            scenario_names = {"SSP126": "SSP1-2.6 (저탄소)", "SSP585": "SSP5-8.5 (고탄소)"}
+            variable_names = {
+                "HW33": "폭염일수", "RN": "연강수량", "TA": "연평균기온", 
+                "TR25": "열대야일수", "RAIN80": "호우일수"
+            }
+            
+            title = f"{scenario_names.get(scenario_code, scenario_code)} - {variable_names.get(variable_code, variable_code)}\n({start_year}년 ~ {end_year}년)"
+            ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
+            
+            # 이미지를 base64로 인코딩
+            buffer = io.BytesIO()
+            plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
+            buffer.seek(0)
+            
+            image_base64 = base64.b64encode(buffer.getvalue()).decode()
+            plt.close()
+            
+            return f"data:image/png;base64,{image_base64}"
+            
+        except Exception as e:
+            logger.error(f"테이블 이미지 생성 실패: {str(e)}")
+            raise Exception(f"테이블 이미지 생성 실패: {str(e)}")
     
     async def get_tcfd_inputs(self, db) -> List[Dict[str, Any]]:
         """TCFD 입력 데이터 조회 (가장 최신 데이터 포함)"""
