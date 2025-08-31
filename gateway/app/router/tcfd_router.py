@@ -5,7 +5,7 @@ import httpx
 import logging
 import traceback
 import os
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/tcfd", tags=["tcfd"])
