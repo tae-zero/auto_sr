@@ -14,7 +14,6 @@ import zipfile
 import urllib.parse
 from weasyprint import HTML, CSS
 
-from app.common.database.database import get_db_connection
 from app.domain.tcfd.entity.tcfd_input_entity import TCFDInputEntity
 from app.domain.tcfd.entity.tcfd_draft_entity import TCFDDraftEntity
 from app.domain.tcfd.schema.tcfd_input_schema import TCFDInputCreateSchema, TCFDInputUpdateSchema, TCFDInputResponseSchema
