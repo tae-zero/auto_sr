@@ -6,7 +6,7 @@ import httpx
 import os
 from datetime import datetime
 
-from app.common.utility.utility import verify_token
+from app.router.auth_router import verify_token
 from app.domain.discovery.service_discovery import ServiceDiscovery
 
 logger = logging.getLogger(__name__)

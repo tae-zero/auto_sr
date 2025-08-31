@@ -8,8 +8,8 @@ import { apiClient, tcfdReportAPI, tcfdAPI, llmServiceAPI } from '@/shared/lib';
 import { downloadAsWordFromServer, downloadAsPDFFromServer, DownloadContent } from '@/utils/downloadUtils';
 
 import axios from 'axios';
-import { openai } from '@ai-sdk/openai';
-import { huggingface } from '@ai-sdk/huggingface';
+// import { openai } from '@ai-sdk/openai';
+// import { huggingface } from '@ai-sdk/huggingface';
 
 // 컬럼명 한국어 매핑 객체
 const COLUMN_LABELS: { [key: string]: string } = {
