@@ -39,13 +39,34 @@ Base = declarative_base()
 
 # 환경별 엔진 생성
 if railway_env in ["true", "production"]:  # "production"도 인식
-    # Railway 환경: 비동기 엔진
-    engine = create_async_engine(
-        DATABASE_URL,
-        pool_pre_ping=True,
-        pool_recycle=300,
-        echo=False
-    )
+    # Railway 환경: 비동기 엔진 (asyncpg 사용)
+    try:
+        import asyncpg
+        print(f"✅ asyncpg 패키지 확인됨: {asyncpg.__version__}")
+        # asyncpg가 있으면 postgresql+asyncpg:// 스키마 사용
+        if not DATABASE_URL.startswith("postgresql+asyncpg://"):
+            DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL[len("postgresql://"):]
+            print(f"🔧 Railway 환경: postgresql+asyncpg:// 스키마로 변경")
+        
+        engine = create_async_engine(
+            DATABASE_URL,
+            pool_pre_ping=True,
+            pool_recycle=300,
+            echo=False
+        )
+    except ImportError:
+        print("❌ asyncpg 패키지가 설치되지 않음. psycopg2로 대체합니다.")
+        # asyncpg가 없으면 postgresql:// 스키마 사용
+        if DATABASE_URL.startswith("postgresql+asyncpg://"):
+            DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgresql+asyncpg://"):]
+        
+        from sqlalchemy import create_engine
+        engine = create_engine(
+            DATABASE_URL,
+            pool_pre_ping=True,
+            pool_recycle=300,
+            echo=False
+        )
 else:
     # Docker 환경: 동기 엔진 (psycopg2)
     from sqlalchemy import create_engine
