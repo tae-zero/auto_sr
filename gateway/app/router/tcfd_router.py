@@ -854,22 +854,29 @@ async def generate_climate_chart_image(
         
         # 쿼리 파라미터에서 additional_years[] 직접 파싱 (FastAPI Query 파라미터 문제 해결)
         query_params = dict(request.query_params)
-        if 'additional_years[]' in query_params:
-            # additional_years[] 파라미터가 여러 개 있을 수 있음
-            additional_years_list = []
-            for key, value in query_params.items():
-                if key == 'additional_years[]':
+        additional_years_list = []
+        
+        # additional_years[] 파라미터가 여러 개 있을 수 있음
+        for key, value in query_params.items():
+            if key == 'additional_years[]':
+                if value and value.strip():  # 빈 값이 아닌 경우만 처리
                     try:
-                        additional_years_list.append(int(value))
+                        year_value = int(value.strip())
+                        additional_years_list.append(year_value)
+                        logger.info(f"🔍 추가 연도 파싱: {key} = {value} -> {year_value}")
                     except ValueError:
                         logger.warning(f"⚠️ 잘못된 추가 연도 값: {value}")
-            
-            if additional_years_list:
-                params["additional_years"] = additional_years_list
-                logger.info(f"🔍 쿼리 파라미터에서 파싱된 추가 연도: {additional_years_list}")
+        
+        # 중복 제거 및 정렬
+        if additional_years_list:
+            additional_years_list = sorted(list(set(additional_years_list)))
+            params["additional_years"] = additional_years_list
+            logger.info(f"🔍 최종 파싱된 추가 연도: {additional_years_list}")
+        else:
+            logger.info("🔍 추가 연도 파라미터가 없거나 빈 값")
         
         logger.info(f"🔍 원본 쿼리 파라미터: {dict(request.query_params)}")
-        logger.info(f"🔍 파싱된 추가 연도: {params.get('additional_years', '없음')}")
+        logger.info(f"🔍 최종 파라미터: {params}")
         
         # TCFD Service 호출
         url = f"{host}/api/v1/tcfd/climate-scenarios/chart-image"

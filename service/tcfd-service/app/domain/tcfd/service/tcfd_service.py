@@ -302,16 +302,30 @@ class TCFDService:
     ) -> Dict[str, Any]:
         """기후 시나리오 데이터를 막대그래프 차트로 생성"""
         try:
-            # 데이터베이스에서 기후 데이터 조회
+            # 추가 연도를 포함한 전체 연도 범위 계산
+            all_years = list(range(start_year, end_year + 1))
+            if additional_years and len(additional_years) > 0:
+                all_years.extend(additional_years)
+                all_years = sorted(list(set(all_years)))  # 중복 제거 및 정렬
+            
+            min_year = min(all_years)
+            max_year = max(all_years)
+            
+            logger.info(f"🔍 데이터 조회 범위: {min_year}년 ~ {max_year}년")
+            logger.info(f"🔍 추가 연도: {additional_years}")
+            
+            # 데이터베이스에서 기후 데이터 조회 (추가 연도를 포함한 전체 범위)
             climate_data = await self.repository.get_climate_scenarios(
                 scenario_code=scenario_code,
                 variable_code=variable_code,
-                start_year=start_year,
-                end_year=end_year
+                start_year=min_year,
+                end_year=max_year
             )
             
             if not climate_data:
                 raise Exception("해당 조건의 기후 데이터를 찾을 수 없습니다")
+            
+            logger.info(f"✅ 데이터베이스에서 {len(climate_data)}개 레코드 조회 완료")
             
             # 막대그래프 차트 생성
             image_data = await self._create_climate_table_image(
