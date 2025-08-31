@@ -55,7 +55,7 @@ app.add_middleware(
 
 # TCFD 도메인 라우터 포함
 try:
-    from app.domain.tcfd.controller.tcfd_controller import router as tcfd_router
+    from app.router.tcfd_router import router as tcfd_router
     app.include_router(tcfd_router)
     logger.info("✅ TCFD 라우터 등록 완료")
 except Exception as e:
