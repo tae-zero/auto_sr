@@ -219,6 +219,18 @@ export default function TcfdSrPage() {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ src: string; title: string } | null>(null);
   
+  // 기후 데이터 생성 모달 관련 상태 추가
+  const [showClimateDataModal, setShowClimateDataModal] = useState(false);
+  const [climateDataSettings, setClimateDataSettings] = useState({
+    scenario: 'SSP126',
+    variable: 'HW33',
+    startYear: 2021,
+    endYear: 2030,
+    region: '전체 지역'
+  });
+  const [generatedClimateData, setGeneratedClimateData] = useState<string | null>(null);
+  const [isGeneratingClimateData, setIsGeneratingClimateData] = useState(false);
+  
   // 도움말 모달 관련 상태
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isScenarioModalOpen, setIsScenarioModalOpen] = useState(false);
@@ -1078,6 +1090,128 @@ export default function TcfdSrPage() {
   const closeImageModal = () => {
     setIsImageModalOpen(false);
     setSelectedImage(null);
+  };
+
+  // 기후 데이터 생성 모달 관련 함수들
+  const openClimateDataModal = () => {
+    setShowClimateDataModal(true);
+    setGeneratedClimateData(null);
+  };
+
+  const closeClimateDataModal = () => {
+    setShowClimateDataModal(false);
+    setGeneratedClimateData(null);
+  };
+
+  const generateClimateData = async () => {
+    setIsGeneratingClimateData(true);
+    try {
+      console.log('🚀 기후 시나리오 테이블 이미지 생성 시작');
+      console.log('📊 설정:', climateDataSettings);
+      
+      // API 호출하여 그래프 생성
+      const response = await apiClient.get('/api/v1/tcfd/climate-scenarios/table-image', {
+        params: {
+          scenario_code: climateDataSettings.scenario,
+          variable_code: climateDataSettings.variable,
+          start_year: climateDataSettings.startYear,
+          end_year: climateDataSettings.endYear
+        }
+      });
+
+      console.log('📥 API 응답:', response.data);
+      
+      if (response.data && response.data.image_data) {
+        // base64 이미지 데이터를 data URL로 변환
+        const imageData = `data:image/png;base64,${response.data.image_data}`;
+        setGeneratedClimateData(imageData);
+        console.log('✅ 테이블 이미지 생성 성공');
+      } else {
+        console.error('❌ API 응답에 이미지 데이터가 없습니다:', response.data);
+        alert('그래프 생성에 실패했습니다. 응답 데이터를 확인해주세요.');
+      }
+    } catch (error: any) {
+      console.error('❌ 그래프 생성 오류:', error);
+      
+      if (error.response) {
+        console.error('📥 오류 응답:', error.response.data);
+        console.error('📊 오류 상태:', error.response.status);
+        
+        if (error.response.status === 401) {
+          alert('인증이 필요합니다. 다시 로그인해주세요.');
+        } else if (error.response.status === 503) {
+          alert('TCFD Service를 찾을 수 없습니다. 서비스 상태를 확인해주세요.');
+        } else {
+          alert(`그래프 생성 중 오류가 발생했습니다. (${error.response.status})`);
+        }
+      } else if (error.request) {
+        console.error('📡 네트워크 오류:', error.request);
+        alert('네트워크 연결을 확인해주세요.');
+      } else {
+        alert('그래프 생성 중 오류가 발생했습니다.');
+      }
+    } finally {
+      setIsGeneratingClimateData(false);
+    }
+  };
+
+  const downloadGeneratedClimateData = () => {
+    if (generatedClimateData) {
+      try {
+        console.log('💾 테이블 이미지 다운로드 시작');
+        
+        // base64 데이터를 Blob으로 변환
+        const base64Data = generatedClimateData.split(',')[1];
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/png' });
+        
+        // 다운로드 링크 생성
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        
+        // 파일명 생성 (한글 변수명 포함)
+        const variableNames: { [key: string]: string } = {
+          'HW33': '폭염일수',
+          'RN': '연강수량',
+          'TA': '연평균기온',
+          'TR25': '열대야일수',
+          'RAIN80': '호우일수'
+        };
+        
+        const scenarioNames: { [key: string]: string } = {
+          'SSP126': 'SSP1-2.6_저탄소',
+          'SSP585': 'SSP5-8.5_고탄소'
+        };
+        
+        const variableName = variableNames[climateDataSettings.variable] || climateDataSettings.variable;
+        const scenarioName = scenarioNames[climateDataSettings.scenario] || climateDataSettings.scenario;
+        
+        const filename = `${scenarioName}_${variableName}_${climateDataSettings.startYear}년_${climateDataSettings.endYear}년.png`;
+        link.download = filename;
+        
+        console.log('📁 다운로드 파일명:', filename);
+        
+        // 다운로드 실행
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // 메모리 정리
+        URL.revokeObjectURL(link.href);
+        
+        console.log('✅ 테이블 이미지 다운로드 완료');
+      } catch (error) {
+        console.error('❌ 다운로드 오류:', error);
+        alert('이미지 다운로드 중 오류가 발생했습니다.');
+      }
+    }
   };
 
   // 회사별 기후시나리오 이미지 가져오기
@@ -2062,6 +2196,19 @@ export default function TcfdSrPage() {
             {activeTab === 4 && (
               <div>
                 <h2 className="text-2xl font-bold text-primary-600 mb-6">🌍 기후시나리오</h2>
+                
+                {/* 기후 데이터 생성 버튼 추가 */}
+                <div className="mb-6 text-center">
+                  <button
+                    onClick={openClimateDataModal}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 mx-auto"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <span>기후 데이터 생성</span>
+                  </button>
+                </div>
                 
                 {/* 회사 검색이 완료되지 않은 경우 기본 안내 */}
                 {!companyOverview && (
@@ -3196,6 +3343,224 @@ export default function TcfdSrPage() {
                   alt={selectedImage.title}
                   className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
                 />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 기후 데이터 생성 모달 */}
+        {showClimateDataModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">직접 기후 데이터 생성</h2>
+                  <button
+                    onClick={closeClimateDataModal}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* 도움말 */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">💡 기후 시나리오 테이블 이미지 생성</p>
+                      <p>선택한 조건에 맞는 기후 데이터를 테이블 형태로 시각화하여 이미지로 생성합니다.</p>
+                      <p className="mt-1 text-blue-600">• SSP1-2.6: 저탄소 시나리오 (온실가스 배출량 감소)</p>
+                      <p className="text-blue-600">• SSP5-8.5: 고탄소 시나리오 (온실가스 배출량 증가)</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 기후 데이터 설정 폼 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {/* 시나리오 선택 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      기후 시나리오
+                    </label>
+                    <select
+                      value={climateDataSettings.scenario}
+                      onChange={(e) => setClimateDataSettings({...climateDataSettings, scenario: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                    >
+                      <option value="SSP126">SSP1-2.6 (저탄소 시나리오)</option>
+                      <option value="SSP585">SSP5-8.5 (고탄소 시나리오)</option>
+                    </select>
+                  </div>
+
+                  {/* 기후 변수 선택 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      기후 변수
+                    </label>
+                    <select
+                      value={climateDataSettings.variable}
+                      onChange={(e) => setClimateDataSettings({...climateDataSettings, variable: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                    >
+                      <option value="HW33">폭염일수 (최고기온 33°C 이상)</option>
+                      <option value="RN">연강수량 (mm)</option>
+                      <option value="TA">연평균기온 (°C)</option>
+                      <option value="TR25">열대야일수 (최저기온 25°C 이상)</option>
+                      <option value="RAIN80">호우일수 (일강수량 80mm 이상)</option>
+                    </select>
+                  </div>
+
+                  {/* 시작 연도 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      시작 연도
+                    </label>
+                    <select
+                      value={climateDataSettings.startYear}
+                      onChange={(e) => setClimateDataSettings({...climateDataSettings, startYear: parseInt(e.target.value)})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                    >
+                      {Array.from({length: 80}, (_, i) => 2021 + i).map(year => (
+                        <option key={year} value={year}>{year}년</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 종료 연도 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      종료 연도
+                    </label>
+                    <select
+                      value={climateDataSettings.endYear}
+                      onChange={(e) => setClimateDataSettings({...climateDataSettings, endYear: parseInt(e.target.value)})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                    >
+                      {Array.from({length: 80}, (_, i) => 2021 + i).map(year => (
+                        <option key={year} value={year}>{year}년</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 행정구역 선택 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      행정구역
+                    </label>
+                    <select
+                      value={climateDataSettings.region}
+                      onChange={(e) => setClimateDataSettings({...climateDataSettings, region: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                    >
+                      <option value="전체 지역">전체 지역</option>
+                      <option value="강남구">강남구</option>
+                      <option value="경주시">경주시</option>
+                      <option value="평택시">평택시</option>
+                      <option value="아산시">아산시</option>
+                      <option value="대덕구">대덕구</option>
+                      <option value="울주군">울주군</option>
+                      <option value="포항시">포항시</option>
+                      <option value="의왕시">의왕시</option>
+                      <option value="창원시">창원시</option>
+                      <option value="진천군">진천군</option>
+                      <option value="성남시">성남시</option>
+                      <option value="달성군">달성군</option>
+                      <option value="화성시">화성시</option>
+                      <option value="익산시">익산시</option>
+                      <option value="원주시">원주시</option>
+                      <option value="연수구">연수구</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* 기후 데이터 생성 버튼 */}
+                <div className="flex justify-center mb-6">
+                  <button
+                    onClick={generateClimateData}
+                    disabled={isGeneratingClimateData}
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                  >
+                    {isGeneratingClimateData ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <span>생성 중...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <span>기후 데이터 생성</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* 생성된 기후 데이터 표시 */}
+                {generatedClimateData && (
+                  <div className="border-2 border-dashed border-green-300 rounded-lg p-4 bg-green-50">
+                    <div className="text-center mb-4">
+                      <div className="flex items-center justify-center mb-2">
+                        <svg className="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 className="text-lg font-semibold text-green-900">
+                          기후 데이터 테이블 이미지 생성 완료!
+                        </h3>
+                      </div>
+                      <p className="text-sm text-green-700 mb-3">
+                        {climateDataSettings.scenario === 'SSP126' ? 'SSP1-2.6 (저탄소)' : 'SSP5-8.5 (고탄소)'} - 
+                        {climateDataSettings.variable === 'HW33' ? '폭염일수' : 
+                         climateDataSettings.variable === 'RN' ? '연강수량' :
+                         climateDataSettings.variable === 'TA' ? '연평균기온' :
+                         climateDataSettings.variable === 'TR25' ? '열대야일수' : '호우일수'}
+                        ({climateDataSettings.startYear}년 ~ {climateDataSettings.endYear}년)
+                        {climateDataSettings.region !== '전체 지역' ? ` - ${climateDataSettings.region}` : ''}
+                      </p>
+                    </div>
+                    
+                    <div className="flex justify-center mb-4">
+                      <img
+                        src={generatedClimateData}
+                        alt="생성된 기후 테이블 이미지"
+                        className="max-w-full h-auto rounded-lg shadow-lg border border-gray-200"
+                      />
+                    </div>
+                    
+                    <div className="flex justify-center space-x-4">
+                      <button
+                        onClick={downloadGeneratedClimateData}
+                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 shadow-md"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>PNG 다운로드</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => setGeneratedClimateData(null)}
+                        className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center space-x-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span>새로 만들기</span>
+                      </button>
+                    </div>
+                    
+                    <div className="mt-4 text-center">
+                      <p className="text-xs text-green-600">
+                        💡 생성된 이미지는 보고서, 프레젠테이션, 문서 등에 활용할 수 있습니다.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

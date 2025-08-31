@@ -1165,14 +1165,14 @@ export default function ClimateScenariosPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     기후 시나리오
                   </label>
-                  <select
-                    value={graphSettings.scenario}
-                    onChange={(e) => setGraphSettings({...graphSettings, scenario: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="SSP126">SSP1-2.6 (저탄소 시나리오)</option>
-                    <option value="SSP585">SSP5-8.5 (고탄소 시나리오)</option>
-                  </select>
+                                      <select
+                      value={graphSettings.scenario}
+                      onChange={(e) => setGraphSettings({...graphSettings, scenario: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                    >
+                      <option value="SSP126">SSP1-2.6 (저탄소 시나리오)</option>
+                      <option value="SSP585">SSP5-8.5 (고탄소 시나리오)</option>
+                    </select>
                 </div>
 
                 {/* 기후 변수 선택 */}
@@ -1180,17 +1180,17 @@ export default function ClimateScenariosPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     기후 변수
                   </label>
-                  <select
-                    value={graphSettings.variable}
-                    onChange={(e) => setGraphSettings({...graphSettings, variable: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="HW33">폭염일수 (최고기온 33°C 이상)</option>
-                    <option value="RN">연강수량 (mm)</option>
-                    <option value="TA">연평균기온 (°C)</option>
-                    <option value="TR25">열대야일수 (최저기온 25°C 이상)</option>
-                    <option value="RAIN80">호우일수 (일강수량 80mm 이상)</option>
-                  </select>
+                                      <select
+                      value={graphSettings.variable}
+                      onChange={(e) => setGraphSettings({...graphSettings, variable: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                    >
+                      <option value="HW33">폭염일수 (최고기온 33°C 이상)</option>
+                      <option value="RN">연강수량 (mm)</option>
+                      <option value="TA">연평균기온 (°C)</option>
+                      <option value="TR25">열대야일수 (최저기온 25°C 이상)</option>
+                      <option value="RAIN80">호우일수 (일강수량 80mm 이상)</option>
+                    </select>
                 </div>
 
                 {/* 시작 연도 */}
@@ -1198,15 +1198,15 @@ export default function ClimateScenariosPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     시작 연도
                   </label>
-                  <select
-                    value={graphSettings.startYear}
-                    onChange={(e) => setGraphSettings({...graphSettings, startYear: parseInt(e.target.value)})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {Array.from({length: 80}, (_, i) => 2021 + i).map(year => (
-                      <option key={year} value={year}>{year}년</option>
-                    ))}
-                  </select>
+                                      <select
+                      value={graphSettings.startYear}
+                      onChange={(e) => setGraphSettings({...graphSettings, startYear: parseInt(e.target.value)})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                    >
+                      {Array.from({length: 80}, (_, i) => 2021 + i).map(year => (
+                        <option key={year} value={year}>{year}년</option>
+                      ))}
+                    </select>
                 </div>
 
                 {/* 종료 연도 */}
@@ -1214,15 +1214,15 @@ export default function ClimateScenariosPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     종료 연도
                   </label>
-                  <select
-                    value={graphSettings.endYear}
-                    onChange={(e) => setGraphSettings({...graphSettings, endYear: parseInt(e.target.value)})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {Array.from({length: 80}, (_, i) => 2021 + i).map(year => (
-                      <option key={year} value={year}>{year}년</option>
-                    ))}
-                  </select>
+                                      <select
+                      value={graphSettings.endYear}
+                      onChange={(e) => setGraphSettings({...graphSettings, endYear: parseInt(e.target.value)})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                    >
+                      {Array.from({length: 80}, (_, i) => 2021 + i).map(year => (
+                        <option key={year} value={year}>{year}년</option>
+                      ))}
+                    </select>
                 </div>
               </div>
 
