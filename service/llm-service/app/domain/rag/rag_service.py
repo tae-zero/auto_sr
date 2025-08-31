@@ -10,19 +10,25 @@ class RAGService:
     """RAG 서비스 - FAISS 인덱스를 통한 정보 검색"""
     
     def __init__(self):
-        self.index_path = os.getenv('FAISS_VOLUME_PATH', '/data')  # Railway 볼륨 경로
+        self.index_path = os.getenv('FAISS_VOLUME_PATH', '/app/vectordb')  # Docker 볼륨 경로
         self.index_name = os.getenv('FAISS_INDEX_NAME', 'sr_corpus')
         self.store_name = os.getenv('FAISS_STORE_NAME', 'sr_corpus')
+        self.standards_index_name = os.getenv('FAISS_STANDARDS_INDEX_NAME', 'standards')
+        self.standards_store_name = os.getenv('FAISS_STANDARDS_STORE_NAME', 'standards')
         
         logger.info(f"🔧 RAG 서비스 초기화")
         logger.info(f"  - index_path: {self.index_path}")
         logger.info(f"  - index_name: {self.index_name}")
         logger.info(f"  - store_name: {self.store_name}")
+        logger.info(f"  - standards_index_name: {self.standards_index_name}")
+        logger.info(f"  - standards_store_name: {self.standards_store_name}")
         
         # FAISS 인덱스 로딩 상태
         self.is_index_loaded = False
         self.faiss_index = None
         self.doc_store = None
+        self.standards_faiss_index = None
+        self.standards_doc_store = None
         
         # 인덱스 로딩 시도
         self._load_index()
@@ -33,90 +39,264 @@ class RAGService:
             import faiss
             import pickle
             
-            # FAISS 인덱스 파일 경로
+            # 메인 FAISS 인덱스 파일 경로 (sr_corpus)
             index_file = os.path.join(self.index_path, self.index_name, "index.faiss")
             store_file = os.path.join(self.index_path, self.store_name, "index.pkl")
             
+            # Standards FAISS 인덱스 파일 경로
+            standards_index_file = os.path.join(self.index_path, self.standards_index_name, "index.faiss")
+            standards_store_file = os.path.join(self.index_path, self.standards_store_name, "index.pkl")
+            
             logger.info(f"🔍 RAG 서비스 인덱스 로딩 시작")
             logger.info(f"  - index_path: {self.index_path}")
-            logger.info(f"  - index_name: {self.index_name}")
-            logger.info(f"  - store_name: {self.store_name}")
             logger.info(f"  - index_file: {index_file}")
             logger.info(f"  - store_file: {store_file}")
-            
-            # 파일 존재 확인
-            if not os.path.exists(index_file):
-                logger.warning(f"FAISS 인덱스 파일이 존재하지 않음: {index_file}")
-                self.is_index_loaded = False
-                return
-                
-            if not os.path.exists(store_file):
-                logger.warning(f"문서 저장소 파일이 존재하지 않음: {store_file}")
-                self.is_index_loaded = False
-                return
+            logger.info(f"  - standards_index_file: {standards_index_file}")
+            logger.info(f"  - standards_store_file: {standards_store_file}")
             
             # 디렉토리 내용 확인
-            index_dir = os.path.dirname(index_file)
-            store_dir = os.path.dirname(store_file)
+            if os.path.exists(self.index_path):
+                logger.info(f"📁 vectordb 디렉토리 내용: {os.listdir(self.index_path)}")
+                for subdir in os.listdir(self.index_path):
+                    subdir_path = os.path.join(self.index_path, subdir)
+                    if os.path.isdir(subdir_path):
+                        logger.info(f"  📁 {subdir} 디렉토리 내용: {os.listdir(subdir_path)}")
             
-            if os.path.exists(index_dir):
-                logger.info(f"📁 인덱스 디렉토리 내용: {os.listdir(index_dir)}")
-            if os.path.exists(store_dir):
-                logger.info(f"📁 저장소 디렉토리 내용: {os.listdir(store_dir)}")
-            
-            # FAISS 인덱스 로딩
-            self.faiss_index = faiss.read_index(index_file)
-            logger.info(f"FAISS 인덱스 로딩 완료: {self.faiss_index.ntotal}개 문서")
-            
-            # 문서 저장소 로딩
-            try:
-                logger.info(f"📖 PKL 파일 로딩 시도: {store_file}")
-                with open(store_file, 'rb') as f:
-                    self.doc_store = pickle.load(f)
-                logger.info(f"✅ 문서 저장소 로딩 완료: {len(self.doc_store)}개 문서")
-            except Exception as pkl_error:
-                logger.error(f"❌ PKL 파일 로딩 실패: {str(pkl_error)}")
-                logger.error(f"  - 파일 경로: {store_file}")
-                logger.error(f"  - 파일 크기: {os.path.getsize(store_file) if os.path.exists(store_file) else '파일 없음'}")
-                
-                # Pydantic 호환성 문제 시도 해결
-                if '__fields_set__' in str(pkl_error):
-                    logger.info("🔄 Pydantic v1/v2 호환성 문제 감지, 강제 로딩 시도")
-                    try:
-                        # 더 강력한 예외 처리로 강제 로딩
-                        import sys
-                        import traceback
-                        
-                        # pickle 모듈의 오류를 무시하고 강제 로딩
-                        with open(store_file, 'rb') as f:
-                            # 모든 예외를 무시하고 로딩 시도
-                            try:
-                                self.doc_store = pickle.load(f)
-                                logger.info(f"✅ 강제 로딩으로 문서 저장소 로딩 성공: {len(self.doc_store)}개 문서")
-                            except Exception as force_error:
-                                logger.warning(f"⚠️ 강제 로딩도 실패: {str(force_error)}")
-                                # 마지막 시도: 원시 데이터로 로딩
-                                f.seek(0)  # 파일 포인터 리셋
-                                raw_data = f.read()
-                                logger.info(f"📄 원시 데이터 크기: {len(raw_data)} bytes")
-                                self.doc_store = None
-                                logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
-                                
-                    except Exception as compat_error:
-                        logger.error(f"❌ 모든 호환성 해결 시도 실패: {str(compat_error)}")
-                        self.doc_store = None
-                        logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
-                else:
-                    # 다른 오류의 경우
+            # 메인 FAISS 인덱스 로딩
+            if os.path.exists(index_file) and os.path.exists(store_file):
+                try:
+                    self.faiss_index = faiss.read_index(index_file)
+                    logger.info(f"✅ 메인 FAISS 인덱스 로딩 완료: {self.faiss_index.ntotal}개 문서")
+                    
+                    with open(store_file, 'rb') as f:
+                        self.doc_store = pickle.load(f)
+                    logger.info(f"✅ 메인 문서 저장소 로딩 완료: {len(self.doc_store)}개 문서")
+                    
+                except Exception as e:
+                    logger.error(f"❌ 메인 인덱스 로딩 실패: {str(e)}")
+                    self.faiss_index = None
                     self.doc_store = None
-                    logger.warning("⚠️ 문서 저장소 없이 FAISS 인덱스만 사용")
+            else:
+                logger.warning(f"⚠️ 메인 FAISS 파일이 존재하지 않음: {index_file} 또는 {store_file}")
             
-            self.is_index_loaded = True
-            logger.info("FAISS 인덱스 로딩 완료")
+            # Standards FAISS 인덱스 로딩
+            if os.path.exists(standards_index_file) and os.path.exists(standards_store_file):
+                try:
+                    self.standards_faiss_index = faiss.read_index(standards_index_file)
+                    logger.info(f"✅ Standards FAISS 인덱스 로딩 완료: {self.standards_faiss_index.ntotal}개 문서")
+                    
+                    with open(standards_store_file, 'rb') as f:
+                        self.standards_doc_store = pickle.load(f)
+                    logger.info(f"✅ Standards 문서 저장소 로딩 완료: {len(self.standards_doc_store)}개 문서")
+                    
+                except Exception as e:
+                    logger.error(f"❌ Standards 인덱스 로딩 실패: {str(e)}")
+                    self.standards_faiss_index = None
+                    self.standards_doc_store = None
+            else:
+                logger.warning(f"⚠️ Standards FAISS 파일이 존재하지 않음: {standards_index_file} 또는 {standards_store_file}")
+            
+            # 최소한 하나의 인덱스라도 로드되었으면 성공으로 간주
+            if self.faiss_index or self.standards_faiss_index:
+                self.is_index_loaded = True
+                logger.info("✅ FAISS 인덱스 로딩 완료")
+            else:
+                self.is_index_loaded = False
+                logger.error("❌ 모든 FAISS 인덱스 로딩 실패")
             
         except Exception as e:
             logger.error(f"FAISS 인덱스 로딩 실패: {str(e)}")
             self.is_index_loaded = False
+    
+    def _extract_text_from_doc(self, doc_content) -> str:
+        """문서 객체에서 실제 텍스트 내용 추출 (강화된 버전)"""
+        try:
+            # LangChain Document 객체인 경우
+            if hasattr(doc_content, 'page_content'):
+                return doc_content.page_content
+            
+            # 딕셔너리인 경우
+            elif isinstance(doc_content, dict):
+                # page_content 키가 있는 경우
+                if 'page_content' in doc_content:
+                    return doc_content['page_content']
+                # text 키가 있는 경우
+                elif 'text' in doc_content:
+                    return doc_content['text']
+                # content 키가 있는 경우
+                elif 'content' in doc_content:
+                    return doc_content['content']
+                # 다른 키들을 문자열로 변환
+                else:
+                    return str(doc_content)
+            
+            # 문자열인 경우
+            elif isinstance(doc_content, str):
+                return doc_content
+            
+            # InMemoryDocstore 객체인 경우 - 더 강력한 추출
+            elif hasattr(doc_content, '_dict'):
+                try:
+                    doc_dict = doc_content._dict
+                    logger.info(f"🔍 InMemoryDocstore 내부 구조 분석: {type(doc_dict)}, 길이: {len(doc_dict) if doc_dict else 0}")
+                    
+                    if doc_dict:
+                        # 모든 문서의 내용을 수집
+                        all_texts = []
+                        for doc_id, doc_obj in doc_dict.items():
+                            logger.info(f"  📄 문서 ID: {doc_id}, 타입: {type(doc_obj)}")
+                            
+                            if hasattr(doc_obj, 'page_content'):
+                                text_content = doc_obj.page_content
+                                logger.info(f"    ✅ page_content 발견: {len(text_content)}자")
+                                all_texts.append(text_content)
+                            elif isinstance(doc_obj, dict):
+                                if 'page_content' in doc_obj:
+                                    text_content = doc_obj['page_content']
+                                    logger.info(f"    ✅ dict.page_content 발견: {len(text_content)}자")
+                                    all_texts.append(text_content)
+                                elif 'text' in doc_obj:
+                                    text_content = doc_obj['text']
+                                    logger.info(f"    ✅ dict.text 발견: {len(text_content)}자")
+                                    all_texts.append(text_content)
+                                else:
+                                    logger.info(f"    ⚠️ dict에서 텍스트 키를 찾을 수 없음: {list(doc_obj.keys())}")
+                                    all_texts.append(str(doc_obj))
+                            elif isinstance(doc_obj, str):
+                                logger.info(f"    ✅ 문자열 발견: {len(doc_obj)}자")
+                                all_texts.append(doc_obj)
+                            else:
+                                logger.info(f"    ⚠️ 알 수 없는 타입: {type(doc_obj)}")
+                                all_texts.append(str(doc_obj))
+                        
+                        if all_texts:
+                            # 첫 번째 문서의 내용 반환 (전체가 너무 길 수 있음)
+                            first_text = all_texts[0][:1000]  # 1000자로 제한
+                            logger.info(f"✅ InMemoryDocstore에서 텍스트 추출 성공: {len(first_text)}자")
+                            return first_text
+                        else:
+                            logger.warning("⚠️ InMemoryDocstore에서 텍스트를 추출할 수 없음")
+                            return str(doc_content)
+                    else:
+                        logger.warning("⚠️ InMemoryDocstore._dict가 비어있음")
+                        return str(doc_content)
+                except Exception as e:
+                    logger.warning(f"InMemoryDocstore 처리 실패: {e}")
+                    return str(doc_content)
+            
+            # UUID 매핑 딕셔너리인 경우 - 더 강력한 추출
+            elif hasattr(doc_content, 'get') and hasattr(doc_content, 'values'):
+                try:
+                    logger.info(f"🔍 UUID 매핑 딕셔너리 분석: {type(doc_content)}, 길이: {len(doc_content)}")
+                    
+                    # 모든 값의 내용을 수집
+                    all_texts = []
+                    for doc_id, doc_obj in doc_content.items():
+                        logger.info(f"  📄 UUID: {doc_id}, 타입: {type(doc_obj)}")
+                        
+                        if hasattr(doc_obj, 'page_content'):
+                            text_content = doc_obj.page_content
+                            logger.info(f"    ✅ page_content 발견: {len(text_content)}자")
+                            all_texts.append(text_content)
+                        elif isinstance(doc_obj, dict):
+                            if 'page_content' in doc_obj:
+                                text_content = doc_obj['page_content']
+                                logger.info(f"    ✅ dict.page_content 발견: {len(text_content)}자")
+                                all_texts.append(text_content)
+                            elif 'text' in doc_obj:
+                                text_content = doc_obj['text']
+                                logger.info(f"    ✅ dict.text 발견: {len(text_content)}자")
+                                all_texts.append(text_content)
+                            else:
+                                logger.info(f"    ⚠️ dict에서 텍스트 키를 찾을 수 없음: {list(doc_obj.keys())}")
+                                all_texts.append(str(doc_obj))
+                        elif isinstance(doc_obj, str):
+                            logger.info(f"    ✅ 문자열 발견: {len(doc_obj)}자")
+                            all_texts.append(doc_obj)
+                        else:
+                            logger.info(f"    ⚠️ 알 수 없는 타입: {type(doc_obj)}")
+                            all_texts.append(str(doc_obj))
+                    
+                    if all_texts:
+                        # 첫 번째 문서의 내용 반환
+                        first_text = all_texts[0][:1000]  # 1000자로 제한
+                        logger.info(f"✅ UUID 매핑에서 텍스트 추출 성공: {len(first_text)}자")
+                        return first_text
+                    else:
+                        logger.warning("⚠️ UUID 매핑에서 텍스트를 추출할 수 없음")
+                        return str(doc_content)
+                except Exception as e:
+                    logger.warning(f"UUID 매핑 처리 실패: {e}")
+                    return str(doc_content)
+            
+            # 기타 객체인 경우
+            else:
+                return str(doc_content)
+                
+        except Exception as e:
+            logger.warning(f"문서 내용 추출 실패: {e}")
+            return str(doc_content)
+    
+    def _search_in_doc_store(self, doc_store, query_tokens: List[str], store_type: str) -> List[Dict[str, Any]]:
+        """문서 저장소에서 검색 수행"""
+        relevant_docs = []
+        
+        try:
+            # 문서 저장소 타입 확인 및 안전한 처리
+            if isinstance(doc_store, dict):
+                # dict 형태인 경우
+                for doc_id, doc_content in doc_store.items():
+                    # 실제 텍스트 내용 추출
+                    actual_text = self._extract_text_from_doc(doc_content)
+                    
+                    # 개선된 키워드 매칭 점수 계산
+                    score = self._calculate_relevance_score(query_tokens, actual_text)
+                    
+                    # 디버깅: 모든 문서의 점수 출력
+                    logger.info(f"📄 {store_type} 문서 {doc_id}: 점수={score}, 내용 미리보기={actual_text[:100]}...")
+                    
+                    if score > 0:  # 임계값을 0으로 설정하여 모든 문서 포함
+                        relevant_docs.append({
+                            'content': actual_text,
+                            'score': score,
+                            'source': f'{store_type}_Document_{doc_id}',
+                            'metadata': {
+                                'category': 'TCFD',
+                                'type': store_type
+                            }
+                        })
+            elif isinstance(doc_store, (list, tuple)):
+                # list나 tuple 형태인 경우
+                logger.info(f"{store_type} 문서 저장소가 {type(doc_store).__name__} 형태로 로딩됨")
+                for i, doc_content in enumerate(doc_store):
+                    # 실제 텍스트 내용 추출
+                    actual_text = self._extract_text_from_doc(doc_content)
+                    
+                    # 개선된 키워드 매칭 점수 계산
+                    score = self._calculate_relevance_score(query_tokens, actual_text)
+                    
+                    # 디버깅: 모든 문서의 점수 출력
+                    logger.info(f"📄 {store_type} 문서 {i}: 점수={score}, 내용 미리보기={actual_text[:100]}...")
+                    
+                    if score > 0:  # 임계값을 0으로 설정하여 모든 문서 포함
+                        relevant_docs.append({
+                            'content': actual_text,
+                            'score': score,
+                            'source': f'{store_type}_Document_{i}',
+                            'metadata': {
+                                'category': 'TCFD',
+                                'type': store_type
+                            }
+                        })
+            else:
+                logger.warning(f"알 수 없는 {store_type} 문서 저장소 타입: {type(doc_store)}")
+                return []
+                
+        except Exception as e:
+            logger.error(f"{store_type} 문서 저장소 검색 중 오류 발생: {str(e)}")
+            return []
+        
+        return relevant_docs
     
     def search(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         """쿼리를 기반으로 관련 문서 검색"""
@@ -126,13 +306,24 @@ class RAGService:
                 return self._get_dummy_results(query, top_k)
             
             # 문서 저장소 확인
-            if self.doc_store is None:
-                logger.warning("⚠️ 문서 저장소(PKL)가 로드되지 않았습니다. 더미 결과를 반환합니다.")
+            if self.doc_store is None and self.standards_doc_store is None:
+                logger.warning("⚠️ 모든 문서 저장소(PKL)가 로드되지 않았습니다. 더미 결과를 반환합니다.")
                 return self._get_dummy_results(query, top_k)
             
             # 실제 FAISS 검색 로직 구현
             logger.info(f"쿼리 검색: '{query}' (top_k: {top_k})")
-            logger.info(f"📚 문서 저장소 상태: {len(self.doc_store)}개 문서")
+            
+            # 메인 문서 저장소 상태
+            if self.doc_store:
+                logger.info(f"📚 메인 문서 저장소 상태: {len(self.doc_store)}개 문서")
+            else:
+                logger.info("⚠️ 메인 문서 저장소가 로드되지 않음")
+            
+            # Standards 문서 저장소 상태
+            if self.standards_doc_store:
+                logger.info(f"📚 Standards 문서 저장소 상태: {len(self.standards_doc_store)}개 문서")
+            else:
+                logger.info("⚠️ Standards 문서 저장소가 로드되지 않음")
             
             # 쿼리를 벡터로 변환 (간단한 TF-IDF 스타일)
             query_tokens = query.lower().split()
@@ -140,48 +331,64 @@ class RAGService:
             # 문서 저장소에서 관련성 높은 문서 검색
             relevant_docs = []
             
-            # 문서 저장소 타입 확인 및 안전한 처리
-            if isinstance(self.doc_store, dict):
-                # dict 형태인 경우
-                for doc_id, doc_content in self.doc_store.items():
-                    # 개선된 키워드 매칭 점수 계산
-                    score = self._calculate_relevance_score(query_tokens, str(doc_content))
-                    
-                    # 디버깅: 모든 문서의 점수 출력
-                    logger.info(f"📄 문서 {doc_id}: 점수={score}, 내용 미리보기={str(doc_content)[:100]}...")
-                    
-                    if score > 0:  # 임계값을 0으로 설정하여 모든 문서 포함
-                        relevant_docs.append({
-                            'content': str(doc_content),
-                            'score': score,
-                            'source': f'Document_{doc_id}',
-                            'metadata': {
-                                'category': 'TCFD',
-                                'type': 'corpus'
-                            }
-                        })
-            elif isinstance(self.doc_store, (list, tuple)):
-                # list나 tuple 형태인 경우
-                logger.info(f"문서 저장소가 {type(self.doc_store).__name__} 형태로 로딩됨")
-                for i, doc_content in enumerate(self.doc_store):
-                    # 개선된 키워드 매칭 점수 계산
-                    score = self._calculate_relevance_score(query_tokens, str(doc_content))
-                    
-                    # 디버깅: 모든 문서의 점수 출력
-                    logger.info(f"📄 문서 {i}: 점수={score}, 내용 미리보기={str(doc_content)[:100]}...")
-                    
-                    if score > 0:  # 임계값을 0으로 설정하여 모든 문서 포함
-                        relevant_docs.append({
-                            'content': str(doc_content),
-                            'score': score,
-                            'source': f'Document_{i}',
-                            'metadata': {
-                                'category': 'TCFD',
-                                'type': 'corpus'
-                            }
-                        })
-            else:
-                logger.warning(f"알 수 없는 문서 저장소 타입: {type(self.doc_store)}")
+            # 메인 문서 저장소 검색
+            if self.doc_store:
+                logger.info("🔍 메인 문서 저장소 검색 시작")
+                if isinstance(self.doc_store, (list, tuple)):
+                    logger.info(f"📚 메인 문서 저장소가 {type(self.doc_store).__name__} 형태로 로딩됨")
+                    for i, doc_content in enumerate(self.doc_store):
+                        # 실제 텍스트 내용 추출
+                        actual_text = self._extract_text_from_doc(doc_content)
+                        
+                        # 개선된 키워드 매칭 점수 계산
+                        score = self._calculate_relevance_score(query_tokens, actual_text)
+                        
+                        # 디버깅: 모든 문서의 점수 출력
+                        logger.info(f"📄 메인 문서 {i}: 점수={score}, 내용 미리보기={actual_text[:100]}...")
+                        
+                        if score > 0:  # 임계값을 0으로 설정하여 모든 문서 포함
+                            relevant_docs.append({
+                                'content': actual_text,
+                                'score': score,
+                                'source': f'main_Document_{i}',
+                                'metadata': {
+                                    'category': 'TCFD',
+                                    'type': 'main'
+                                }
+                            })
+                else:
+                    relevant_docs.extend(self._search_in_doc_store(self.doc_store, query_tokens, "main"))
+            
+            # Standards 문서 저장소 검색
+            if self.standards_doc_store:
+                logger.info("🔍 Standards 문서 저장소 검색 시작")
+                if isinstance(self.standards_doc_store, (list, tuple)):
+                    logger.info(f"📚 Standards 문서 저장소가 {type(self.standards_doc_store).__name__} 형태로 로딩됨")
+                    for i, doc_content in enumerate(self.standards_doc_store):
+                        # 실제 텍스트 내용 추출
+                        actual_text = self._extract_text_from_doc(doc_content)
+                        
+                        # 개선된 키워드 매칭 점수 계산
+                        score = self._calculate_relevance_score(query_tokens, actual_text)
+                        
+                        # 디버깅: 모든 문서의 점수 출력
+                        logger.info(f"📄 Standards 문서 {i}: 점수={score}, 내용 미리보기={actual_text[:100]}...")
+                        
+                        if score > 0:  # 임계값을 0으로 설정하여 모든 문서 포함
+                            relevant_docs.append({
+                                'content': actual_text,
+                                'score': score,
+                                'source': f'standards_Document_{i}',
+                                'metadata': {
+                                    'category': 'TCFD',
+                                    'type': 'standards'
+                                }
+                            })
+                else:
+                    relevant_docs.extend(self._search_in_doc_store(self.standards_doc_store, query_tokens, "standards"))
+            
+            if not relevant_docs:
+                logger.warning("⚠️ 모든 문서 저장소에서 관련 문서를 찾을 수 없음")
                 return self._get_dummy_results(query, top_k)
             
             # 점수 기준으로 정렬하고 top_k만 반환

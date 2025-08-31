@@ -529,7 +529,7 @@ export default function TcfdSrPage() {
       console.log('✅ TCFD Draft 데이터 저장 완료:', draftResponse.data);
 
       // 3. Draft 상태를 'completed'로 업데이트
-      await tcfdReportAPI.updateDraftStatus(draftResponse.data.data.id, 'completed');
+      await tcfdReportAPI.updateDraftStatus(draftResponse.data.data.id, { status: 'completed' });
 
       // 4. 기존 TCFD 보고서 생성 로직 (기존 코드 보존)
       const tcfdReportRequest = {
@@ -581,7 +581,7 @@ export default function TcfdSrPage() {
       // 5. Draft 내용을 실제 생성된 보고서로 업데이트
       const generatedContent = result?.report_content || '보고서 생성에 실패했습니다.';
 
-      await tcfdReportAPI.updateDraftStatus(draftResponse.data.data.id, 'completed');
+      await tcfdReportAPI.updateDraftStatus(draftResponse.data.data.id, { status: 'completed' });
 
       setGeneratedReport(generatedContent);
       setReportGenerationStatus('보고서 생성 완료!');
@@ -1260,6 +1260,36 @@ export default function TcfdSrPage() {
     return allImages.filter(image => {
       return targetKeys.some(key => image.title.includes(key) || image.description.includes(key));
     });
+  };
+
+  // 다운로드 함수들
+  const downloadReportAsText = (content: string, filename: string) => {
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadReportAsWord = async (content: string, filename: string) => {
+    try {
+      const downloadContent: DownloadContent = {
+        title: 'TCFD 보고서',
+        draft: content,
+        polished: content,
+        companyName: companyFinancialData?.company_name || 'Unknown',
+        timestamp: new Date().toISOString()
+      };
+      
+      await downloadAsWordFromServer(downloadContent);
+    } catch (error) {
+      console.error('Word 다운로드 실패:', error);
+      alert('Word 다운로드에 실패했습니다.');
+    }
   };
 
   return (
@@ -3035,41 +3065,90 @@ export default function TcfdSrPage() {
                   </div>
                 ) : (
                   <div className="text-center py-16">
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-lg border border-gray-200 max-w-2xl mx-auto">
-                      <div className="w-20 h-20 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <span className="text-white text-3xl">🤖</span>
-                      </div>
-                      <h3 className="text-xl font-semibold text-gray-800 mb-4">AI 보고서 생성 준비 완료</h3>
-                      <p className="text-gray-600 mb-6">
-                        두 개의 AI 모델이 TCFD 프레임워크 기반으로 보고서를 생성할 준비가 되었습니다.
-                      </p>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div className="bg-white p-3 rounded-lg border border-blue-200">
-                          <div className="flex items-center">
-                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-2">
-                              <span className="text-white text-xs font-bold">O</span>
-                            </div>
-                            <span className="text-sm font-medium text-blue-700">OpenAI GPT-4o-mini</span>
+                    {generatedReport ? (
+                      // 생성된 보고서가 있을 때
+                      <div className="bg-white p-8 rounded-lg border border-gray-200 max-w-4xl mx-auto text-left">
+                        <div className="flex items-center justify-between mb-6">
+                          <h3 className="text-2xl font-bold text-gray-800">생성된 TCFD 보고서</h3>
+                          <div className="flex items-center space-x-3">
+                            <span className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                              ✅ {reportGenerationStatus}
+                            </span>
+                            <button
+                              onClick={() => setGeneratedReport('')}
+                              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                            >
+                              새로 생성
+                            </button>
                           </div>
                         </div>
-                        <div className="bg-white p-3 rounded-lg border border-purple-200">
-                          <div className="flex items-center">
-                            <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center mr-2">
-                              <span className="text-white text-xs font-bold">K</span>
-                            </div>
-                            <span className="text-sm font-medium text-purple-700">KoAlpaca/RoLA</span>
-                          </div>
+                        
+                        {/* 보고서 내용 */}
+                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 max-h-96 overflow-y-auto">
+                          <div 
+                            className="prose prose-sm max-w-none text-black [&>*]:text-black [&_h1]:text-black [&_h2]:text-black [&_h3]:text-black [&_p]:text-black [&_li]:text-black [&_strong]:text-black [&_em]:text-black"
+                            dangerouslySetInnerHTML={{ 
+                              __html: generatedReport.replace(/\n/g, '<br/>').replace(/##/g, '<h2>').replace(/#/g, '<h1>') 
+                            }}
+                          />
+                        </div>
+                        
+                        {/* 다운로드 버튼들 */}
+                        <div className="flex justify-center space-x-4 mt-6">
+                          <button
+                            onClick={() => downloadReportAsText(generatedReport, 'tcfd-report.txt')}
+                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                          >
+                            <span>📄</span>
+                            <span>텍스트 다운로드</span>
+                          </button>
+                          <button
+                            onClick={() => downloadReportAsWord(generatedReport, 'tcfd-report.docx')}
+                            className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                          >
+                            <span>📝</span>
+                            <span>Word 다운로드</span>
+                          </button>
                         </div>
                       </div>
-                      
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <p className="text-sm text-yellow-800">
-                          💡 <strong>다음 단계:</strong> TCFD 프레임워크 탭에서 11개 핵심 인덱스 데이터를 입력한 후, 
-                          위의 &ldquo;AI 보고서 생성 시작&rdquo; 버튼을 클릭하세요.
+                    ) : (
+                      // 기존의 AI 보고서 생성 준비 완료 메시지
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-lg border border-gray-200 max-w-2xl mx-auto">
+                        <div className="w-20 h-20 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                          <span className="text-white text-3xl">🤖</span>
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-800 mb-4">AI 보고서 생성 준비 완료</h3>
+                        <p className="text-gray-600 mb-6">
+                          두 개의 AI 모델이 TCFD 프레임워크 기반으로 보고서를 생성할 준비가 되었습니다.
                         </p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                          <div className="bg-white p-3 rounded-lg border border-blue-200">
+                            <div className="flex items-center">
+                              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-2">
+                                <span className="text-white text-xs font-bold">O</span>
+                              </div>
+                              <span className="text-sm font-medium text-blue-700">OpenAI GPT-4o-mini</span>
+                            </div>
+                          </div>
+                          <div className="bg-white p-3 rounded-lg border border-purple-200">
+                            <div className="flex items-center">
+                              <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center mr-2">
+                                <span className="text-xs font-bold">K</span>
+                              </div>
+                              <span className="text-sm font-medium text-purple-700">KoAlpaca/RoLA</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <p className="text-sm text-yellow-800">
+                            💡 <strong>다음 단계:</strong> TCFD 프레임워크 탭에서 11개 핵심 인덱스 데이터를 입력한 후, 
+                            위의 &ldquo;AI 보고서 생성 시작&rdquo; 버튼을 클릭하세요.
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
               </div>

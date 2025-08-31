@@ -242,8 +242,8 @@ export const tcfdReportAPI = {
   getTcfdDraftById: (draftId: number) => 
     apiClient.get(`/api/v1/tcfdreport/drafts/id/${draftId}`),
   
-  updateDraftStatus: (draftId: number, status: string) => 
-    apiClient.put(`/api/v1/tcfdreport/drafts/${draftId}/status`, { status }),
+  updateDraftStatus: (draftId: number, statusData: { status: string }) => 
+    apiClient.put(`/api/v1/tcfdreport/drafts/${draftId}/status`, statusData),
 };
 
 // LLM Service API (TCFD 보고서 생성용)

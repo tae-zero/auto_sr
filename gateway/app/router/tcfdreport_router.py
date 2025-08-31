@@ -701,9 +701,13 @@ async def get_tcfd_draft_by_id(request: Request, draft_id: int, authorization: s
         raise HTTPException(status_code=500, detail=f"TCFD 초안 데이터 ID 조회 실패: {str(e)}")
 
 @router.put("/drafts/{draft_id}/status")
-async def update_draft_status(request: Request, draft_id: int, status: str, authorization: str = Header(None)):
+async def update_draft_status(request: Request, draft_id: int, status_data: dict, authorization: str = Header(None)):
     """TCFD 초안 데이터 상태 업데이트"""
     try:
+        status = status_data.get("status")
+        if not status:
+            raise HTTPException(status_code=400, detail="status 필드가 필요합니다")
+        
         logger.info(f"🔍 TCFD 초안 데이터 상태 업데이트 요청 시작: {draft_id} -> {status}")
         
         # JWT 토큰 검증

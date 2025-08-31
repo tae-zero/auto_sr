@@ -288,7 +288,7 @@ services:
     ports:
       - "${LLM_SERVICE_PORT:-8002}:8002"
     volumes:
-      - ./service/llm-service/vectordb:/app/vectordb
+      - ./service/tcfdreport-service/vectordb:/app/vectordb
     env_file: .env
     environment:
       - SERVICE_HOST=${SERVICE_HOST:-0.0.0.0}
@@ -299,6 +299,9 @@ services:
       - FAISS_VOLUME_PATH=/app/vectordb
       - FAISS_INDEX_NAME=sr_corpus
       - FAISS_STORE_NAME=sr_corpus
+      # standards 인덱스도 추가
+      - FAISS_STANDARDS_INDEX_NAME=standards
+      - FAISS_STANDARDS_STORE_NAME=standards
       - EMBED_DIM=${EMBED_DIM:-768}
       # OpenAI 설정
       - OPENAI_API_KEY=${OPENAI_API_KEY}
