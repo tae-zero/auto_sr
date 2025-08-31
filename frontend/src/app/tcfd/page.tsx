@@ -8,6 +8,7 @@ import { apiClient, tcfdReportAPI, tcfdAPI, llmServiceAPI } from '@/shared/lib';
 import { downloadAsWordFromServer, downloadAsPDFFromServer, DownloadContent } from '@/utils/downloadUtils';
 
 import axios from 'axios';
+// AI SDK는 Gateway를 통해 LLM Service를 호출하므로 불필요
 // import { openai } from '@ai-sdk/openai';
 // import { huggingface } from '@ai-sdk/huggingface';
 
@@ -556,17 +557,25 @@ export default function TcfdSrPage() {
       };
 
       console.log('🤖 TCFD 보고서 생성 시작:', tcfdReportRequest);
+      console.log('🎯 선택된 LLM 모델:', selectedLLMModel);
 
       // 선택된 LLM 모델로 TCFD 보고서 생성
       let result: any = null;
-      if (selectedLLMModel === "openai") {
-        // OpenAI API 호출 (기존 로직 보존)
-        result = await generateTCFDReportWithLLM(tcfdReportRequest, "openai");
-        console.log('✅ OpenAI TCFD 보고서 결과:', result);
-      } else {
-        // Hugging Face API 호출 (기존 로직 보존)
-        result = await generateTCFDReportWithLLM(tcfdReportRequest, "huggingface");
-        console.log('✅ Hugging Face TCFD 보고서 결과:', result);
+      try {
+        if (selectedLLMModel === "openai") {
+          console.log('🚀 OpenAI API 호출 시작...');
+          // OpenAI API 호출 (기존 로직 보존)
+          result = await generateTCFDReportWithLLM(tcfdReportRequest, "openai");
+          console.log('✅ OpenAI TCFD 보고서 결과:', result);
+        } else {
+          console.log('🚀 Hugging Face API 호출 시작...');
+          // Hugging Face API 호출 (기존 로직 보존)
+          result = await generateTCFDReportWithLLM(tcfdReportRequest, "huggingface");
+          console.log('✅ Hugging Face TCFD 보고서 결과:', result);
+        }
+      } catch (llmError) {
+        console.error('❌ LLM API 호출 실패:', llmError);
+        throw new Error(`LLM API 호출 실패: ${llmError instanceof Error ? llmError.message : String(llmError)}`);
       }
 
       // 5. Draft 내용을 실제 생성된 보고서로 업데이트
@@ -592,6 +601,8 @@ export default function TcfdSrPage() {
   // LLM 서비스를 사용하여 TCFD 보고서 생성
   const generateTCFDReportWithLLM = async (request: any, llmProvider: string) => {
     try {
+      console.log(`🚀 ${llmProvider} TCFD 보고서 생성 시작`);
+      
       const token = localStorage.getItem('auth_token');
       if (!token) {
         throw new Error('인증 토큰이 없습니다');
@@ -603,9 +614,13 @@ export default function TcfdSrPage() {
       
       console.log('🌐 Gateway URL 결정:', gatewayUrl);
       console.log('🌐 현재 호스트:', window.location.hostname);
+      console.log('📤 요청 데이터:', request);
+      
+      const apiUrl = `${gatewayUrl}/api/v1/tcfd/generate-report`;
+      console.log('🎯 API 엔드포인트:', apiUrl);
       
       // Gateway를 통해 LLM Service의 TCFD API 호출
-      const response = await fetch(`${gatewayUrl}/api/v1/tcfd/generate-report`, {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -617,11 +632,17 @@ export default function TcfdSrPage() {
         })
       });
 
+      console.log('📥 응답 상태:', response.status);
+      console.log('📥 응답 헤더:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ HTTP 오류 응답:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
       const result = await response.json();
+      console.log('✅ 응답 데이터:', result);
       return result;
     } catch (error: unknown) {
       console.error(`❌ ${llmProvider} TCFD 보고서 생성 실패:`, error);

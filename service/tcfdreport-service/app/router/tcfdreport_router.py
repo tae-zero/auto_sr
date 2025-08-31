@@ -340,9 +340,13 @@ async def get_tcfd_draft_by_id(draft_id: int):
         raise HTTPException(status_code=500, detail=f"TCFD 초안 데이터 조회 실패: {str(e)}")
 
 @tcfdreport_router.put("/drafts/{draft_id}/status")
-async def update_draft_status(draft_id: int, status: str):
+async def update_draft_status(draft_id: int, status_data: TCFDDraftUpdateSchema):
     """TCFD 초안 데이터 상태 업데이트"""
     try:
+        status = status_data.status
+        if not status:
+            raise HTTPException(status_code=400, detail="status 필드가 필요합니다")
+        
         conn = await get_db_connection()
         
         repository = TCFDDraftRepository()
