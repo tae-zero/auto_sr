@@ -852,6 +852,25 @@ async def generate_climate_chart_image(
         if additional_years and len(additional_years) > 0:
             params["additional_years"] = additional_years
         
+        # 쿼리 파라미터에서 additional_years[] 직접 파싱 (FastAPI Query 파라미터 문제 해결)
+        query_params = dict(request.query_params)
+        if 'additional_years[]' in query_params:
+            # additional_years[] 파라미터가 여러 개 있을 수 있음
+            additional_years_list = []
+            for key, value in query_params.items():
+                if key == 'additional_years[]':
+                    try:
+                        additional_years_list.append(int(value))
+                    except ValueError:
+                        logger.warning(f"⚠️ 잘못된 추가 연도 값: {value}")
+            
+            if additional_years_list:
+                params["additional_years"] = additional_years_list
+                logger.info(f"🔍 쿼리 파라미터에서 파싱된 추가 연도: {additional_years_list}")
+        
+        logger.info(f"🔍 원본 쿼리 파라미터: {dict(request.query_params)}")
+        logger.info(f"🔍 파싱된 추가 연도: {params.get('additional_years', '없음')}")
+        
         # TCFD Service 호출
         url = f"{host}/api/v1/tcfd/climate-scenarios/chart-image"
         if not host.startswith("https://") and port:
