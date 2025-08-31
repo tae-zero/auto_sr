@@ -17,6 +17,7 @@ print(f"Original DATABASE_URL: {DATABASE_URL}")
 railway_env = os.getenv("RAILWAY_ENVIRONMENT")
 if railway_env in ["true", "production"]:  # "production"도 인식
     # Railway 환경: asyncpg 사용
+    # 이미 postgresql+asyncpg:// 스키마가 있으면 그대로 사용
     if not DATABASE_URL.startswith("postgresql+asyncpg://"):
         if DATABASE_URL.startswith("postgresql://"):
             DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL[len("postgresql://"):]
@@ -24,6 +25,16 @@ if railway_env in ["true", "production"]:  # "production"도 인식
             DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL[len("postgres://"):]
         else:
             DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL
+    
+    # Railway 환경에서는 asyncpg가 설치되어 있는지 확인
+    try:
+        import asyncpg
+        print(f"✅ asyncpg 패키지 확인됨: {asyncpg.__version__}")
+    except ImportError:
+        print("❌ asyncpg 패키지가 설치되지 않음. psycopg2로 대체합니다.")
+        # asyncpg가 없으면 postgresql:// 스키마 사용
+        if DATABASE_URL.startswith("postgresql+asyncpg://"):
+            DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgresql+asyncpg://"):]
 else:
     # Docker 환경: psycopg2 사용 (동기)
     if DATABASE_URL.startswith("postgresql+asyncpg://"):

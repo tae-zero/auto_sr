@@ -56,7 +56,7 @@ async def get_tcfd_standards(request: Request, authorization: str = Header(None)
         # URL이 이미 완전한 형태인지 확인
         if not host.startswith(('http://', 'https://')):
             # Docker 환경에서는 http:// 사용, Railway에서는 https:// 사용
-            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+            if os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]:
                 host = f"https://{host}"
                 logger.info(f"🔧 Railway 환경: https:// 추가됨")
             else:
@@ -155,7 +155,7 @@ async def get_tcfd_standards_by_category(request: Request, category: str, author
         # URL이 이미 완전한 형태인지 확인
         if not host.startswith(('http://', 'https://')):
             # Docker 환경에서는 http:// 사용, Railway에서는 https:// 사용
-            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+            if os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]:
                 host = f"https://{host}"
                 logger.info(f"🔧 Railway 환경: https:// 추가됨")
             else:
@@ -254,7 +254,7 @@ async def get_companies(request: Request, authorization: str = Header(None)):
         # URL이 이미 완전한 형태인지 확인
         if not host.startswith(('http://', 'https://')):
             # Docker 환경에서는 http:// 사용, Railway에서는 https:// 사용
-            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+            if os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]:
                 host = f"https://{host}"
                 logger.info(f"🔧 Railway 환경: https:// 추가됨")
             else:
@@ -353,7 +353,7 @@ async def get_company_financial_data(request: Request, company_name: str, author
         # URL이 이미 완전한 형태인지 확인
         if not host.startswith(('http://', 'https://')):
             # Docker 환경에서는 http:// 사용, Railway에서는 https:// 사용
-            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+            if os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]:
                 host = f"https://{host}"
                 logger.info(f"🔧 Railway 환경: https:// 추가됨")
             else:
@@ -451,7 +451,7 @@ async def get_company_overview(request: Request, company_name: str, authorizatio
         # URL이 이미 완전한 형태인지 확인
         if not host.startswith(('http://', 'https://')):
             # Docker 환경에서는 http:// 사용, Railway에서는 https:// 사용
-            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+            if os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]:
                 host = f"https://{host}"
                 logger.info(f"🔧 Railway 환경: https:// 추가됨")
             else:
@@ -469,17 +469,17 @@ async def get_company_overview(request: Request, company_name: str, authorizatio
         }
         
         async with httpx.AsyncClient(timeout=60.0) as client:
-            # Railway 환경에서는 실제 서비스 URL 사용, Docker에서는 컨테이너 이름 사용
-            # if os.getenv("RAILWAY_ENVIRONMENT") == "true" or os.getenv("VERCEL_ENVIRONMENT") == "true":
-                # Railway/Vercel 환경에서는 환경변수에서 직접 TCFD Service URL 가져오기
-            railway_tcfd_url = os.getenv("RAILWAY_TCFD_SERVICE_URL")
-            if railway_tcfd_url:
-                url = f"{railway_tcfd_url}/api/v1/tcfd/company-overview"
-                logger.info(f"🔧 Railway/Vercel 환경에서 환경변수 TCFD Service URL: {url}")
-            # else:
-            #         # 환경변수가 없으면 Service Discovery에서 가져온 URL 사용
-            #     url = f"{host}/api/v1/tcfd/company-overview"
-            #     logger.info(f"🔧 Railway/Vercel 환경에서 Service Discovery TCFD Service URL: {url}")
+            # Docker 환경에서는 컨테이너 이름과 포트 사용, Railway에서는 환경변수 사용
+            if os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]:
+                # Railway 환경에서는 환경변수에서 직접 TCFD Service URL 가져오기
+                railway_tcfd_url = os.getenv("RAILWAY_TCFD_SERVICE_URL")
+                if railway_tcfd_url:
+                    url = f"{railway_tcfd_url}/api/v1/tcfd/company-overview"
+                    logger.info(f"🔧 Railway 환경에서 TCFD Service URL: {url}")
+                else:
+                    # 환경변수가 없으면 Service Discovery에서 가져온 URL 사용
+                    url = f"{host}/api/v1/tcfd/company-overview"
+                    logger.info(f"🔧 Railway 환경에서 Service Discovery TCFD Service URL: {url}")
             else:
                 # Docker 환경에서는 컨테이너 이름과 포트 사용
                 url = f"http://tcfd-service:8005/api/v1/tcfd/company-overview"
@@ -557,7 +557,7 @@ async def get_tcfd_inputs(request: Request, authorization: str = Header(None)):
         # URL이 이미 완전한 형태인지 확인
         if not host.startswith(('http://', 'https://')):
             # Docker 환경에서는 http:// 사용, Railway에서는 https:// 사용
-            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+            if os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]:
                 host = f"https://{host}"
                 logger.info(f"🔧 Railway 환경: https:// 추가됨")
             else:
@@ -575,11 +575,17 @@ async def get_tcfd_inputs(request: Request, authorization: str = Header(None)):
         }
         
         async with httpx.AsyncClient(timeout=60.0) as client:
-            # Railway 환경에서는 실제 서비스 URL 사용, Docker에서는 컨테이너 이름 사용
-            railway_tcfd_url = os.getenv("RAILWAY_TCFD_SERVICE_URL")
-            if railway_tcfd_url:
-                url = f"{railway_tcfd_url}/api/v1/tcfd/inputs"
-                logger.info(f"🔧 Railway/Vercel 환경에서 환경변수 TCFD Service URL: {url}")
+            # Docker 환경에서는 컨테이너 이름과 포트 사용, Railway에서는 환경변수 사용
+            if os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]:
+                # Railway 환경에서는 환경변수에서 직접 TCFD Service URL 가져오기
+                railway_tcfd_url = os.getenv("RAILWAY_TCFD_SERVICE_URL")
+                if railway_tcfd_url:
+                    url = f"{railway_tcfd_url}/api/v1/tcfd/inputs"
+                    logger.info(f"🔧 Railway 환경에서 TCFD Service URL: {url}")
+                else:
+                    # 환경변수가 없으면 Service Discovery에서 가져온 URL 사용
+                    url = f"{host}/api/v1/tcfd/inputs"
+                    logger.info(f"🔧 Railway 환경에서 Service Discovery TCFD Service URL: {url}")
             else:
                 # Docker 환경에서는 컨테이너 이름과 포트 사용
                 url = f"http://tcfd-service:8005/api/v1/tcfd/inputs"
@@ -657,7 +663,7 @@ async def generate_tcfd_report(request: Request, authorization: str = Header(Non
         # URL이 이미 완전한 형태인지 확인
         if not host.startswith(('http://', 'https://')):
             # Docker 환경에서는 http:// 사용, Railway에서는 https:// 사용
-            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+            if os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]:
                 host = f"https://{host}"
                 logger.info(f"🔧 Railway 환경: https:// 추가됨")
             else:
