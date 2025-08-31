@@ -451,7 +451,8 @@ class TCFDService:
             image_base64 = base64.b64encode(buffer.getvalue()).decode()
             plt.close()
             
-            return f"data:image/png;base64,{image_base64}"
+            # 순수 base64 문자열만 반환 (프론트엔드에서 data URL 구성)
+            return image_base64
             
         except Exception as e:
             logger.error(f"막대그래프 차트 생성 실패: {str(e)}")

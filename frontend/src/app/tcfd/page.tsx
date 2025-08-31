@@ -1184,15 +1184,29 @@ export default function TcfdSrPage() {
       // TCFD Service 응답 구조 확인
       if (response.data && response.data.success && response.data.image_data) {
         // base64 이미지 데이터를 data URL로 변환
-        const imageData = `data:image/png;base64,${response.data.image_data}`;
+        const base64Data = response.data.image_data;
+        const imageData = `data:image/png;base64,${base64Data}`;
         setGeneratedClimateData(imageData);
         console.log('✅ 막대그래프 차트 생성 성공');
-        console.log('📊 생성된 이미지 데이터 길이:', response.data.image_data.length);
+        console.log('📊 생성된 이미지 데이터 길이:', base64Data.length);
+        console.log('📊 base64 데이터 시작 부분:', base64Data.substring(0, 50));
+        
+        // 이미지 로드 테스트
+        const testImg = new Image();
+        testImg.onload = () => {
+          console.log('✅ 이미지 로드 성공:', testImg.width, 'x', testImg.height);
+        };
+        testImg.onerror = () => {
+          console.error('❌ 이미지 로드 실패');
+        };
+        testImg.src = imageData;
       } else if (response.data && response.data.image_data) {
         // image_data가 직접 있는 경우 (기존 구조)
-        const imageData = `data:image/png;base64,${response.data.image_data}`;
+        const base64Data = response.data.image_data;
+        const imageData = `data:image/png;base64,${base64Data}`;
         setGeneratedClimateData(imageData);
         console.log('✅ 막대그래프 차트 생성 성공 (기존 구조)');
+        console.log('📊 base64 데이터 시작 부분:', base64Data.substring(0, 50));
       } else {
         console.error('❌ API 응답에 이미지 데이터가 없습니다:', response.data);
         console.error('❌ 응답 구조:', {
@@ -3620,8 +3634,13 @@ export default function TcfdSrPage() {
                     <div className="flex justify-center mb-4">
                       <img
                         src={generatedClimateData}
-                        alt="생성된 기후 테이블 이미지"
+                        alt="생성된 기후 막대그래프 차트"
                         className="max-w-full h-auto rounded-lg shadow-lg border border-gray-200"
+                        onLoad={() => console.log('✅ 이미지 렌더링 성공')}
+                        onError={(e) => {
+                          console.error('❌ 이미지 렌더링 실패:', e);
+                          console.error('❌ 이미지 소스:', generatedClimateData.substring(0, 100));
+                        }}
                       />
                     </div>
                     
