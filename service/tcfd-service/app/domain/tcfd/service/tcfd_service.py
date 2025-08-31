@@ -297,6 +297,7 @@ class TCFDService:
         variable_code: str,
         start_year: int,
         end_year: int,
+        additional_years: Optional[List[int]] = None,
         current_user: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """기후 시나리오 데이터를 막대그래프 차트로 생성"""
@@ -314,7 +315,7 @@ class TCFDService:
             
             # 막대그래프 차트 생성
             image_data = await self._create_climate_table_image(
-                climate_data, scenario_code, variable_code, start_year, end_year
+                climate_data, scenario_code, variable_code, start_year, end_year, additional_years
             )
             
             return {
@@ -333,7 +334,8 @@ class TCFDService:
         scenario_code: str,
         variable_code: str,
         start_year: int,
-        end_year: int
+        end_year: int,
+        additional_years: Optional[List[int]] = None
     ) -> str:
         """기후 데이터를 막대그래프 차트로 변환"""
         try:
@@ -370,29 +372,50 @@ class TCFDService:
             except:
                 plt.rcParams['font.family'] = 'DejaVu Sans'
             
-            # 데이터를 연도별로 정리
-            years = []
-            values = []
+            # 데이터를 연도별로 정리하고 집계
+            year_data = {}
             
+            # 시작 연도부터 종료 연도까지의 데이터 수집
             for data in climate_data:
                 if 'year' in data and 'value' in data:
-                    years.append(data['year'])
-                    values.append(data['value'])
+                    year = data['year']
+                    value = data['value']
+                    
+                    if start_year <= year <= end_year:
+                        if year not in year_data:
+                            year_data[year] = []
+                        year_data[year].append(value)
             
-            if not years or not values:
-                raise Exception("유효한 기후 데이터가 없습니다")
+            # 추가 연도 데이터 수집
+            if additional_years:
+                for additional_year in additional_years:
+                    if additional_year not in year_data:
+                        year_data[additional_year] = []
+                    
+                    for data in climate_data:
+                        if 'year' in data and 'value' in data and data['year'] == additional_year:
+                            year_data[additional_year].append(data['value'])
             
-            # 연도 범위에 맞는 데이터만 필터링
-            filtered_data = []
-            for i, year in enumerate(years):
-                if start_year <= year <= end_year:
-                    filtered_data.append((year, values[i]))
-            
-            if not filtered_data:
+            if not year_data:
                 raise Exception("지정된 연도 범위에 데이터가 없습니다")
             
-            # 연도별로 정렬
-            filtered_data.sort(key=lambda x: x[0])
+            # 연도별로 평균값 계산 (또는 합계, 최대값 등 원하는 집계 방식)
+            filtered_data = []
+            
+            # 시작 연도부터 종료 연도까지 순서대로 추가
+            for year in range(start_year, end_year + 1):
+                if year in year_data and year_data[year]:
+                    values = year_data[year]
+                    avg_value = sum(values) / len(values)
+                    filtered_data.append((year, avg_value))
+            
+            # 추가 연도들을 마지막에 추가
+            if additional_years:
+                for additional_year in additional_years:
+                    if additional_year in year_data and year_data[additional_year]:
+                        values = year_data[additional_year]
+                        avg_value = sum(values) / len(values)
+                        filtered_data.append((additional_year, avg_value))
             
             # 연도와 값 분리
             chart_years = [item[0] for item in filtered_data]
@@ -401,33 +424,38 @@ class TCFDService:
             # 차트 생성
             fig, ax = plt.subplots(figsize=(12, 8))
             
-            # 막대그래프 생성
+            # 막대그래프 생성 (깔끔한 단일 색상 사용)
             bars = ax.bar(chart_years, chart_values, 
-                         color=plt.cm.Blues(np.linspace(0.3, 0.8, len(chart_years))),
-                         alpha=0.8, edgecolor='white', linewidth=1)
+                         color='#3B82F6',  # 파란색
+                         alpha=0.8, 
+                         edgecolor='#1E40AF', 
+                         linewidth=2)
             
             # 막대 위에 값 표시
             for bar, value in zip(bars, chart_values):
                 height = bar.get_height()
-                ax.text(bar.get_x() + bar.get_width()/2., height + max(chart_values) * 0.01,
-                       f'{value:.1f}', ha='center', va='bottom', fontsize=10, fontweight='bold')
+                ax.text(bar.get_x() + bar.get_width()/2., height + max(chart_values) * 0.02,
+                       f'{value:.1f}', ha='center', va='bottom', fontsize=11, fontweight='bold', color='#1E40AF')
             
             # 축 설정
-            ax.set_xlabel('연도', fontsize=12, fontweight='bold')
-            ax.set_ylabel('값', fontsize=12, fontweight='bold')
+            ax.set_xlabel('연도', fontsize=12, fontweight='bold', color='#374151', labelpad=15)
+            ax.set_ylabel('값', fontsize=12, fontweight='bold', color='#374151', labelpad=15)
             
-            # 그리드 설정
-            ax.grid(True, alpha=0.3, linestyle='--')
+            # 그리드 설정 (더 깔끔하게)
+            ax.grid(True, alpha=0.2, linestyle='-', color='#E5E7EB')
             ax.set_axisbelow(True)
             
             # x축 눈금 설정
             ax.set_xticks(chart_years)
-            ax.set_xticklabels(chart_years, rotation=0)
+            ax.set_xticklabels(chart_years, rotation=0, fontsize=11, fontweight='bold')
             
             # y축 범위 설정 (값이 0부터 시작하도록)
-            y_min = min(0, min(chart_values) * 0.9)
-            y_max = max(chart_values) * 1.1
+            y_min = 0
+            y_max = max(chart_values) * 1.15
             ax.set_ylim(y_min, y_max)
+            
+            # y축 눈금 설정
+            ax.tick_params(axis='y', labelsize=10, colors='#374151')
             
             # 제목 설정
             scenario_names = {"SSP126": "SSP1-2.6 (저탄소)", "SSP585": "SSP5-8.5 (고탄소)"}
@@ -436,8 +464,13 @@ class TCFDService:
                 "TR25": "열대야일수", "RAIN80": "호우일수"
             }
             
-            title = f"{scenario_names.get(scenario_code, scenario_code)} - {variable_names.get(variable_code, variable_code)}\n({start_year}년 ~ {end_year}년)"
-            ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
+            # 제목에 추가 연도 정보 포함
+            if additional_years and len(additional_years) > 0:
+                additional_years_str = ", " + ", ".join([f"{year}년" for year in additional_years])
+                title = f"{scenario_names.get(scenario_code, scenario_code)} - {variable_names.get(variable_code, variable_code)}\n({start_year}년 ~ {end_year}년 + 추가: {additional_years_str})"
+            else:
+                title = f"{scenario_names.get(scenario_code, scenario_code)} - {variable_names.get(variable_code, variable_code)}\n({start_year}년 ~ {end_year}년)"
+            ax.set_title(title, fontsize=18, fontweight='bold', pad=25, color='#1F2937')
             
             # 레이아웃 조정
             plt.tight_layout()

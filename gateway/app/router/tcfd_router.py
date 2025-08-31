@@ -805,6 +805,7 @@ async def generate_climate_chart_image(
     variable_code: str = Query(..., description="기후변수 코드 (HW33, RN, TA, TR25, RAIN80)"),
     start_year: int = Query(2021, description="시작 연도"),
     end_year: int = Query(2030, description="종료 연도"),
+    additional_years: Optional[List[int]] = Query(None, description="추가 연도 목록"),
     authorization: str = Header(None)
 ):
     """
@@ -846,6 +847,10 @@ async def generate_climate_chart_image(
             "start_year": start_year,
             "end_year": end_year
         }
+        
+        # 추가 연도가 있으면 파라미터에 추가
+        if additional_years and len(additional_years) > 0:
+            params["additional_years"] = additional_years
         
         # TCFD Service 호출
         url = f"{host}/api/v1/tcfd/climate-scenarios/chart-image"

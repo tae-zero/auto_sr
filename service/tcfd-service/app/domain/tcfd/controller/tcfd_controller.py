@@ -297,6 +297,7 @@ async def generate_climate_chart_image(
     variable_code: str = Query(..., description="기후변수 코드 (HW33, RN, TA, TR25, RAIN80)"),
     start_year: int = Query(2021, description="시작 연도"),
     end_year: int = Query(2030, description="종료 연도"),
+    additional_years: Optional[List[int]] = Query(None, description="추가 연도 목록"),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
@@ -311,6 +312,7 @@ async def generate_climate_chart_image(
             variable_code=variable_code,
             start_year=start_year,
             end_year=end_year,
+            additional_years=additional_years,
             current_user=current_user
         )
         return result

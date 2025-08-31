@@ -221,12 +221,20 @@ export default function TcfdSrPage() {
   
   // 기후 데이터 생성 모달 관련 상태 추가
   const [showClimateDataModal, setShowClimateDataModal] = useState(false);
-  const [climateDataSettings, setClimateDataSettings] = useState({
+  const [climateDataSettings, setClimateDataSettings] = useState<{
+    scenario: string;
+    variable: string;
+    startYear: number;
+    endYear: number;
+    region: string;
+    additionalYears: number[];
+  }>({
     scenario: 'SSP126',
     variable: 'HW33',
     startYear: 2021,
     endYear: 2030,
-    region: '전체 지역'
+    region: '전체 지역',
+    additionalYears: [] // 추가 연도 배열
   });
   const [generatedClimateData, setGeneratedClimateData] = useState<string | null>(null);
   const [isGeneratingClimateData, setIsGeneratingClimateData] = useState(false);
@@ -240,6 +248,28 @@ export default function TcfdSrPage() {
   // 도움말 모달 관련 상태
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isScenarioModalOpen, setIsScenarioModalOpen] = useState(false);
+
+  // 추가 연도 관리 함수들
+  const addAdditionalYear = () => {
+    setClimateDataSettings(prev => ({
+      ...prev,
+      additionalYears: [...prev.additionalYears, 2025] // 기본값 2025
+    }));
+  };
+
+  const removeAdditionalYear = (index: number) => {
+    setClimateDataSettings(prev => ({
+      ...prev,
+      additionalYears: prev.additionalYears.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateAdditionalYear = (index: number, year: number) => {
+    setClimateDataSettings(prev => ({
+      ...prev,
+      additionalYears: prev.additionalYears.map((y, i) => i === index ? year : y)
+    }));
+  };
 
   // 회사 목록 로드 (사용하지 않음)
   const loadCompanies = async () => {
@@ -1169,13 +1199,20 @@ export default function TcfdSrPage() {
       console.log('⏱️ 타임아웃: 30초');
       
       // API 호출하여 그래프 생성 (타임아웃 30초 설정)
+      const params: any = {
+        scenario_code: climateDataSettings.scenario,
+        variable_code: climateDataSettings.variable,
+        start_year: climateDataSettings.startYear,
+        end_year: climateDataSettings.endYear
+      };
+      
+      // 추가 연도가 있으면 파라미터에 추가
+      if (climateDataSettings.additionalYears && climateDataSettings.additionalYears.length > 0) {
+        params.additional_years = climateDataSettings.additionalYears;
+      }
+      
       const response = await apiClient.get('/api/v1/tcfd/climate-scenarios/chart-image', {
-        params: {
-          scenario_code: climateDataSettings.scenario,
-          variable_code: climateDataSettings.variable,
-          start_year: climateDataSettings.startYear,
-          end_year: climateDataSettings.endYear
-        },
+        params,
         timeout: 30000 // 30초 타임아웃
       });
 
@@ -3539,6 +3576,49 @@ export default function TcfdSrPage() {
                         <option key={year} value={year}>{year}년</option>
                       ))}
                     </select>
+                  </div>
+
+                  {/* 추가 연도 입력 */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        추가 연도
+                      </label>
+                      <button
+                        type="button"
+                        onClick={addAdditionalYear}
+                        className="px-2 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center space-x-1"
+                      >
+                        <span className="text-lg">+</span>
+                        <span>추가</span>
+                      </button>
+                    </div>
+                    
+                    {/* 추가 연도 입력 필드들 */}
+                    {climateDataSettings.additionalYears.map((year, index) => (
+                      <div key={index} className="flex items-center space-x-2 mb-2">
+                        <select
+                          value={year}
+                          onChange={(e) => updateAdditionalYear(index, parseInt(e.target.value))}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                        >
+                          {Array.from({length: 80}, (_, i) => 2021 + i).map(yearOption => (
+                            <option key={yearOption} value={yearOption}>{yearOption}년</option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => removeAdditionalYear(index)}
+                          className="px-2 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                        >
+                          -
+                        </button>
+                      </div>
+                    ))}
+                    
+                    {climateDataSettings.additionalYears.length === 0 && (
+                      <p className="text-sm text-gray-500 italic">추가 연도를 입력하려면 + 버튼을 클릭하세요</p>
+                    )}
                   </div>
 
                   {/* 행정구역 선택 */}

@@ -633,15 +633,45 @@ export default function ClimateScenariosPage() {
   
   // 그래프 생성 모달을 위한 새로운 상태들
   const [showGraphModal, setShowGraphModal] = useState(false);
-  const [graphSettings, setGraphSettings] = useState({
+  const [graphSettings, setGraphSettings] = useState<{
+    scenario: string;
+    variable: string;
+    startYear: number;
+    endYear: number;
+    region: string;
+    additionalYears: number[];
+  }>({
     scenario: 'SSP126',
     variable: 'HW33',
     startYear: 2021,
     endYear: 2030,
-    region: '전체 지역'
+    region: '전체 지역',
+    additionalYears: []
   });
   const [generatedGraph, setGeneratedGraph] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // 추가 연도 관리 함수들
+  const addAdditionalYear = () => {
+    setGraphSettings(prev => ({
+      ...prev,
+      additionalYears: [...prev.additionalYears, 2025] // 기본값 2025
+    }));
+  };
+
+  const removeAdditionalYear = (index: number) => {
+    setGraphSettings(prev => ({
+      ...prev,
+      additionalYears: prev.additionalYears.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateAdditionalYear = (index: number, year: number) => {
+    setGraphSettings(prev => ({
+      ...prev,
+      additionalYears: prev.additionalYears.map((y, i) => i === index ? year : y)
+    }));
+  };
 
   const handleBack = () => {
     router.push('/tcfd');
@@ -682,13 +712,20 @@ export default function ClimateScenariosPage() {
       console.log('📊 설정:', graphSettings);
       
       // API 호출하여 그래프 생성
-              const response = await apiClient.get('/api/v1/tcfd/climate-scenarios/chart-image', {
-        params: {
-          scenario_code: graphSettings.scenario,
-          variable_code: graphSettings.variable,
-          start_year: graphSettings.startYear,
-          end_year: graphSettings.endYear
-        }
+      const params: any = {
+        scenario_code: graphSettings.scenario,
+        variable_code: graphSettings.variable,
+        start_year: graphSettings.startYear,
+        end_year: graphSettings.endYear
+      };
+      
+      // 추가 연도가 있으면 파라미터에 추가
+      if (graphSettings.additionalYears && graphSettings.additionalYears.length > 0) {
+        params.additional_years = graphSettings.additionalYears;
+      }
+      
+      const response = await apiClient.get('/api/v1/tcfd/climate-scenarios/chart-image', {
+        params
       });
 
       console.log('📥 API 응답:', response.data);
@@ -1223,6 +1260,49 @@ export default function ClimateScenariosPage() {
                         <option key={year} value={year}>{year}년</option>
                       ))}
                     </select>
+                </div>
+
+                {/* 추가 연도 입력 */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      추가 연도
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addAdditionalYear}
+                      className="px-2 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center space-x-1"
+                    >
+                      <span className="text-lg">+</span>
+                      <span>추가</span>
+                    </button>
+                  </div>
+                  
+                  {/* 추가 연도 입력 필드들 */}
+                  {graphSettings.additionalYears.map((year, index) => (
+                    <div key={index} className="flex items-center space-x-2 mb-2">
+                      <select
+                        value={year}
+                        onChange={(e) => updateAdditionalYear(index, parseInt(e.target.value))}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                      >
+                        {Array.from({length: 80}, (_, i) => 2021 + i).map(yearOption => (
+                          <option key={yearOption} value={yearOption}>{yearOption}년</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => removeAdditionalYear(index)}
+                        className="px-2 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                      >
+                        -
+                      </button>
+                    </div>
+                  ))}
+                  
+                  {graphSettings.additionalYears.length === 0 && (
+                    <p className="text-sm text-gray-500 italic">추가 연도를 입력하려면 + 버튼을 클릭하세요</p>
+                  )}
                 </div>
               </div>
 
