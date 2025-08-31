@@ -422,9 +422,11 @@ class TCFDService:
                     avg_value = sum(values) / len(values)
                     filtered_data.append((year, avg_value))
             
-            # 추가 연도들을 마지막에 추가
+            # 추가 연도들을 마지막에 추가 (연속적인 위치로 배치)
             if additional_years and len(additional_years) > 0:
-                for additional_year in additional_years:
+                # 추가 연도들을 정렬하여 연속적으로 배치
+                sorted_additional_years = sorted(additional_years)
+                for additional_year in sorted_additional_years:
                     if additional_year in year_data and year_data[additional_year]:
                         values = year_data[additional_year]
                         avg_value = sum(values) / len(values)
