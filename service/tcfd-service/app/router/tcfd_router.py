@@ -52,3 +52,17 @@ async def get_tcfd_standards(
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"TCFD 표준 정보 조회 실패: {str(e)}")
+
+@router.get("/administrative-regions")
+async def get_administrative_regions(
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    행정구역 목록 조회
+    """
+    try:
+        controller = TCFDController()
+        result = await controller.get_administrative_regions()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"행정구역 목록 조회 실패: {str(e)}")

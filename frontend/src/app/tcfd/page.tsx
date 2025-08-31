@@ -231,6 +231,12 @@ export default function TcfdSrPage() {
   const [generatedClimateData, setGeneratedClimateData] = useState<string | null>(null);
   const [isGeneratingClimateData, setIsGeneratingClimateData] = useState(false);
   
+  // 행정구역 관련 상태
+  const [administrativeRegions, setAdministrativeRegions] = useState<Array<{region_code: string, region_name: string, sub_region_name: string}>>([]);
+  const [regionSearchTerm, setRegionSearchTerm] = useState('');
+  const [filteredRegions, setFilteredRegions] = useState<Array<{region_code: string, region_name: string, sub_region_name: string}>>([]);
+  const [showRegionDropdown, setShowRegionDropdown] = useState(false);
+  
   // 도움말 모달 관련 상태
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isScenarioModalOpen, setIsScenarioModalOpen] = useState(false);
@@ -1096,11 +1102,62 @@ export default function TcfdSrPage() {
   const openClimateDataModal = () => {
     setShowClimateDataModal(true);
     setGeneratedClimateData(null);
+    // 모달 열 때 행정구역 목록 가져오기
+    fetchAdministrativeRegions();
   };
 
   const closeClimateDataModal = () => {
     setShowClimateDataModal(false);
     setGeneratedClimateData(null);
+    // 행정구역 검색 상태 초기화
+    setRegionSearchTerm('');
+    setShowRegionDropdown(false);
+  };
+
+  // 행정구역 목록 가져오기
+  const fetchAdministrativeRegions = async () => {
+    try {
+      const response = await apiClient.get('/api/v1/tcfd/administrative-regions');
+      if (response.data && response.data.length > 0) {
+        setAdministrativeRegions(response.data);
+        setFilteredRegions(response.data);
+      }
+    } catch (error) {
+      console.error('행정구역 목록 가져오기 실패:', error);
+    }
+  };
+
+  // 행정구역 검색 및 필터링
+  const handleRegionSearch = (searchTerm: string) => {
+    setRegionSearchTerm(searchTerm);
+    
+    if (!searchTerm.trim()) {
+      setFilteredRegions(administrativeRegions);
+      setShowRegionDropdown(false);
+      return;
+    }
+
+    const filtered = administrativeRegions.filter(region => 
+      region.sub_region_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      region.region_name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    setFilteredRegions(filtered);
+    setShowRegionDropdown(filtered.length > 0);
+  };
+
+  // 행정구역 선택
+  const selectRegion = (region: {region_code: string, region_name: string, sub_region_name: string}) => {
+    setClimateDataSettings({...climateDataSettings, region: region.sub_region_name});
+    setRegionSearchTerm(region.sub_region_name);
+    setShowRegionDropdown(false);
+  };
+
+  // 행정구역 검색 필드 포커스
+  const handleRegionFocus = () => {
+    if (regionSearchTerm.trim()) {
+      setShowRegionDropdown(true);
+    }
   };
 
   const generateClimateData = async () => {
@@ -3448,33 +3505,46 @@ export default function TcfdSrPage() {
                   </div>
 
                   {/* 행정구역 선택 */}
-                  <div>
+                  <div className="relative">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       행정구역
                     </label>
-                    <select
-                      value={climateDataSettings.region}
-                      onChange={(e) => setClimateDataSettings({...climateDataSettings, region: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={regionSearchTerm}
+                        onChange={(e) => handleRegionSearch(e.target.value)}
+                        onFocus={handleRegionFocus}
+                        placeholder="행정구역을 입력하세요 (예: 강남구, 화성시)"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                      />
+                      {showRegionDropdown && filteredRegions.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                          {filteredRegions.map((region, index) => (
+                            <div
+                              key={region.region_code}
+                              onClick={() => selectRegion(region)}
+                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                            >
+                              <div className="font-medium text-gray-900">{region.sub_region_name}</div>
+                              <div className="text-xs text-gray-500">{region.region_name}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {/* 전체 지역 선택 버튼 */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setClimateDataSettings({...climateDataSettings, region: '전체 지역'});
+                        setRegionSearchTerm('');
+                        setShowRegionDropdown(false);
+                      }}
+                      className="mt-2 px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
                     >
-                      <option value="전체 지역">전체 지역</option>
-                      <option value="강남구">강남구</option>
-                      <option value="경주시">경주시</option>
-                      <option value="평택시">평택시</option>
-                      <option value="아산시">아산시</option>
-                      <option value="대덕구">대덕구</option>
-                      <option value="울주군">울주군</option>
-                      <option value="포항시">포항시</option>
-                      <option value="의왕시">의왕시</option>
-                      <option value="창원시">창원시</option>
-                      <option value="진천군">진천군</option>
-                      <option value="성남시">성남시</option>
-                      <option value="달성군">달성군</option>
-                      <option value="화성시">화성시</option>
-                      <option value="익산시">익산시</option>
-                      <option value="원주시">원주시</option>
-                      <option value="연수구">연수구</option>
-                    </select>
+                      전체 지역 선택
+                    </button>
                   </div>
                 </div>
 

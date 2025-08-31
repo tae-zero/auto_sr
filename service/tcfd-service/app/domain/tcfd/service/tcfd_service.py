@@ -17,7 +17,7 @@ from app.domain.tcfd.model.tcfd_model import (
 )
 from app.domain.tcfd.entity.tcfd_entity import TCFDEntity, ClimateRiskEntity
 from app.domain.tcfd.schema.tcfd_schema import TCFDReport, ClimateRisk
-from app.common.models import TCFDStandard
+from app.common.models import TCFDStandard, AdministrativeRegion
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +63,40 @@ class TCFDService:
                 # 비동기 세션인 경우
                 result = await db.execute(select(TCFDStandard).where(TCFDStandard.category == category))
                 return result.scalars().all()
+    
+    async def get_administrative_regions(self, db) -> List[Dict[str, str]]:
+        """행정구역 목록 조회"""
+        try:
+            if os.getenv("RAILWAY_ENVIRONMENT") == "true":
+                # Railway 환경: 비동기 처리
+                result = await db.execute(select(AdministrativeRegion))
+                regions = result.scalars().all()
+            else:
+                # Docker 환경: 동기 처리
+                from sqlalchemy.orm import Session
+                if isinstance(db, Session):
+                    result = db.execute(select(AdministrativeRegion))
+                    regions = result.scalars().all()
+                else:
+                    # 비동기 세션인 경우
+                    result = await db.execute(select(AdministrativeRegion))
+                    regions = result.scalars().all()
+            
+            # 딕셔너리 형태로 변환
+            region_list = []
+            for region in regions:
+                region_list.append({
+                    "region_code": region.region_code,
+                    "region_name": region.region_name,
+                    "sub_region_name": region.sub_region_name
+                })
+            
+            logger.info(f"✅ 행정구역 목록 조회 성공: {len(region_list)}개")
+            return region_list
+            
+        except Exception as e:
+            logger.error(f"❌ 행정구역 목록 조회 실패: {str(e)}")
+            raise Exception(f"행정구역 목록 조회 실패: {str(e)}")
     
     async def get_company_financial_data(self, company_name: str) -> Dict[str, Any]:
         """특정 회사의 재무정보 조회"""

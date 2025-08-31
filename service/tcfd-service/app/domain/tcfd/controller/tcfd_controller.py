@@ -99,6 +99,24 @@ async def health_check():
         ]
     }
 
+# 행정구역 목록 조회 엔드포인트 추가
+@router.get("/administrative-regions", summary="행정구역 목록 조회")
+async def get_administrative_regions(
+    db = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """행정구역 목록을 조회합니다. (인증 필요)"""
+    try:
+        logger.info(f"🔍 행정구역 목록 조회 - 사용자: {current_user.get('email', 'unknown')}")
+        
+        regions = await tcfd_service.get_administrative_regions(db)
+        logger.info(f"✅ 행정구역 목록 조회 성공: {len(regions)}개 레코드")
+        
+        return regions
+    except Exception as e:
+        logger.error(f"❌ 행정구역 목록 조회 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"행정구역 목록 조회 실패: {str(e)}")
+
 @router.get("/financial-data/company/{company_name}")
 async def get_company_financial_data(
     company_name: str,

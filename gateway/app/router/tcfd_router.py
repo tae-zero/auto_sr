@@ -875,3 +875,65 @@ async def generate_climate_table_image(
         logger.error(f"❌ 테이블 이미지 생성 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=f"테이블 이미지 생성 실패: {str(e)}")
 
+@router.get("/administrative-regions")
+async def get_administrative_regions(
+    request: Request,
+    authorization: str = Header(None)
+):
+    """
+    행정구역 목록 조회
+    """
+    try:
+        logger.info("🔍 행정구역 목록 조회 요청 시작")
+        
+        # JWT 토큰 검증
+        if not authorization or not authorization.startswith('Bearer '):
+            raise HTTPException(status_code=401, detail="Bearer 토큰이 필요합니다")
+        
+        # 토큰 검증 및 사용자 정보 추출
+        user_info = await verify_token(authorization)
+        logger.info(f"✅ 토큰 검증 성공, 사용자: {user_info.get('user_info', {}).get('user_id', 'unknown')}")
+        
+        # Service Discovery를 통해 TCFD Service 인스턴스 가져오기
+        service_discovery: ServiceDiscovery = request.app.state.service_discovery
+        tcfd_service = service_discovery.get_service_instance("tcfd-service")
+        
+        if not tcfd_service:
+            logger.error("❌ TCFD Service를 찾을 수 없습니다")
+            raise HTTPException(status_code=503, detail="TCFD Service를 찾을 수 없습니다")
+        
+        # TCFD Service URL 구성
+        host = tcfd_service.host
+        port = tcfd_service.port
+        
+        if not host.startswith(('http://', 'https://')):
+            if os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]:
+                host = f"https://{host}"
+            else:
+                host = f"http://{host}"
+        
+        # TCFD Service 호출
+        url = f"{host}/api/v1/tcfd/administrative-regions"
+        if not host.startswith("https://") and port:
+            url = f"{host}:{port}/api/v1/tcfd/administrative-regions"
+        
+        logger.info(f"📤 TCFD Service 호출: {url}")
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                url,
+                headers={"Authorization": authorization},
+                timeout=30.0
+            )
+            
+            if response.status_code == 200:
+                logger.info("✅ 행정구역 목록 조회 성공")
+                return response.json()
+            else:
+                logger.error(f"❌ TCFD Service 응답 오류: {response.status_code}")
+                logger.error(f"❌ 응답 내용: {response.text}")
+                raise HTTPException(status_code=response.status_code, detail="TCFD Service 오류")
+                
+    except Exception as e:
+        logger.error(f"❌ 행정구역 목록 조회 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"행정구역 목록 조회 실패: {str(e)}")
