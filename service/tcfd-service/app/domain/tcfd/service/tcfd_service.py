@@ -467,9 +467,12 @@ class TCFDService:
             ax.grid(True, alpha=0.2, linestyle='-', color='#E5E7EB')
             ax.set_axisbelow(True)
             
-            # x축 눈금 설정
+            # x축 눈금 설정 (간격 조정)
             ax.set_xticks(chart_years)
             ax.set_xticklabels(chart_years, rotation=0, fontsize=11, fontweight='bold')
+            
+            # x축 간격 조정 (막대 사이 간격을 적당하게)
+            ax.set_xlim(chart_years[0] - 0.5, chart_years[-1] + 0.5)
             
             # y축 범위 설정 (값이 0부터 시작하도록)
             y_min = 0
