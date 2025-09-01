@@ -363,22 +363,72 @@ class TCFDService:
             # 경고 무시 설정
             warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
             
-             # Railway 환경에서는 영어 폰트 사용 (한글 폰트 문제 해결)
+            # 한글 폰트 설정 개선
+            def setup_korean_font():
+                """한글 폰트를 설정하고 사용 가능 여부를 반환합니다."""
+                try:
+                    # 폰트 매니저 초기화
+                    mpl.font_manager._rebuild()
+                    
+                    # 프로젝트에 포함된 폰트 파일 확인
+                    project_fonts = [
+                        "./fonts/NanumGothic.ttf",
+                        "./fonts/NotoSansCJKkr-Regular.otf",
+                        "./fonts/malgun.ttf"
+                    ]
+                    
+                    # 프로젝트 폰트 파일이 있으면 추가
+                    for font_path in project_fonts:
+                        if os.path.exists(font_path):
+                            try:
+                                font_prop = mpl.font_manager.FontProperties(fname=font_path)
+                                mpl.font_manager.fontManager.addfont(font_path)
+                                logger.info(f"✅ 프로젝트 폰트 추가: {font_path}")
+                            except Exception as e:
+                                logger.warning(f"⚠️ 프로젝트 폰트 추가 실패: {font_path} - {str(e)}")
+                    
+                    # 폰트 매니저 재빌드
+                    mpl.font_manager._rebuild()
+                    
+                    # 한글 폰트 우선순위 (안정성 순)
+                    korean_fonts = [
+                        'NanumGothic',           # 나눔고딕 (가장 안정적)
+                        'Noto Sans CJK KR',      # Google Noto 폰트
+                        'Malgun Gothic',          # 윈도우 기본
+                        'NanumBarunGothic',      # 나눔바른고딕
+                        'NanumSquare',            # 나눔스퀘어
+                    ]
+                    
+                    # 사용 가능한 한글 폰트 찾기
+                    available_fonts = [f.name for f in mpl.font_manager.fontManager.ttflist]
+                    logger.info(f"사용 가능한 폰트: {len(available_fonts)}개")
+                    
+                    for font_name in korean_fonts:
+                        if font_name in available_fonts:
+                            mpl.rcParams['font.family'] = font_name
+                            mpl.rcParams['axes.unicode_minus'] = False
+                            logger.info(f"✅ 한글 폰트 설정 완료: {font_name}")
+                            return True
+                    
+                    # 한글 폰트가 없으면 영어 폰트 사용
+                    mpl.rcParams['font.family'] = 'DejaVu Sans'
+                    logger.warning("⚠️ 한글 폰트를 찾을 수 없어 영어 폰트 사용 (DejaVu Sans)")
+                    return False
+                    
+                except Exception as e:
+                    logger.error(f"❌ 폰트 설정 실패: {str(e)}")
+                    # 기본 폰트 사용
+                    mpl.rcParams['font.family'] = 'DejaVu Sans'
+                    return False
+            
+            # Railway 환경에서는 영어 폰트 사용 (한글 폰트 문제 해결)
             if os.getenv("RAILWAY_ENVIRONMENT") == "true":
                  mpl.rcParams['font.family'] = 'DejaVu Sans'
                  korean_font_available = False
                  logger.info("✅ Railway 환경: 영어 폰트 사용 (DejaVu Sans)")
             else:
                  # Docker 환경에서만 한글 폰트 시도
-                 try:
-                     mpl.rcParams['font.family'] = 'Malgun Gothic'
-                     mpl.rcParams['axes.unicode_minus'] = False
-                     korean_font_available = True
-                     logger.info("✅ Docker 환경: 한글 폰트 설정 완료 (Malgun Gothic)")
-                 except Exception as e:
-                     mpl.rcParams['font.family'] = 'DejaVu Sans'
-                     korean_font_available = False
-                     logger.warning(f"⚠️ Malgun Gothic 폰트 설정 실패: {str(e)}, 기본 폰트 사용")
+                 korean_font_available = setup_korean_font()
             
             # 데이터를 연도별로 정리하고 집계
             year_data = {}
