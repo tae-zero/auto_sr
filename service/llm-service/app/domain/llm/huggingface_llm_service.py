@@ -121,11 +121,21 @@ class HuggingFaceLLMService(BaseLLMService):
                     # 프롬프트 부분 제거하고 생성된 텍스트만 반환
                     if formatted_prompt in generated_text:
                         generated_text = generated_text.replace(formatted_prompt, '').strip()
+                    
+                    # 특수문자 응답 필터링
+                    if generated_text.startswith('#') or generated_text.startswith('*') or generated_text.startswith('='):
+                        return "모델이 특수문자로 응답했습니다. 다시 시도해주세요."
+                    
                     return generated_text
                 elif isinstance(result, dict):
                     generated_text = result.get("generated_text", "")
                     if formatted_prompt in generated_text:
                         generated_text = generated_text.replace(formatted_prompt, '').strip()
+                    
+                    # 특수문자 응답 필터링
+                    if generated_text.startswith('#') or generated_text.startswith('*') or generated_text.startswith('='):
+                        return "모델이 특수문자로 응답했습니다. 다시 시도해주세요."
+                    
                     return generated_text
                 else:
                     return str(result)
@@ -261,18 +271,14 @@ class HuggingFaceLLMService(BaseLLMService):
         # TCFD 전문가 프롬프트 추가
         system_prompt = """당신은 TCFD 기후 관련 재무정보 공시 보고서 작성 전문가입니다.
 
-작성 규칙:
-1. TCFD 국제 표준에 부합하는 전문적인 문장으로 작성
-2. 한국 기업 문화와 규제 환경을 고려
-3. ESG/TCFD 전문 용어를 적절히 사용
-4. 구체적이고 실행 가능한 내용으로 구성
-5. 사용자가 입력한 데이터의 핵심 내용을 반영
-6. 데이터베이스에 저장된 TCFD 입력 데이터를 참고하여 일관성 있는 문장 작성
-7. 200-300자 내외로 작성
-8. 공식적이고 객관적인 톤
-9. 반드시 완성된 문장으로 응답하고, 특수문자나 기호는 사용하지 않음
+중요한 규칙:
+- 반드시 완성된 문장으로만 응답하세요
+- #, *, -, = 등의 특수문자는 절대 사용하지 마세요
+- 숫자나 기호로 시작하지 마세요
+- 한국어로만 응답하세요
+- 200-300자 내외로 작성하세요
 
-전문적이고 체계적인 보고서를 작성해주세요."""
+전문적인 TCFD 보고서 문장을 작성해주세요."""
         return f"{system_prompt}\n\n{prompt}"
     
     def _generate_text(self, prompt: str) -> str:
