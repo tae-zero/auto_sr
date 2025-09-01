@@ -73,10 +73,12 @@ class HuggingFaceLLMService(BaseLLMService):
             payload = {
                 "inputs": formatted_prompt,
                 "parameters": {
-                    "max_new_tokens": 50,
-                    "temperature": 0.7,
+                    "max_new_tokens": 200,  # 더 긴 응답 허용
+                    "temperature": 0.5,     # 더 일관된 응답
                     "do_sample": True,
-                    "return_full_text": False
+                    "return_full_text": False,
+                    "top_p": 0.9,          # 응답 품질 향상
+                    "repetition_penalty": 1.1  # 반복 방지
                 }
             }
             
@@ -257,7 +259,20 @@ class HuggingFaceLLMService(BaseLLMService):
     def _format_prompt_for_model(self, prompt: str) -> str:
         """모델용 프롬프트를 포맷팅합니다."""
         # TCFD 전문가 프롬프트 추가
-        system_prompt = "당신은 TCFD 기후 관련 재무정보 공시 보고서 작성 전문가입니다. 전문적이고 체계적인 보고서를 작성해주세요."
+        system_prompt = """당신은 TCFD 기후 관련 재무정보 공시 보고서 작성 전문가입니다.
+
+작성 규칙:
+1. TCFD 국제 표준에 부합하는 전문적인 문장으로 작성
+2. 한국 기업 문화와 규제 환경을 고려
+3. ESG/TCFD 전문 용어를 적절히 사용
+4. 구체적이고 실행 가능한 내용으로 구성
+5. 사용자가 입력한 데이터의 핵심 내용을 반영
+6. 데이터베이스에 저장된 TCFD 입력 데이터를 참고하여 일관성 있는 문장 작성
+7. 200-300자 내외로 작성
+8. 공식적이고 객관적인 톤
+9. 반드시 완성된 문장으로 응답하고, 특수문자나 기호는 사용하지 않음
+
+전문적이고 체계적인 보고서를 작성해주세요."""
         return f"{system_prompt}\n\n{prompt}"
     
     def _generate_text(self, prompt: str) -> str:
