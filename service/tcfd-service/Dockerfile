@@ -35,5 +35,5 @@ EXPOSE 8005
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
-# Railway 시작 명령어 (bash로 실행해 권한 문제 회피)
-CMD ["bash", "start.sh"]
+# Railway 시작 명령어 (직접 Python 실행으로 권한 문제 완전 해결)
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8005"]
