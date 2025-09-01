@@ -69,16 +69,16 @@ class HuggingFaceLLMService(BaseLLMService):
                 "Content-Type": "application/json"
             }
             
-            # 기본 페이로드 (컨텍스트 길이 2048 제한 고려)
+            # 기본 페이로드 (보수적 설정으로 조정)
             payload = {
                 "inputs": formatted_prompt,
                 "parameters": {
-                    "max_new_tokens": 200,      # 컨텍스트 여유분 고려
-                    "temperature": 0.5,         # LoRA 모델에 적합한 값
+                    "max_new_tokens": 150,      # 더 짧은 응답으로 안정성 향상
+                    "temperature": 0.2,         # 매우 일관된 응답
                     "do_sample": True,
                     "return_full_text": False,
-                    "top_p": 0.85,             # LoRA 모델에 최적화
-                    "repetition_penalty": 1.1,  # 반복 방지
+                    "top_p": 0.7,              # 더 보수적인 다양성
+                    "repetition_penalty": 1.3,  # 반복 방지 강화
                     "pad_token_id": 2,          # <|endoftext|> 토큰 ID
                     "eos_token_id": 2           # <|endoftext|> 토큰 ID
                 }
@@ -187,12 +187,12 @@ class HuggingFaceLLMService(BaseLLMService):
             payload = {
                 "inputs": prompt,
                 "parameters": {
-                    "max_new_tokens": 200,
-                    "temperature": 0.5,
+                    "max_new_tokens": 150,
+                    "temperature": 0.2,
                     "do_sample": True,
                     "return_full_text": False,
-                    "top_p": 0.85,
-                    "repetition_penalty": 1.1,
+                    "top_p": 0.7,
+                    "repetition_penalty": 1.3,
                     "pad_token_id": 2,
                     "eos_token_id": 2
                 }
@@ -274,12 +274,12 @@ class HuggingFaceLLMService(BaseLLMService):
     
     def _format_prompt_for_model(self, prompt: str) -> str:
         """모델용 프롬프트를 포맷팅합니다."""
-        # 특수 토큰을 활용한 프롬프트 형식 (컨텍스트 길이 2048 제한 고려)
-        system_prompt = """TCFD 보고서 형식으로 한국어 문장을 작성해주세요.<|sep|>"""
+        # 극도로 단순화된 프롬프트 (32개 레이어 모델의 안정성 고려)
+        system_prompt = """한국어로 문장을 작성해주세요.<|sep|>"""
         
-        # 입력 데이터 길이 제한 (대략 1500 토큰 이하로 유지)
-        if len(prompt) > 1000:  # 대략적인 문자 수 제한
-            prompt = prompt[:1000] + "..."
+        # 입력 데이터 길이 제한 (더 엄격하게)
+        if len(prompt) > 500:  # 더 짧게 제한
+            prompt = prompt[:500] + "..."
         
         return f"{system_prompt}\n\n{prompt}<|sep|>"
     
