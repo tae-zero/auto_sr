@@ -67,14 +67,16 @@ class HuggingFaceLLMService(BaseLLMService):
                 "Content-Type": "application/json"
             }
             
-            # 간단한 페이로드로 테스트
+            # CPU 환경에 최적화된 페이로드
             payload = {
                 "inputs": formatted_prompt,
                 "parameters": {
-                    "max_new_tokens": 100,
+                    "max_new_tokens": 50,  # CPU에서는 더 짧게
                     "temperature": 0.7,
                     "do_sample": True,
-                    "return_full_text": False
+                    "return_full_text": False,
+                    "use_cache": True,  # 캐시 사용으로 성능 향상
+                    "wait_for_model": True  # 모델 로딩 대기
                 }
             }
             
@@ -82,15 +84,24 @@ class HuggingFaceLLMService(BaseLLMService):
             try:
                 health_response = requests.get(HF_API_URL, timeout=10)
                 logger.info(f"Endpoint 헬스체크: {health_response.status_code}")
+                
+                # 모델 준비 상태 확인
+                if health_response.status_code == 200:
+                    try:
+                        health_data = health_response.json()
+                        if "error" in health_data:
+                            logger.warning(f"모델 준비 중: {health_data['error']}")
+                    except:
+                        pass
             except Exception as e:
                 logger.warning(f"Endpoint 헬스체크 실패: {e}")
             
-            # Inference Endpoint URL 직접 사용
+            # Inference Endpoint URL 직접 사용 (CPU 환경을 고려한 긴 타임아웃)
             response = requests.post(
                 HF_API_URL,
                 headers=headers,
                 json=payload,
-                timeout=60
+                timeout=120  # CPU 환경에서는 더 긴 타임아웃 필요
             )
             
             if response.status_code == 200:
