@@ -19,15 +19,28 @@ class HuggingFaceLLMService(BaseLLMService):
         
         # 모델 로딩 방식 결정
         self.use_local_model = HF_LOCAL_MODEL_PATH and HF_LOCAL_MODEL_PATH.strip()
+        self.use_inference_endpoint = HF_API_URL and HF_API_URL.strip() and not self.use_local_model
+        
+        logger.info(f"모델 로딩 방식 결정:")
+        logger.info(f"  - use_local_model: {self.use_local_model}")
+        logger.info(f"  - use_inference_endpoint: {self.use_inference_endpoint}")
+        logger.info(f"  - HF_API_URL: {HF_API_URL}")
+        
         self.model = None
         self.tokenizer = None
         self.pipeline = None
         
         if self.use_local_model:
             # 로컬 모델 로딩
+            logger.info("로컬 모델 로딩 방식 선택")
             self._load_local_model()
+        elif self.use_inference_endpoint:
+            # Hugging Face Inference Endpoint 사용
+            logger.info("Hugging Face Inference Endpoint 사용 - 모델 다운로드 없음")
+            self.use_local_model = False
         else:
             # Hugging Face Hub에서 직접 모델 로딩
+            logger.info("Hugging Face Hub 직접 모델 로딩 방식 선택")
             self._load_hf_hub_model()
     
     def _load_hf_hub_model(self):
@@ -164,6 +177,58 @@ class HuggingFaceLLMService(BaseLLMService):
             logger.info("API 호출 방식으로 fallback")
             self.use_local_model = False
     
+    def _call_hf_inference_endpoint(self, prompt: str) -> str:
+        """Hugging Face Inference Endpoint를 호출하여 텍스트를 생성합니다."""
+        try:
+            # 프롬프트 전처리
+            formatted_prompt = self._format_prompt_for_model(prompt)
+            
+            headers = {
+                "Authorization": f"Bearer {HF_API_TOKEN}",
+                "Content-Type": "application/json"
+            }
+            
+            payload = {
+                "inputs": formatted_prompt,
+                "parameters": {
+                    "max_new_tokens": 1000,
+                    "temperature": 0.7,
+                    "do_sample": True,
+                    "return_full_text": False
+                }
+            }
+            
+            # Inference Endpoint URL 직접 사용
+            response = requests.post(
+                HF_API_URL,
+                headers=headers,
+                json=payload,
+                timeout=60
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if isinstance(result, list) and len(result) > 0:
+                    generated_text = result[0].get("generated_text", "")
+                    # 프롬프트 부분 제거하고 생성된 텍스트만 반환
+                    if formatted_prompt in generated_text:
+                        generated_text = generated_text.replace(formatted_prompt, '').strip()
+                    return generated_text
+                elif isinstance(result, dict):
+                    generated_text = result.get("generated_text", "")
+                    if formatted_prompt in generated_text:
+                        generated_text = generated_text.replace(formatted_prompt, '').strip()
+                    return generated_text
+                else:
+                    return str(result)
+            else:
+                logger.error(f"Hugging Face Inference Endpoint 호출 실패: {response.status_code} - {response.text}")
+                return f"[API 오류] Hugging Face Inference Endpoint 호출에 실패했습니다. (상태 코드: {response.status_code})"
+                
+        except Exception as e:
+            logger.error(f"Hugging Face Inference Endpoint 호출 중 오류: {e}")
+            return f"[연결 오류] Hugging Face Inference Endpoint 연결에 실패했습니다: {str(e)}"
+    
     def _call_hf_api(self, prompt: str) -> str:
         """Hugging Face API를 호출합니다. (기존 방식 보존)"""
         # API 키가 없으면 fallback 메시지 반환
@@ -251,9 +316,14 @@ class HuggingFaceLLMService(BaseLLMService):
     
     def _generate_text(self, prompt: str) -> str:
         """텍스트 생성 방식에 따라 적절한 메서드를 호출합니다."""
-        if self.pipeline:
+        if self.use_inference_endpoint:
+            # Hugging Face Inference Endpoint 사용
+            return self._call_hf_inference_endpoint(prompt)
+        elif self.pipeline:
+            # 로딩된 모델 사용
             return self._generate_with_loaded_model(prompt)
         else:
+            # 기존 API 호출 방식
             return self._call_hf_api(prompt)
     
     def generate_draft_section(self, question: str, context: str, section: str, style_guide: str = "") -> str:

@@ -88,7 +88,7 @@ GENAI_URL = os.getenv("GENAI_URL", "")
 GENAI_KEY = os.getenv("GENAI_KEY", "")
 
 # Hugging Face 설정
-HF_API_URL = os.getenv("HF_API_URL", "https://api-inference.huggingface.co")
+HF_API_URL = os.getenv("HF_ENDPOINT_URL", os.getenv("HF_API_URL", "https://uj237r2g0io3ferk.us-east-1.aws.endpoints.huggingface.cloud/"))
 HF_API_TOKEN = os.getenv("HF_API_TOKEN", "")  # 빈 문자열이면 fallback 모드로 동작
 HF_MODEL = os.getenv("HF_MODEL", "jeongtaeyeong/tcfd-polyglot-3.8b-merged")
 HF_TIMEOUT = int(os.getenv("HF_TIMEOUT", "30"))
