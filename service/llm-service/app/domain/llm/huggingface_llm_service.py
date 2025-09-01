@@ -124,9 +124,7 @@ class HuggingFaceLLMService(BaseLLMService):
                     if formatted_prompt in generated_text:
                         generated_text = generated_text.replace(formatted_prompt, '').strip()
                     
-                    # 특수문자 응답 필터링 완화
-                    if generated_text.strip() in {"", "######", "=====", "****", "______"}:
-                        return "응답이 유효하지 않습니다. 다시 시도해주세요."
+                    # 필터링 로직 제거 - 모든 응답 허용
                     
                     return generated_text
                 elif isinstance(result, dict):
@@ -134,9 +132,7 @@ class HuggingFaceLLMService(BaseLLMService):
                     if formatted_prompt in generated_text:
                         generated_text = generated_text.replace(formatted_prompt, '').strip()
                     
-                    # 특수문자 응답 필터링 완화
-                    if generated_text.strip() in {"", "######", "=====", "****", "______"}:
-                        return "응답이 유효하지 않습니다. 다시 시도해주세요."
+                    # 필터링 로직 제거 - 모든 응답 허용
                     
                     return generated_text
                 else:
@@ -270,8 +266,8 @@ class HuggingFaceLLMService(BaseLLMService):
     
     def _format_prompt_for_model(self, prompt: str) -> str:
         """모델용 프롬프트를 포맷팅합니다."""
-        # 현실적인 프롬프트로 변경
-        system_prompt = """You are a Korean ESG report writer. Write a TCFD sentence about executives holding meetings 3 times a year for carbon neutrality. Respond in Korean. Avoid markdown-like formatting. Write professionally, around 300 characters."""
+        # 학습 시 사용한 프롬프트 형식으로 변경
+        system_prompt = """당신은 TCFD 기후 관련 재무정보 공시 보고서 작성 전문가입니다. 전문적이고 체계적인 보고서를 작성해주세요."""
         return f"{system_prompt}\n\n{prompt}"
     
     def _generate_text(self, prompt: str) -> str:
