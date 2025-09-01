@@ -67,7 +67,6 @@ class HuggingFaceLLMService(BaseLLMService):
                 try:
                     # 토크나이저 파일만 별도로 다운로드
                     from huggingface_hub import hf_hub_download
-                    import os
                     import shutil
                     
                     # 캐시 디렉토리 정리
