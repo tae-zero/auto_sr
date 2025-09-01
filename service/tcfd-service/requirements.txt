@@ -1,31 +1,31 @@
 # FastAPI 및 웹 프레임워크
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-python-multipart==0.0.6
-python-dotenv==1.0.0
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+python-dotenv>=1.0.0
 
 # 데이터베이스 및 비동기 처리
-asyncpg==0.29.0
-httpx==0.25.2
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
+asyncpg>=0.29.0
+httpx>=0.25.2
+sqlalchemy>=2.0.23
+psycopg2-binary>=2.9.9
 
 # JWT 인증
-PyJWT==2.8.0
+PyJWT>=2.8.0
 
 # 유틸리티
-pydantic==2.5.0
-pydantic-settings==2.1.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
 
 # 데이터 시각화
-matplotlib==3.8.2
-fonttools==4.44.3
+matplotlib>=3.8.2
+fonttools>=4.44.3
 
 # 로깅 및 모니터링
-structlog==23.2.0
+structlog>=23.2.0
 
 # 개발 도구
-pytest==7.4.3
-pytest-asyncio==0.21.1
-black==23.11.0
-isort==5.12.0
+pytest>=7.4.3
+pytest-asyncio>=0.21.1
+black>=23.11.0
+isort>=5.12.0
