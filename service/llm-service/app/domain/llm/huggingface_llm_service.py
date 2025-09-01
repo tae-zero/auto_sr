@@ -53,7 +53,8 @@ class HuggingFaceLLMService(BaseLLMService):
             self.tokenizer = AutoTokenizer.from_pretrained(
                 model_repo, 
                 use_auth_token=hf_token,
-                trust_remote_code=True
+                trust_remote_code=True,
+                force_download=True
             )
             if self.tokenizer.pad_token is None:
                 self.tokenizer.pad_token = self.tokenizer.eos_token
@@ -65,7 +66,8 @@ class HuggingFaceLLMService(BaseLLMService):
                     torch_dtype=torch.float16,
                     use_auth_token=hf_token,
                     trust_remote_code=True,
-                    low_cpu_mem_usage=True
+                    low_cpu_mem_usage=True,
+                    force_download=True
                 ).to("cpu")
             else:
                 self.model = AutoModelForCausalLM.from_pretrained(
@@ -73,7 +75,8 @@ class HuggingFaceLLMService(BaseLLMService):
                     torch_dtype=torch.float16,
                     use_auth_token=hf_token,
                     trust_remote_code=True,
-                    device_map="auto"
+                    device_map="auto",
+                    force_download=True
                 )
             
             # 파이프라인 생성
