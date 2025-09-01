@@ -92,7 +92,7 @@ class HuggingFaceLLMService(BaseLLMService):
             logger.info("Hugging Face Hub 모델 로딩 완료")
             
         except Exception as e:
-            logger.error(f"Hugging Face Hub 모델 로딩 실패: {e}")
+            logger.exception("Hugging Face Hub 모델 로딩 실패")
             logger.info("API 호출 방식으로 fallback")
             self.use_local_model = False
     
