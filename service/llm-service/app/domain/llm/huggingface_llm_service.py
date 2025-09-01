@@ -54,6 +54,11 @@ class HuggingFaceLLMService(BaseLLMService):
     def _call_hf_inference_endpoint(self, prompt: str) -> str:
         """Hugging Face Inference Endpoint를 호출하여 텍스트를 생성합니다."""
         try:
+            # API 토큰 확인
+            if not HF_API_TOKEN:
+                logger.error("HF_API_TOKEN이 설정되지 않음")
+                return "[오류] Hugging Face API 토큰이 설정되지 않았습니다."
+            
             # 프롬프트 전처리
             formatted_prompt = self._format_prompt_for_model(prompt)
             
@@ -97,7 +102,10 @@ class HuggingFaceLLMService(BaseLLMService):
                     return str(result)
             else:
                 logger.error(f"Hugging Face Inference Endpoint 호출 실패: {response.status_code} - {response.text}")
-                return f"[API 오류] Hugging Face Inference Endpoint 호출에 실패했습니다. (상태 코드: {response.status_code})"
+                logger.error(f"요청 URL: {HF_API_URL}")
+                logger.error(f"요청 헤더: {headers}")
+                logger.error(f"요청 페이로드: {payload}")
+                return f"[API 오류] Hugging Face Inference Endpoint 호출에 실패했습니다. (상태 코드: {response.status_code}) - {response.text[:200]}"
                 
         except Exception as e:
             logger.error(f"Hugging Face Inference Endpoint 호출 중 오류: {e}")
