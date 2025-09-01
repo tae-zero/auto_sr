@@ -6,6 +6,7 @@ from ...common.config import (
     HF_API_TOKEN, HF_MODEL, HF_API_URL, HF_LOCAL_MODEL_PATH
 )
 from .base_llm_service import BaseLLMService
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -69,18 +70,18 @@ class HuggingFaceLLMService(BaseLLMService):
                 "Content-Type": "application/json"
             }
             
-            # 기본 페이로드 (보수적 설정으로 조정)
+            # 기본 페이로드 (품질 향상을 위한 조정)
             payload = {
                 "inputs": formatted_prompt,
                 "parameters": {
-                    "max_new_tokens": 150,      # 더 짧은 응답으로 안정성 향상
-                    "temperature": 0.2,         # 매우 일관된 응답
+                    "max_new_tokens": 512,      # RAG에 적합한 충분한 응답 길이
+                    "temperature": 0.7,         # 적절한 창의성과 일관성 균형
                     "do_sample": True,
                     "return_full_text": False,
-                    "top_p": 0.7,              # 더 보수적인 다양성
-                    "repetition_penalty": 1.3,  # 반복 방지 강화
-                    "pad_token_id": 2,          # <|endoftext|> 토큰 ID
-                    "eos_token_id": 2           # <|endoftext|> 토큰 ID
+                    "top_p": 0.9,              # 더 다양한 응답 생성
+                    "repetition_penalty": 1.1,  # 반복 방지 (너무 강하지 않게)
+                    "no_repeat_ngram_size": 3,  # n-gram 반복 방지
+                    "early_stopping": True      # 적절한 시점에 생성 중단
                 }
             }
             
@@ -126,8 +127,15 @@ class HuggingFaceLLMService(BaseLLMService):
                     if formatted_prompt in generated_text:
                         generated_text = generated_text.replace(formatted_prompt, '').strip()
                     
-                    # 특수 토큰 제거
+                    # 특수 토큰 및 반복 문자 제거
                     generated_text = generated_text.replace('<|sep|>', '').replace('<|endoftext|>', '').strip()
+                    # ################# 같은 반복 문자 제거
+                    generated_text = re.sub(r'#{3,}', '', generated_text)  # 3개 이상의 # 제거
+                    generated_text = re.sub(r'[=]{3,}', '', generated_text)  # 3개 이상의 = 제거
+                    generated_text = re.sub(r'[-]{3,}', '', generated_text)  # 3개 이상의 - 제거
+                    generated_text = re.sub(r'[*]{3,}', '', generated_text)  # 3개 이상의 * 제거
+                    generated_text = re.sub(r'[~]{3,}', '', generated_text)  # 3개 이상의 ~ 제거
+                    generated_text = generated_text.strip()
                     
                     return generated_text
                 elif isinstance(result, dict):
@@ -135,8 +143,15 @@ class HuggingFaceLLMService(BaseLLMService):
                     if formatted_prompt in generated_text:
                         generated_text = generated_text.replace(formatted_prompt, '').strip()
                     
-                    # 특수 토큰 제거
+                    # 특수 토큰 및 반복 문자 제거
                     generated_text = generated_text.replace('<|sep|>', '').replace('<|endoftext|>', '').strip()
+                    # ################# 같은 반복 문자 제거
+                    generated_text = re.sub(r'#{3,}', '', generated_text)  # 3개 이상의 # 제거
+                    generated_text = re.sub(r'[=]{3,}', '', generated_text)  # 3개 이상의 = 제거
+                    generated_text = re.sub(r'[-]{3,}', '', generated_text)  # 3개 이상의 - 제거
+                    generated_text = re.sub(r'[*]{3,}', '', generated_text)  # 3개 이상의 * 제거
+                    generated_text = re.sub(r'[~]{3,}', '', generated_text)  # 3개 이상의 ~ 제거
+                    generated_text = generated_text.strip()
                     
                     return generated_text
                 else:
@@ -274,14 +289,14 @@ class HuggingFaceLLMService(BaseLLMService):
     
     def _format_prompt_for_model(self, prompt: str) -> str:
         """모델용 프롬프트를 포맷팅합니다."""
-        # 극도로 단순화된 프롬프트 (32개 레이어 모델의 안정성 고려)
-        system_prompt = """한국어로 문장을 작성해주세요.<|sep|>"""
+        # 특수 토큰 제거하고 단순한 프롬프트 사용
+        system_prompt = "다음 질문에 대해 한국어로 명확하고 구체적으로 답변해주세요."
         
-        # 입력 데이터 길이 제한 (더 엄격하게)
-        if len(prompt) > 500:  # 더 짧게 제한
-            prompt = prompt[:500] + "..."
+        # 입력 데이터 길이 제한 (RAG를 위해 충분한 길이 확보)
+        if len(prompt) > 1000:  # RAG 컨텍스트를 위해 충분한 길이
+            prompt = prompt[:1000] + "..."
         
-        return f"{system_prompt}\n\n{prompt}<|sep|>"
+        return f"{system_prompt}\n\n질문: {prompt}\n\n답변:"
     
     def _generate_text(self, prompt: str) -> str:
         """텍스트 생성 방식에 따라 적절한 메서드를 호출합니다."""
