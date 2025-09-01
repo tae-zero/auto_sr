@@ -66,19 +66,19 @@ class HuggingFaceLLMService(BaseLLMService):
             
             headers = {
                 "Authorization": f"Bearer {HF_API_TOKEN}",
-                "Content-Type": "application/json; charset=UTF-8"
+                "Content-Type": "application/json"
             }
             
-            # 기본 페이로드 (지원되는 파라미터만 사용)
+            # 기본 페이로드 (학습 데이터에 맞게 조정)
             payload = {
                 "inputs": formatted_prompt,
                 "parameters": {
-                    "max_new_tokens": 200,  # 더 긴 응답 허용
-                    "temperature": 0.2,     # 더 일관된 응답
+                    "max_new_tokens": 200,      # 더 긴 응답 허용
+                    "temperature": 0.7,         # 학습 시 사용한 값과 유사
                     "do_sample": True,
                     "return_full_text": False,
-                    "top_p": 0.9,          # 응답 품질 향상
-                    "repetition_penalty": 1.1  # 반복 방지
+                    "top_p": 0.9,              # 다양성 증가
+                    "repetition_penalty": 1.1   # 반복 방지
                 }
             }
             
@@ -183,10 +183,12 @@ class HuggingFaceLLMService(BaseLLMService):
             payload = {
                 "inputs": prompt,
                 "parameters": {
-                    "max_new_tokens": 50,
+                    "max_new_tokens": 200,
                     "temperature": 0.7,
                     "do_sample": True,
-                    "return_full_text": False
+                    "return_full_text": False,
+                    "top_p": 0.9,
+                    "repetition_penalty": 1.1
                 }
             }
             
@@ -266,8 +268,8 @@ class HuggingFaceLLMService(BaseLLMService):
     
     def _format_prompt_for_model(self, prompt: str) -> str:
         """모델용 프롬프트를 포맷팅합니다."""
-        # 학습 시 사용한 프롬프트 형식으로 변경
-        system_prompt = """당신은 TCFD 기후 관련 재무정보 공시 보고서 작성 전문가입니다. 전문적이고 체계적인 보고서를 작성해주세요."""
+        # 학습 시 사용한 프롬프트 형식과 정확히 일치
+        system_prompt = """너는 ESG/TCFD 보고서 작성 보조자다. 항상 한국어로 간결하고 전문적인 문장을 작성한다. 모든 출력은 보고서 형식을 따르며, 인용/출처 표기는 일관되게 유지한다."""
         return f"{system_prompt}\n\n{prompt}"
     
     def _generate_text(self, prompt: str) -> str:
