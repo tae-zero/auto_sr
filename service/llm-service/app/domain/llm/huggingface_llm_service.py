@@ -67,15 +67,23 @@ class HuggingFaceLLMService(BaseLLMService):
                 "Content-Type": "application/json"
             }
             
+            # 간단한 페이로드로 테스트
             payload = {
                 "inputs": formatted_prompt,
                 "parameters": {
-                    "max_new_tokens": 1000,
+                    "max_new_tokens": 100,
                     "temperature": 0.7,
                     "do_sample": True,
                     "return_full_text": False
                 }
             }
+            
+            # Endpoint 헬스체크 먼저 시도
+            try:
+                health_response = requests.get(HF_API_URL, timeout=10)
+                logger.info(f"Endpoint 헬스체크: {health_response.status_code}")
+            except Exception as e:
+                logger.warning(f"Endpoint 헬스체크 실패: {e}")
             
             # Inference Endpoint URL 직접 사용
             response = requests.post(
@@ -105,11 +113,58 @@ class HuggingFaceLLMService(BaseLLMService):
                 logger.error(f"요청 URL: {HF_API_URL}")
                 logger.error(f"요청 헤더: {headers}")
                 logger.error(f"요청 페이로드: {payload}")
-                return f"[API 오류] Hugging Face Inference Endpoint 호출에 실패했습니다. (상태 코드: {response.status_code}) - {response.text[:200]}"
+                
+                # Inference Endpoint 실패 시 Hugging Face API로 fallback
+                logger.info("Inference Endpoint 실패 - Hugging Face API로 fallback 시도")
+                return self._call_hf_api_fallback(prompt)
                 
         except Exception as e:
             logger.error(f"Hugging Face Inference Endpoint 호출 중 오류: {e}")
             return f"[연결 오류] Hugging Face Inference Endpoint 연결에 실패했습니다: {str(e)}"
+    
+    def _call_hf_api_fallback(self, prompt: str) -> str:
+        """Hugging Face API로 fallback합니다."""
+        try:
+            # Hugging Face API URL 사용
+            api_url = "https://api-inference.huggingface.co/models/jeongtaeyeong/tcfd-polyglot-3.8b-merged"
+            
+            headers = {
+                "Authorization": f"Bearer {HF_API_TOKEN}",
+                "Content-Type": "application/json"
+            }
+            
+            payload = {
+                "inputs": prompt,
+                "parameters": {
+                    "max_new_tokens": 100,
+                    "temperature": 0.7,
+                    "do_sample": True,
+                    "return_full_text": False
+                }
+            }
+            
+            response = requests.post(
+                api_url,
+                headers=headers,
+                json=payload,
+                timeout=60
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if isinstance(result, list) and len(result) > 0:
+                    return result[0].get("generated_text", "")
+                elif isinstance(result, dict):
+                    return result.get("generated_text", "")
+                else:
+                    return str(result)
+            else:
+                logger.error(f"Hugging Face API fallback도 실패: {response.status_code} - {response.text}")
+                return f"[Fallback 실패] Hugging Face API 호출도 실패했습니다. (상태 코드: {response.status_code})"
+                
+        except Exception as e:
+            logger.error(f"Hugging Face API fallback 중 오류: {e}")
+            return f"[Fallback 오류] Hugging Face API 연결에 실패했습니다: {str(e)}"
     
     def _call_hf_api(self, prompt: str) -> str:
         """Hugging Face API를 호출합니다. (기존 방식 보존)"""
