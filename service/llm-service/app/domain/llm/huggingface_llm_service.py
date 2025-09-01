@@ -66,7 +66,7 @@ class HuggingFaceLLMService(BaseLLMService):
             
             headers = {
                 "Authorization": f"Bearer {HF_API_TOKEN}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json; charset=utf-8"
             }
             
             # 기본 페이로드 (지원되는 파라미터만 사용)
@@ -268,17 +268,17 @@ class HuggingFaceLLMService(BaseLLMService):
     
     def _format_prompt_for_model(self, prompt: str) -> str:
         """모델용 프롬프트를 포맷팅합니다."""
-        # TCFD 전문가 프롬프트 추가
-        system_prompt = """당신은 TCFD 기후 관련 재무정보 공시 보고서 작성 전문가입니다.
+        # TCFD 전문가 프롬프트 추가 (영어로 변경)
+        system_prompt = """You are a TCFD climate-related financial disclosure report writing expert.
 
-중요한 규칙:
-- 반드시 완성된 문장으로만 응답하세요
-- #, *, -, = 등의 특수문자는 절대 사용하지 마세요
-- 숫자나 기호로 시작하지 마세요
-- 한국어로만 응답하세요
-- 200-300자 내외로 작성하세요
+Important rules:
+- Respond only with complete sentences
+- Never use special characters like #, *, -, =
+- Do not start with numbers or symbols
+- Respond only in Korean
+- Write 200-300 characters
 
-전문적인 TCFD 보고서 문장을 작성해주세요."""
+Write a professional TCFD report sentence."""
         return f"{system_prompt}\n\n{prompt}"
     
     def _generate_text(self, prompt: str) -> str:
