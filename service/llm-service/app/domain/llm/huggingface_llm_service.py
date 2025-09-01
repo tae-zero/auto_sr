@@ -116,15 +116,17 @@ class HuggingFaceLLMService(BaseLLMService):
             
             if response.status_code == 200:
                 result = response.json()
+                logger.info(f"응답 결과: {result}")
                 if isinstance(result, list) and len(result) > 0:
                     generated_text = result[0].get("generated_text", "")
+                    logger.info(f"생성된 텍스트: {generated_text}")
                     # 프롬프트 부분 제거하고 생성된 텍스트만 반환
                     if formatted_prompt in generated_text:
                         generated_text = generated_text.replace(formatted_prompt, '').strip()
                     
-                    # 특수문자 응답 필터링
-                    if generated_text.startswith('#') or generated_text.startswith('*') or generated_text.startswith('='):
-                        return "모델이 특수문자로 응답했습니다. 다시 시도해주세요."
+                    # 특수문자 응답 필터링 완화
+                    if generated_text.strip() in {"", "######", "=====", "****", "______"}:
+                        return "응답이 유효하지 않습니다. 다시 시도해주세요."
                     
                     return generated_text
                 elif isinstance(result, dict):
@@ -132,9 +134,9 @@ class HuggingFaceLLMService(BaseLLMService):
                     if formatted_prompt in generated_text:
                         generated_text = generated_text.replace(formatted_prompt, '').strip()
                     
-                    # 특수문자 응답 필터링
-                    if generated_text.startswith('#') or generated_text.startswith('*') or generated_text.startswith('='):
-                        return "모델이 특수문자로 응답했습니다. 다시 시도해주세요."
+                    # 특수문자 응답 필터링 완화
+                    if generated_text.strip() in {"", "######", "=====", "****", "______"}:
+                        return "응답이 유효하지 않습니다. 다시 시도해주세요."
                     
                     return generated_text
                 else:
@@ -268,17 +270,8 @@ class HuggingFaceLLMService(BaseLLMService):
     
     def _format_prompt_for_model(self, prompt: str) -> str:
         """모델용 프롬프트를 포맷팅합니다."""
-        # TCFD 전문가 프롬프트 추가 (영어로 변경)
-        system_prompt = """You are a TCFD climate-related financial disclosure report writing expert.
-
-Important rules:
-- Respond only with complete sentences
-- Never use special characters like #, *, -, =
-- Do not start with numbers or symbols
-- Respond only in Korean
-- Write 200-300 characters
-
-Write a professional TCFD report sentence."""
+        # 현실적인 프롬프트로 변경
+        system_prompt = """You are a Korean ESG report writer. Write a TCFD sentence about executives holding meetings 3 times a year for carbon neutrality. Respond in Korean. Avoid markdown-like formatting. Write professionally, around 300 characters."""
         return f"{system_prompt}\n\n{prompt}"
     
     def _generate_text(self, prompt: str) -> str:
