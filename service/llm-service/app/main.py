@@ -169,13 +169,13 @@ async def root():
 async def health_check():
     """서비스 헬스 체크"""
     try:
-        # RAG 매니저가 초기화되지 않은 경우
+        # RAG 매니저가 초기화되지 않은 경우 (모델 로딩 중일 수 있음)
         if rag_manager is None:
             return HealthResponse(
-                ok=False,
+                ok=True,  # 모델 로딩 중이어도 서비스는 정상
                 service_name=SERVICE_NAME,
                 version="2.0.0",
-                error="RAG Manager not initialized",
+                error="RAG Manager initializing (model loading in progress)",
                 rag_services={},
                 all_services_loaded=False,
                 embed_dim=EMBED_DIM,
