@@ -69,16 +69,16 @@ class HuggingFaceLLMService(BaseLLMService):
                 "Content-Type": "application/json"
             }
             
-            # 기본 페이로드 (보수적인 설정으로 조정)
+            # 기본 페이로드 (LoRA 모델에 최적화)
             payload = {
                 "inputs": formatted_prompt,
                 "parameters": {
-                    "max_new_tokens": 100,      # 적당한 길이로 제한
-                    "temperature": 0.3,         # 더 일관된 응답
+                    "max_new_tokens": 150,      # TCFD 보고서에 적합한 길이
+                    "temperature": 0.5,         # LoRA 모델에 적합한 값
                     "do_sample": True,
                     "return_full_text": False,
-                    "top_p": 0.8,              # 다양성 감소
-                    "repetition_penalty": 1.2   # 반복 방지 강화
+                    "top_p": 0.85,             # LoRA 모델에 최적화
+                    "repetition_penalty": 1.1   # 반복 방지
                 }
             }
             
@@ -183,12 +183,12 @@ class HuggingFaceLLMService(BaseLLMService):
             payload = {
                 "inputs": prompt,
                 "parameters": {
-                    "max_new_tokens": 100,
-                    "temperature": 0.3,
+                    "max_new_tokens": 150,
+                    "temperature": 0.5,
                     "do_sample": True,
                     "return_full_text": False,
-                    "top_p": 0.8,
-                    "repetition_penalty": 1.2
+                    "top_p": 0.85,
+                    "repetition_penalty": 1.1
                 }
             }
             
@@ -268,8 +268,8 @@ class HuggingFaceLLMService(BaseLLMService):
     
     def _format_prompt_for_model(self, prompt: str) -> str:
         """모델용 프롬프트를 포맷팅합니다."""
-        # 극도로 단순화된 프롬프트
-        system_prompt = """주어진 정보를 바탕으로 한국어로 문장을 작성해주세요."""
+        # TCFD/ESG 특화 프롬프트
+        system_prompt = """TCFD 보고서 형식으로 한국어 문장을 작성해주세요."""
         return f"{system_prompt}\n\n{prompt}"
     
     def _generate_text(self, prompt: str) -> str:
