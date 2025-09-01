@@ -25,6 +25,9 @@ COPY fonts/ ./fonts/
 # 애플리케이션 코드 복사
 COPY . .
 
+# 시작 스크립트에 실행 권한 부여
+RUN chmod +x start.sh
+
 # 포트 노출
 EXPOSE 8005
 
@@ -32,5 +35,5 @@ EXPOSE 8005
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
-# Railway 시작 명령어
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8005"]
+# Railway 시작 명령어 (스크립트 사용)
+CMD ["./start.sh"]
