@@ -66,7 +66,7 @@ class HuggingFaceLLMService(BaseLLMService):
             
             headers = {
                 "Authorization": f"Bearer {HF_API_TOKEN}",
-                "Content-Type": "application/json; charset=utf-8"
+                "Content-Type": "application/json"
             }
             
             # 기본 페이로드 (지원되는 파라미터만 사용)
