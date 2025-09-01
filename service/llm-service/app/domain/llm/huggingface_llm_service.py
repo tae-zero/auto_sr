@@ -69,16 +69,16 @@ class HuggingFaceLLMService(BaseLLMService):
                 "Content-Type": "application/json"
             }
             
-            # 기본 페이로드 (학습 데이터에 맞게 조정)
+            # 기본 페이로드 (보수적인 설정으로 조정)
             payload = {
                 "inputs": formatted_prompt,
                 "parameters": {
-                    "max_new_tokens": 200,      # 더 긴 응답 허용
-                    "temperature": 0.7,         # 학습 시 사용한 값과 유사
+                    "max_new_tokens": 100,      # 적당한 길이로 제한
+                    "temperature": 0.3,         # 더 일관된 응답
                     "do_sample": True,
                     "return_full_text": False,
-                    "top_p": 0.9,              # 다양성 증가
-                    "repetition_penalty": 1.1   # 반복 방지
+                    "top_p": 0.8,              # 다양성 감소
+                    "repetition_penalty": 1.2   # 반복 방지 강화
                 }
             }
             
@@ -183,12 +183,12 @@ class HuggingFaceLLMService(BaseLLMService):
             payload = {
                 "inputs": prompt,
                 "parameters": {
-                    "max_new_tokens": 200,
-                    "temperature": 0.7,
+                    "max_new_tokens": 100,
+                    "temperature": 0.3,
                     "do_sample": True,
                     "return_full_text": False,
-                    "top_p": 0.9,
-                    "repetition_penalty": 1.1
+                    "top_p": 0.8,
+                    "repetition_penalty": 1.2
                 }
             }
             
@@ -268,8 +268,8 @@ class HuggingFaceLLMService(BaseLLMService):
     
     def _format_prompt_for_model(self, prompt: str) -> str:
         """모델용 프롬프트를 포맷팅합니다."""
-        # 학습 시 사용한 프롬프트 형식과 정확히 일치
-        system_prompt = """너는 ESG/TCFD 보고서 작성 보조자다. 항상 한국어로 간결하고 전문적인 문장을 작성한다. 모든 출력은 보고서 형식을 따르며, 인용/출처 표기는 일관되게 유지한다."""
+        # 극도로 단순화된 프롬프트
+        system_prompt = """주어진 정보를 바탕으로 한국어로 문장을 작성해주세요."""
         return f"{system_prompt}\n\n{prompt}"
     
     def _generate_text(self, prompt: str) -> str:
