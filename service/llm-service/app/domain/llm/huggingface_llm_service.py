@@ -1,9 +1,7 @@
 import requests
 import logging
-import torch
 import os
 from typing import Optional
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from ...common.config import (
     HF_API_TOKEN, HF_MODEL, HF_API_URL, HF_LOCAL_MODEL_PATH
 )
@@ -49,50 +47,9 @@ class HuggingFaceLLMService(BaseLLMService):
         self.use_local_model = False
     
     def _load_local_model(self):
-        """로컬 모델을 로드합니다. (기존 방식 보존)"""
-        try:
-            logger.info(f"로컬 모델 로딩 시작: {HF_LOCAL_MODEL_PATH}")
-            
-            # GPU 사용 가능 여부 확인
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            logger.info(f"사용 디바이스: {device}")
-            
-            # 토크나이저 로드
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                HF_LOCAL_MODEL_PATH,
-                trust_remote_code=True
-            )
-            if self.tokenizer.pad_token is None:
-                self.tokenizer.pad_token = self.tokenizer.eos_token
-            
-            # 모델 로드 (메모리 최적화)
-            self.model = AutoModelForCausalLM.from_pretrained(
-                HF_LOCAL_MODEL_PATH,
-                torch_dtype=torch.float16,
-                device_map="auto" if device == "cuda" else None,
-                trust_remote_code=True,
-                low_cpu_mem_usage=True
-            )
-            
-            # 파이프라인 생성
-            self.pipeline = pipeline(
-                "text-generation",
-                model=self.model,
-                tokenizer=self.tokenizer,
-                device=0 if device == "cuda" else -1,
-                max_new_tokens=1000,
-                do_sample=True,
-                temperature=0.7,
-                top_p=0.9,
-                repetition_penalty=1.1
-            )
-            
-            logger.info("로컬 모델 로딩 완료")
-            
-        except Exception as e:
-            logger.error(f"로컬 모델 로딩 실패: {e}")
-            logger.info("API 호출 방식으로 fallback")
-            self.use_local_model = False
+        """로컬 모델을 로드합니다. (Inference Endpoint 사용으로 인해 비활성화)"""
+        logger.info("Inference Endpoint 사용으로 인해 로컬 모델 로딩 비활성화")
+        self.use_local_model = False
     
     def _call_hf_inference_endpoint(self, prompt: str) -> str:
         """Hugging Face Inference Endpoint를 호출하여 텍스트를 생성합니다."""
@@ -193,37 +150,9 @@ class HuggingFaceLLMService(BaseLLMService):
             return f"[연결 오류] Hugging Face API 연결에 실패했습니다: {str(e)}"
     
     def _generate_with_loaded_model(self, prompt: str) -> str:
-        """로딩된 모델로 텍스트를 생성합니다."""
-        try:
-            if not self.pipeline:
-                logger.error("모델이 로드되지 않음")
-                return "[오류] 모델이 로드되지 않았습니다."
-            
-            # 프롬프트 전처리
-            formatted_prompt = self._format_prompt_for_model(prompt)
-            
-            # 텍스트 생성
-            result = self.pipeline(
-                formatted_prompt,
-                max_new_tokens=1000,
-                do_sample=True,
-                temperature=0.7,
-                top_p=0.9,
-                repetition_penalty=1.1
-            )
-            
-            if result and len(result) > 0:
-                generated_text = result[0]['generated_text']
-                # 프롬프트 부분 제거하고 생성된 텍스트만 반환
-                if formatted_prompt in generated_text:
-                    generated_text = generated_text.replace(formatted_prompt, '').strip()
-                return generated_text
-            else:
-                return "[오류] 텍스트 생성에 실패했습니다."
-                
-        except Exception as e:
-            logger.error(f"모델 텍스트 생성 실패: {e}")
-            return f"[오류] 모델 텍스트 생성에 실패했습니다: {str(e)}"
+        """로딩된 모델로 텍스트를 생성합니다. (Inference Endpoint 사용으로 인해 비활성화)"""
+        logger.warning("로딩된 모델 사용 시도 - Inference Endpoint로 fallback")
+        return self._call_hf_inference_endpoint(prompt)
     
     def _format_prompt_for_model(self, prompt: str) -> str:
         """모델용 프롬프트를 포맷팅합니다."""
