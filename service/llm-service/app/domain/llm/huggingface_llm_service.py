@@ -1,6 +1,7 @@
 import requests
 import logging
 import torch
+import os
 from typing import Optional
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from ...common.config import (
@@ -26,14 +27,77 @@ class HuggingFaceLLMService(BaseLLMService):
             # 로컬 모델 로딩
             self._load_local_model()
         else:
-            # API 호출 방식 (기존 방식 보존)
-            if not HF_API_TOKEN:
-                logger.warning("Hugging Face API 토큰이 설정되지 않음")
-            if not HF_API_URL:
-                logger.warning("Hugging Face API URL이 설정되지 않음")
+            # Hugging Face Hub에서 직접 모델 로딩
+            self._load_hf_hub_model()
+    
+    def _load_hf_hub_model(self):
+        """Hugging Face Hub에서 모델을 직접 로딩합니다."""
+        try:
+            logger.info("Hugging Face Hub에서 모델 로딩 시작")
+            
+            # 환경변수에서 토큰 가져오기
+            hf_token = os.getenv("HF_TOKEN")
+            if not hf_token:
+                logger.warning("HF_TOKEN이 설정되지 않음")
+                return
+            
+            # 모델 리포지토리 설정
+            model_repo = HF_MODEL or "jeongtaeyeong/tcfd-polyglot-3.8b-merged"
+            logger.info(f"모델 리포지토리: {model_repo}")
+            
+            # GPU 사용 가능 여부 확인
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            logger.info(f"사용 디바이스: {device}")
+            
+            # 토크나이저 로드
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                model_repo, 
+                use_auth_token=hf_token,
+                trust_remote_code=True
+            )
+            if self.tokenizer.pad_token is None:
+                self.tokenizer.pad_token = self.tokenizer.eos_token
+            
+            # 모델 로드 (CPU 환경 고려)
+            if device == "cpu":
+                self.model = AutoModelForCausalLM.from_pretrained(
+                    model_repo,
+                    torch_dtype=torch.float16,
+                    use_auth_token=hf_token,
+                    trust_remote_code=True,
+                    low_cpu_mem_usage=True
+                ).to("cpu")
+            else:
+                self.model = AutoModelForCausalLM.from_pretrained(
+                    model_repo,
+                    torch_dtype=torch.float16,
+                    use_auth_token=hf_token,
+                    trust_remote_code=True,
+                    device_map="auto"
+                )
+            
+            # 파이프라인 생성
+            self.pipeline = pipeline(
+                "text-generation",
+                model=self.model,
+                tokenizer=self.tokenizer,
+                device=0 if device == "cuda" else -1,
+                max_new_tokens=1000,
+                do_sample=True,
+                temperature=0.7,
+                top_p=0.9,
+                repetition_penalty=1.1
+            )
+            
+            logger.info("Hugging Face Hub 모델 로딩 완료")
+            
+        except Exception as e:
+            logger.error(f"Hugging Face Hub 모델 로딩 실패: {e}")
+            logger.info("API 호출 방식으로 fallback")
+            self.use_local_model = False
     
     def _load_local_model(self):
-        """로컬 모델을 로드합니다."""
+        """로컬 모델을 로드합니다. (기존 방식 보존)"""
         try:
             logger.info(f"로컬 모델 로딩 시작: {HF_LOCAL_MODEL_PATH}")
             
@@ -124,15 +188,15 @@ class HuggingFaceLLMService(BaseLLMService):
             logger.error(f"Hugging Face API 호출 중 오류: {e}")
             return f"[연결 오류] Hugging Face API 연결에 실패했습니다: {str(e)}"
     
-    def _generate_with_local_model(self, prompt: str) -> str:
-        """로컬 모델로 텍스트를 생성합니다."""
+    def _generate_with_loaded_model(self, prompt: str) -> str:
+        """로딩된 모델로 텍스트를 생성합니다."""
         try:
             if not self.pipeline:
-                logger.error("로컬 모델이 로드되지 않음")
-                return "[오류] 로컬 모델이 로드되지 않았습니다."
+                logger.error("모델이 로드되지 않음")
+                return "[오류] 모델이 로드되지 않았습니다."
             
             # 프롬프트 전처리
-            formatted_prompt = self._format_prompt_for_local_model(prompt)
+            formatted_prompt = self._format_prompt_for_model(prompt)
             
             # 텍스트 생성
             result = self.pipeline(
@@ -154,19 +218,19 @@ class HuggingFaceLLMService(BaseLLMService):
                 return "[오류] 텍스트 생성에 실패했습니다."
                 
         except Exception as e:
-            logger.error(f"로컬 모델 텍스트 생성 실패: {e}")
-            return f"[오류] 로컬 모델 텍스트 생성에 실패했습니다: {str(e)}"
+            logger.error(f"모델 텍스트 생성 실패: {e}")
+            return f"[오류] 모델 텍스트 생성에 실패했습니다: {str(e)}"
     
-    def _format_prompt_for_local_model(self, prompt: str) -> str:
-        """로컬 모델용 프롬프트를 포맷팅합니다."""
+    def _format_prompt_for_model(self, prompt: str) -> str:
+        """모델용 프롬프트를 포맷팅합니다."""
         # TCFD 전문가 프롬프트 추가
         system_prompt = "당신은 TCFD 기후 관련 재무정보 공시 보고서 작성 전문가입니다. 전문적이고 체계적인 보고서를 작성해주세요."
         return f"{system_prompt}\n\n{prompt}"
     
     def _generate_text(self, prompt: str) -> str:
         """텍스트 생성 방식에 따라 적절한 메서드를 호출합니다."""
-        if self.use_local_model and self.pipeline:
-            return self._generate_with_local_model(prompt)
+        if self.pipeline:
+            return self._generate_with_loaded_model(prompt)
         else:
             return self._call_hf_api(prompt)
     

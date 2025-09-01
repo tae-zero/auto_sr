@@ -90,8 +90,11 @@ GENAI_KEY = os.getenv("GENAI_KEY", "")
 # Hugging Face 설정
 HF_API_URL = os.getenv("HF_API_URL", "https://api-inference.huggingface.co")
 HF_API_TOKEN = os.getenv("HF_API_TOKEN", "")  # 빈 문자열이면 fallback 모드로 동작
-HF_MODEL = os.getenv("HF_MODEL", "EleutherAI/polyglot-ko-3.8b")
+HF_MODEL = os.getenv("HF_MODEL", "jeongtaeyeong/tcfd-polyglot-3.8b-merged")
 HF_TIMEOUT = int(os.getenv("HF_TIMEOUT", "30"))
+
+# Hugging Face Hub 직접 모델 로딩용 토큰
+HF_TOKEN = os.getenv("HF_TOKEN", "")  # Hugging Face Hub에서 모델 다운로드용 토큰
 
 # Hugging Face 로컬 모델 설정 (Railway에서 직접 모델 로딩용)
 HF_LOCAL_MODEL_PATH = os.getenv("HF_LOCAL_MODEL_PATH", "")  # 로컬 모델 경로 (설정되면 API 대신 로컬 모델 사용)
