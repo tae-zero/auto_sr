@@ -89,15 +89,18 @@ class HuggingFaceLLMService(BaseLLMService):
             
             # 모델 로드 (CPU 환경 고려)
             if device == "cpu":
+                # CPU 환경에서는 float32 사용 (float16은 CPU에서 지원되지 않음)
                 self.model = AutoModelForCausalLM.from_pretrained(
                     model_repo,
-                    torch_dtype=torch.float16,
+                    torch_dtype=torch.float32,  # CPU에서는 float32 사용
                     use_auth_token=hf_token,
                     trust_remote_code=True,
                     low_cpu_mem_usage=True,
                     force_download=True
                 ).to("cpu")
+                logger.info("CPU 환경에서 float32로 모델 로딩")
             else:
+                # GPU 환경에서는 float16 사용
                 self.model = AutoModelForCausalLM.from_pretrained(
                     model_repo,
                     torch_dtype=torch.float16,
@@ -106,6 +109,7 @@ class HuggingFaceLLMService(BaseLLMService):
                     device_map="auto",
                     force_download=True
                 )
+                logger.info("GPU 환경에서 float16으로 모델 로딩")
             
             # 파이프라인 생성
             self.pipeline = pipeline(
