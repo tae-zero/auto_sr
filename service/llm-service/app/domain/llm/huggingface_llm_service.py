@@ -84,15 +84,23 @@ class HuggingFaceLLMService(BaseLLMService):
             try:
                 health_response = requests.get(HF_API_URL, timeout=10)
                 logger.info(f"Endpoint 헬스체크: {health_response.status_code}")
-                #
+                
                 # 모델 준비 상태 확인
                 if health_response.status_code == 200:
                     try:
                         health_data = health_response.json()
+                        logger.info(f"헬스체크 응답: {health_data}")
                         if "error" in health_data:
                             logger.warning(f"모델 준비 중: {health_data['error']}")
                     except:
-                        pass
+                        logger.info(f"헬스체크 응답 텍스트: {health_response.text}")
+                elif health_response.status_code == 401:
+                    logger.error("인증 실패 - API 토큰 확인 필요")
+                elif health_response.status_code == 503:
+                    logger.warning("서비스 일시적 사용 불가 - 모델 로딩 중일 수 있음")
+                else:
+                    logger.warning(f"헬스체크 예상치 못한 상태: {health_response.status_code}")
+                    
             except Exception as e:
                 logger.warning(f"Endpoint 헬스체크 실패: {e}")
             
@@ -124,6 +132,18 @@ class HuggingFaceLLMService(BaseLLMService):
                 logger.error(f"요청 URL: {HF_API_URL}")
                 logger.error(f"요청 헤더: {headers}")
                 logger.error(f"요청 페이로드: {payload}")
+                
+                # 500 오류 시 더 자세한 정보 로깅
+                if response.status_code == 500:
+                    logger.error("=== 500 오류 상세 분석 ===")
+                    logger.error(f"응답 헤더: {dict(response.headers)}")
+                    logger.error(f"응답 크기: {len(response.content)} bytes")
+                    try:
+                        error_detail = response.json()
+                        logger.error(f"오류 상세: {error_detail}")
+                    except:
+                        logger.error(f"응답 텍스트: {response.text}")
+                    logger.error("========================")
                 
                 # Inference Endpoint 실패 시 Hugging Face API로 fallback
                 logger.info("Inference Endpoint 실패 - Hugging Face API로 fallback 시도")
