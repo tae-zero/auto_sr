@@ -44,92 +44,9 @@ class HuggingFaceLLMService(BaseLLMService):
             self._load_hf_hub_model()
     
     def _load_hf_hub_model(self):
-        """Hugging Face Hub에서 모델을 직접 로딩합니다."""
-        try:
-            logger.info("Hugging Face Hub에서 모델 로딩 시작")
-            
-            # 환경변수에서 토큰 가져오기
-            hf_token = os.getenv("HF_TOKEN")
-            if not hf_token:
-                logger.warning("HF_TOKEN이 설정되지 않음")
-                return
-            
-            # 모델 리포지토리 설정
-            model_repo = HF_MODEL or "jeongtaeyeong/tcfd-polyglot-3.8b-merged"
-            logger.info(f"모델 리포지토리: {model_repo}")
-            
-            # GPU 사용 가능 여부 확인
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            logger.info(f"사용 디바이스: {device}")
-            
-            # 토크나이저 로드 (use_fast=False 강제 - Polyglot-Ko는 SentencePiece 기반)
-            try:
-                # 학습한 모델의 토크나이저 사용 (use_fast=False 강제)
-                logger.info("학습한 모델의 토크나이저 로딩 시도 (use_fast=False)")
-                self.tokenizer = AutoTokenizer.from_pretrained(
-                    model_repo, 
-                    use_auth_token=hf_token,
-                    trust_remote_code=True,
-                    use_fast=False,  # ← Polyglot-Ko는 SentencePiece라 use_fast=False가 안정적
-                    force_download=True
-                )
-                logger.info("학습한 모델의 토크나이저 로딩 성공")
-            except Exception as e:
-                logger.error(f"학습한 모델의 토크나이저 로딩 실패: {e}")
-                # 베이스 모델 토크나이저로 폴백
-                logger.warning("베이스 모델 토크나이저로 폴백")
-                self.tokenizer = AutoTokenizer.from_pretrained(
-                    "EleutherAI/polyglot-ko-3.8b",
-                    use_auth_token=hf_token,
-                    use_fast=False
-                )
-                logger.info("베이스 모델 토크나이저 로딩 성공")
-            if self.tokenizer.pad_token is None:
-                self.tokenizer.pad_token = self.tokenizer.eos_token
-            
-            # 모델 로드 (CPU 환경 고려)
-            if device == "cpu":
-                # CPU 환경에서는 float32 사용 (float16은 CPU에서 지원되지 않음)
-                self.model = AutoModelForCausalLM.from_pretrained(
-                    model_repo,
-                    torch_dtype=torch.float32,  # CPU에서는 float32 사용
-                    use_auth_token=hf_token,
-                    trust_remote_code=True,
-                    low_cpu_mem_usage=True,
-                    force_download=True
-                ).to("cpu")
-                logger.info("CPU 환경에서 float32로 모델 로딩")
-            else:
-                # GPU 환경에서는 float16 사용
-                self.model = AutoModelForCausalLM.from_pretrained(
-                    model_repo,
-                    torch_dtype=torch.float16,
-                    use_auth_token=hf_token,
-                    trust_remote_code=True,
-                    device_map="auto",
-                    force_download=True
-                )
-                logger.info("GPU 환경에서 float16으로 모델 로딩")
-            
-            # 파이프라인 생성
-            self.pipeline = pipeline(
-                "text-generation",
-                model=self.model,
-                tokenizer=self.tokenizer,
-                device=0 if device == "cuda" else -1,
-                max_new_tokens=1000,
-                do_sample=True,
-                temperature=0.7,
-                top_p=0.9,
-                repetition_penalty=1.1
-            )
-            
-            logger.info("Hugging Face Hub 모델 로딩 완료")
-            
-        except Exception as e:
-            logger.exception("Hugging Face Hub 모델 로딩 실패")
-            logger.info("API 호출 방식으로 fallback")
-            self.use_local_model = False
+        """Hugging Face Hub에서 모델을 직접 로딩합니다. (Inference Endpoint 사용으로 인해 비활성화)"""
+        logger.info("Inference Endpoint 사용으로 인해 모델 다운로드 비활성화")
+        self.use_local_model = False
     
     def _load_local_model(self):
         """로컬 모델을 로드합니다. (기존 방식 보존)"""
