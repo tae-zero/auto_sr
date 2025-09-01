@@ -9,6 +9,11 @@ faiss-cpu==1.12.0
 numpy==1.26.4
 pydantic==2.11.7
 
+# Hugging Face 모델 로딩을 위한 의존성
+transformers==4.37.2
+torch==2.1.2
+accelerate==0.25.0
+
 langchain==0.3.27
 langchain-core==0.3.74
 langchain-community==0.3.27

@@ -64,55 +64,22 @@ class LLMService:
             return f"OpenAI API 호출 중 오류 발생: {str(e)}"
     
     def generate_with_huggingface(self, prompt: str, report_type: str = "draft") -> str:
-        """Hugging Face API를 사용하여 텍스트 생성"""
+        """Hugging Face API를 사용하여 텍스트 생성 (로컬 모델 또는 API 호출)"""
         try:
-            if not self.hf_api_token:
-                logger.error("Hugging Face API 토큰이 설정되지 않았습니다")
-                return "Hugging Face API 토큰이 설정되지 않았습니다."
+            # HuggingFaceLLMService 인스턴스 생성하여 사용
+            from .huggingface_llm_service import HuggingFaceLLMService
+            hf_service = HuggingFaceLLMService()
             
-            # Hugging Face API 호출
-            headers = {
-                "Authorization": f"Bearer {self.hf_api_token}",
-                "Content-Type": "application/json"
-            }
-            
-            # 프롬프트에 시스템 메시지 추가
+            # 시스템 메시지가 포함된 프롬프트 생성
             system_message = f"당신은 TCFD 기후 관련 재무정보 공시 보고서 작성 전문가입니다. {report_type} 형태로 전문적이고 체계적인 보고서를 작성해주세요."
             full_prompt = f"{system_message}\n\n{prompt}"
             
-            data = {
-                "inputs": full_prompt,
-                "parameters": {
-                    "max_new_tokens": 1000,
-                    "temperature": 0.3,
-                    "do_sample": True,
-                    "top_p": 0.9
-                }
-            }
+            # HuggingFaceLLMService의 _generate_text 메서드 사용
+            content = hf_service._generate_text(full_prompt)
             
-            response = requests.post(
-                self.hf_api_url,
-                headers=headers,
-                json=data,
-                timeout=60
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                if isinstance(result, list) and len(result) > 0:
-                    content = result[0].get('generated_text', '')
-                    # 프롬프트 부분 제거하고 생성된 텍스트만 반환
-                    if full_prompt in content:
-                        content = content.replace(full_prompt, '').strip()
-                    logger.info("Hugging Face API 호출 성공")
-                    return content
-                else:
-                    logger.error(f"Hugging Face API 응답 형식 오류: {result}")
-                    return "Hugging Face API 응답 형식 오류"
-            else:
-                logger.error(f"Hugging Face API 호출 실패: {response.status_code} - {response.text}")
-                return f"Hugging Face API 호출 실패: {response.status_code}"
+            logger.info("Hugging Face 텍스트 생성 완료")
+            return content
                 
         except Exception as e:
-            logger.error(f"Hugging Face API 호출 중 오류 발생: {str(e)}")
-            return f"Hugging Face API 호출 중 오류 발생: {str(e)}"
+            logger.error(f"Hugging Face 텍스트 생성 중 오류 발생: {str(e)}")
+            return f"Hugging Face 텍스트 생성 중 오류 발생: {str(e)}"
