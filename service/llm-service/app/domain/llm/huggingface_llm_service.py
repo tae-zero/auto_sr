@@ -49,13 +49,45 @@ class HuggingFaceLLMService(BaseLLMService):
             device = "cuda" if torch.cuda.is_available() else "cpu"
             logger.info(f"사용 디바이스: {device}")
             
-            # 토크나이저 로드
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                model_repo, 
-                use_auth_token=hf_token,
-                trust_remote_code=True,
-                force_download=True
-            )
+            # 토크나이저 로드 (학습한 모델의 토크나이저만 사용)
+            # 토크나이저 파일 손상 시 수동 복구 시도
+            try:
+                # 학습한 모델의 토크나이저 사용
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    model_repo, 
+                    use_auth_token=hf_token,
+                    trust_remote_code=True,
+                    force_download=True
+                )
+                logger.info("학습한 모델의 토크나이저 로딩 성공")
+            except Exception as e:
+                logger.error(f"학습한 모델의 토크나이저 로딩 실패: {e}")
+                # 토크나이저 파일 손상 시 수동 복구 시도
+                logger.warning("토크나이저 파일 수동 복구 시도")
+                try:
+                    # 토크나이저 파일만 별도로 다운로드
+                    from huggingface_hub import hf_hub_download
+                    import os
+                    import shutil
+                    
+                    # 캐시 디렉토리 정리
+                    cache_dir = os.path.expanduser("~/.cache/huggingface/transformers")
+                    model_cache_dir = os.path.join(cache_dir, f"models--{model_repo.replace('/', '--')}")
+                    if os.path.exists(model_cache_dir):
+                        shutil.rmtree(model_cache_dir)
+                        logger.info("토크나이저 캐시 디렉토리 정리 완료")
+                    
+                    # 토크나이저 파일 재다운로드
+                    self.tokenizer = AutoTokenizer.from_pretrained(
+                        model_repo, 
+                        use_auth_token=hf_token,
+                        trust_remote_code=True,
+                        force_download=True
+                    )
+                    logger.info("토크나이저 파일 수동 복구 성공")
+                except Exception as e2:
+                    logger.error(f"토크나이저 파일 수동 복구도 실패: {e2}")
+                    raise Exception(f"학습한 모델의 토크나이저 로딩 불가: {e}")
             if self.tokenizer.pad_token is None:
                 self.tokenizer.pad_token = self.tokenizer.eos_token
             
