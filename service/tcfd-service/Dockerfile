@@ -25,9 +25,6 @@ COPY fonts/ ./fonts/
 # 애플리케이션 코드 복사
 COPY . .
 
-# 시작 스크립트에 실행 권한 부여 (윈도우에서 권한 비트가 사라지는 문제 대비)
-RUN chmod +x /app/start.sh || true
-
 # 포트 노출
 EXPOSE 8005
 
