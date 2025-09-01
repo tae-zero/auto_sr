@@ -49,41 +49,28 @@ class HuggingFaceLLMService(BaseLLMService):
             device = "cuda" if torch.cuda.is_available() else "cpu"
             logger.info(f"사용 디바이스: {device}")
             
-            # 토크나이저 로드 (Fast/Slow 폴백 전략)
+            # 토크나이저 로드 (use_fast=False 강제 - Polyglot-Ko는 SentencePiece 기반)
             try:
-                # 1차: Fast 토크나이저 시도
-                logger.info("Fast 토크나이저 로딩 시도")
+                # 학습한 모델의 토크나이저 사용 (use_fast=False 강제)
+                logger.info("학습한 모델의 토크나이저 로딩 시도 (use_fast=False)")
                 self.tokenizer = AutoTokenizer.from_pretrained(
                     model_repo, 
                     use_auth_token=hf_token,
                     trust_remote_code=True,
-                    use_fast=True,
+                    use_fast=False,  # ← Polyglot-Ko는 SentencePiece라 use_fast=False가 안정적
                     force_download=True
                 )
-                logger.info("Fast 토크나이저 로딩 성공")
-            except Exception as e_fast:
-                logger.warning(f"Fast 토크나이저 로딩 실패: {e_fast}")
-                try:
-                    # 2차: Slow 토크나이저로 폴백 (SentencePiece 기반)
-                    logger.info("Slow 토크나이저로 폴백 시도")
-                    self.tokenizer = AutoTokenizer.from_pretrained(
-                        model_repo, 
-                        use_auth_token=hf_token,
-                        trust_remote_code=True,
-                        use_fast=False,  # ← 중요한 부분
-                        force_download=True
-                    )
-                    logger.info("Slow 토크나이저 로딩 성공")
-                except Exception as e_slow:
-                    logger.error(f"Slow 토크나이저도 실패: {e_slow}")
-                    # 3차: 베이스 모델 토크나이저로 최후 폴백
-                    logger.warning("베이스 모델 토크나이저로 최후 폴백")
-                    self.tokenizer = AutoTokenizer.from_pretrained(
-                        "EleutherAI/polyglot-ko-3.8b",
-                        use_auth_token=hf_token,
-                        use_fast=False
-                    )
-                    logger.info("베이스 모델 토크나이저 로딩 성공")
+                logger.info("학습한 모델의 토크나이저 로딩 성공")
+            except Exception as e:
+                logger.error(f"학습한 모델의 토크나이저 로딩 실패: {e}")
+                # 베이스 모델 토크나이저로 폴백
+                logger.warning("베이스 모델 토크나이저로 폴백")
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    "EleutherAI/polyglot-ko-3.8b",
+                    use_auth_token=hf_token,
+                    use_fast=False
+                )
+                logger.info("베이스 모델 토크나이저 로딩 성공")
             if self.tokenizer.pad_token is None:
                 self.tokenizer.pad_token = self.tokenizer.eos_token
             
