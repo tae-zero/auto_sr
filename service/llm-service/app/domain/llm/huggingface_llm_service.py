@@ -84,7 +84,7 @@ class HuggingFaceLLMService(BaseLLMService):
             try:
                 health_response = requests.get(HF_API_URL, timeout=10)
                 logger.info(f"Endpoint 헬스체크: {health_response.status_code}")
-                
+                #
                 # 모델 준비 상태 확인
                 if health_response.status_code == 200:
                     try:
