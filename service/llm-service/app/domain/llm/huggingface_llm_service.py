@@ -74,7 +74,7 @@ class HuggingFaceLLMService(BaseLLMService):
                 "inputs": formatted_prompt,
                 "parameters": {
                     "max_new_tokens": 200,  # 더 긴 응답 허용
-                    "temperature": 0.5,     # 더 일관된 응답
+                    "temperature": 0.2,     # 더 일관된 응답
                     "do_sample": True,
                     "return_full_text": False,
                     "top_p": 0.9,          # 응답 품질 향상
