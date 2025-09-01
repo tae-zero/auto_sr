@@ -69,16 +69,18 @@ class HuggingFaceLLMService(BaseLLMService):
                 "Content-Type": "application/json"
             }
             
-            # 기본 페이로드 (LoRA 모델에 최적화)
+            # 기본 페이로드 (컨텍스트 길이 2048 제한 고려)
             payload = {
                 "inputs": formatted_prompt,
                 "parameters": {
-                    "max_new_tokens": 150,      # TCFD 보고서에 적합한 길이
+                    "max_new_tokens": 200,      # 컨텍스트 여유분 고려
                     "temperature": 0.5,         # LoRA 모델에 적합한 값
                     "do_sample": True,
                     "return_full_text": False,
                     "top_p": 0.85,             # LoRA 모델에 최적화
-                    "repetition_penalty": 1.1   # 반복 방지
+                    "repetition_penalty": 1.1,  # 반복 방지
+                    "pad_token_id": 2,          # <|endoftext|> 토큰 ID
+                    "eos_token_id": 2           # <|endoftext|> 토큰 ID
                 }
             }
             
@@ -124,7 +126,8 @@ class HuggingFaceLLMService(BaseLLMService):
                     if formatted_prompt in generated_text:
                         generated_text = generated_text.replace(formatted_prompt, '').strip()
                     
-                    # 필터링 로직 제거 - 모든 응답 허용
+                    # 특수 토큰 제거
+                    generated_text = generated_text.replace('<|sep|>', '').replace('<|endoftext|>', '').strip()
                     
                     return generated_text
                 elif isinstance(result, dict):
@@ -132,7 +135,8 @@ class HuggingFaceLLMService(BaseLLMService):
                     if formatted_prompt in generated_text:
                         generated_text = generated_text.replace(formatted_prompt, '').strip()
                     
-                    # 필터링 로직 제거 - 모든 응답 허용
+                    # 특수 토큰 제거
+                    generated_text = generated_text.replace('<|sep|>', '').replace('<|endoftext|>', '').strip()
                     
                     return generated_text
                 else:
@@ -183,12 +187,14 @@ class HuggingFaceLLMService(BaseLLMService):
             payload = {
                 "inputs": prompt,
                 "parameters": {
-                    "max_new_tokens": 150,
+                    "max_new_tokens": 200,
                     "temperature": 0.5,
                     "do_sample": True,
                     "return_full_text": False,
                     "top_p": 0.85,
-                    "repetition_penalty": 1.1
+                    "repetition_penalty": 1.1,
+                    "pad_token_id": 2,
+                    "eos_token_id": 2
                 }
             }
             
@@ -268,9 +274,14 @@ class HuggingFaceLLMService(BaseLLMService):
     
     def _format_prompt_for_model(self, prompt: str) -> str:
         """모델용 프롬프트를 포맷팅합니다."""
-        # TCFD/ESG 특화 프롬프트
-        system_prompt = """TCFD 보고서 형식으로 한국어 문장을 작성해주세요."""
-        return f"{system_prompt}\n\n{prompt}"
+        # 특수 토큰을 활용한 프롬프트 형식 (컨텍스트 길이 2048 제한 고려)
+        system_prompt = """TCFD 보고서 형식으로 한국어 문장을 작성해주세요.<|sep|>"""
+        
+        # 입력 데이터 길이 제한 (대략 1500 토큰 이하로 유지)
+        if len(prompt) > 1000:  # 대략적인 문자 수 제한
+            prompt = prompt[:1000] + "..."
+        
+        return f"{system_prompt}\n\n{prompt}<|sep|>"
     
     def _generate_text(self, prompt: str) -> str:
         """텍스트 생성 방식에 따라 적절한 메서드를 호출합니다."""
