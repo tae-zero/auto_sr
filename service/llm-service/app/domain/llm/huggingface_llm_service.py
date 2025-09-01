@@ -59,6 +59,8 @@ class HuggingFaceLLMService(BaseLLMService):
                 logger.error("HF_API_TOKEN이 설정되지 않음")
                 return "[오류] Hugging Face API 토큰이 설정되지 않았습니다."
             
+            logger.info(f"API 토큰 확인: {HF_API_TOKEN[:10]}...")
+            
             # 프롬프트 전처리
             formatted_prompt = self._format_prompt_for_model(prompt)
             
@@ -67,16 +69,14 @@ class HuggingFaceLLMService(BaseLLMService):
                 "Content-Type": "application/json"
             }
             
-            # CPU 환경에 최적화된 페이로드
+            # 기본 페이로드 (지원되는 파라미터만 사용)
             payload = {
                 "inputs": formatted_prompt,
                 "parameters": {
-                    "max_new_tokens": 50,  # CPU에서는 더 짧게
+                    "max_new_tokens": 50,
                     "temperature": 0.7,
                     "do_sample": True,
-                    "return_full_text": False,
-                    "use_cache": True,  # 캐시 사용으로 성능 향상
-                    "wait_for_model": True  # 모델 로딩 대기
+                    "return_full_text": False
                 }
             }
             
@@ -127,7 +127,13 @@ class HuggingFaceLLMService(BaseLLMService):
                 
                 # Inference Endpoint 실패 시 Hugging Face API로 fallback
                 logger.info("Inference Endpoint 실패 - Hugging Face API로 fallback 시도")
-                return self._call_hf_api_fallback(prompt)
+                fallback_result = self._call_hf_api_fallback(prompt)
+                
+                # Fallback도 실패하면 기본 메시지 반환
+                if "실패" in fallback_result or "오류" in fallback_result:
+                    return f"[Inference Endpoint 오류] {response.status_code} - {response.text[:100]}... (Fallback도 실패)"
+                
+                return fallback_result
                 
         except Exception as e:
             logger.error(f"Hugging Face Inference Endpoint 호출 중 오류: {e}")
@@ -136,8 +142,8 @@ class HuggingFaceLLMService(BaseLLMService):
     def _call_hf_api_fallback(self, prompt: str) -> str:
         """Hugging Face API로 fallback합니다."""
         try:
-            # Hugging Face API URL 사용
-            api_url = "https://api-inference.huggingface.co/models/jeongtaeyeong/tcfd-polyglot-3.8b-merged"
+            # Hugging Face API URL 사용 (실제 존재하는 모델로 테스트)
+            api_url = "https://api-inference.huggingface.co/models/EleutherAI/polyglot-ko-3.8b"
             
             headers = {
                 "Authorization": f"Bearer {HF_API_TOKEN}",
@@ -147,7 +153,7 @@ class HuggingFaceLLMService(BaseLLMService):
             payload = {
                 "inputs": prompt,
                 "parameters": {
-                    "max_new_tokens": 100,
+                    "max_new_tokens": 50,
                     "temperature": 0.7,
                     "do_sample": True,
                     "return_full_text": False
