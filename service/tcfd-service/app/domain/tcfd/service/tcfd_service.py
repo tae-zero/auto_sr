@@ -298,6 +298,7 @@ class TCFDService:
         start_year: int,
         end_year: int,
         additional_years: Optional[List[int]] = None,
+        region: Optional[str] = None,  # 행정구역 파라미터 추가
         current_user: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """기후 시나리오 데이터를 막대그래프 차트로 생성"""
