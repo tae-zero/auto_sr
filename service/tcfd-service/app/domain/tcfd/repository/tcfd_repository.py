@@ -462,7 +462,8 @@ class TCFDRepository:
         variable_code: Optional[str] = None,
         year: Optional[int] = None,
         start_year: Optional[int] = None,
-        end_year: Optional[int] = None
+        end_year: Optional[int] = None,
+        region: Optional[str] = None  # 행정구역 파라미터 추가
     ) -> List[Dict[str, Any]]:
         """기후 시나리오 데이터 조회"""
         try:
