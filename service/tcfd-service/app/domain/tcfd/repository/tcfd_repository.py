@@ -524,6 +524,10 @@ class TCFDRepository:
             # 정렬
             query += " ORDER BY cd.year ASC"
             
+            # 디버깅을 위한 쿼리 로깅
+            logger.info(f"🔍 실행할 SQL 쿼리: {query}")
+            logger.info(f"🔍 쿼리 파라미터: {params}")
+            
             # 쿼리 실행
             rows = await conn.fetch(query, *params)
             
