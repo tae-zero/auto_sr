@@ -2134,7 +2134,7 @@ export default function TcfdSrPage() {
                           <textarea
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                             rows={3}
-                            placeholder="조직의 전반적인 리스크크 관리 프로세스에 기후 관련 위험을 통합하는 방법을 설명하세요..."
+                            placeholder="조직의 전반적인 리스크 관리 프로세스에 기후 관련 위험을 통합하는 방법을 설명하세요..."
                             value={tcfdInputData.risk_management_r2}
                             onChange={(e) => handleTcfdInputChange('risk_management_r2', e.target.value)}
                           />
