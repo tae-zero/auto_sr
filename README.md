@@ -2,7 +2,7 @@
 
 ## 🚀 프로젝트 개요
 
-**ESG Mate**는 기업의 ESG(환경, 사회, 거버넌스) 성과를 AI 기술로 분석하고, TCFD, GRI 등 국제 표준에 맞는 전문 보고서를 자동으로 생성하는 통합 플랫폼입니다.
+**ESG Mate**는 기업의 ESG(환경, 사회, 거버넌스) 성과를 AI 기술로 분석하고, TCFD 등 국제 표준에 맞는 전문 보고서를 자동으로 생성하는 통합 플랫폼입니다.
 
 ## 🏗️ 전체 시스템 아키텍처
 
@@ -17,11 +17,8 @@
 - **메인 대시보드**: 포트폴리오 스타일의 통합 진입점
 - **TCFD SR**: AI 기반 TCFD 보고서 생성 및 다운로드
 - **재무대시보드**: 유가증권시장 데이터 시각화
-- **ESG 공시 챗봇**: GRI, TCFD, KSSB, IFRS 기준 질의응답
 - **Climate**: 기후 데이터 갤러리 및 시각화
-- **Climate Scenarios**: SSP2.6, SSP8.5 기후 시나리오 분석
-- **Materiality**: 중요도 분석 및 평가 시스템
-- **GRI INDEX**: GRI 표준 지표 데이터베이스
+- **Climate Scenarios**: SSP1-2.6, SSP5-8.5 기후 시나리오 분석
 - **My Gallery**: 개인 포토 갤러리
 
 #### 🔐 인증 시스템
@@ -64,10 +61,11 @@
   - 전략 (Strategy): 기후변화 위험 및 기회 분석
   - 위험관리 (Risk Management): 기후 위험 식별 및 평가
   - 지표 및 목표 (Metrics & Targets): 성과 측정 및 목표 설정
-- **기후 시나리오 분석**: SSP2.6, SSP8.5 시나리오별 예측
+- **기후 시나리오 분석**: SSP1-2.6, SSP5-8.5 시나리오별 예측
 - **데이터 표준화**: 국제 표준 준수
 - **MSV 아키텍처**: Controller-Service-Repository 패턴
 - **재무정보 처리**: 기업 재무 데이터 분석 및 가공
+- **행정구역별 기후 데이터**: 지역별 맞춤형 기후 분석
 
 ##### 📊 TCFD 데이터 스키마
 - **TCFD 표준 정보**: 공개 요구사항 및 가이드라인
@@ -75,6 +73,7 @@
 - **재무 지표**: ESG 성과 측정 지표
 - **기후 시나리오**: 다양한 온도 상승 시나리오
 - **준수성 검사**: TCFD 표준 준수 여부 확인
+- **행정구역 데이터**: 시군구별 기후 변수 분석
 
 #### 4. TCFD Report Service (포트: 8004)
 - **AI 보고서 생성**: TCFD 프레임워크 기반 자동 생성
@@ -97,26 +96,7 @@
 - **시스템 의존성**: libcairo2, libpango, libgdk-pixbuf-xlib-2.0-0
 - **Docker 최적화**: Debian 13 (trixie) 호환성
 
-#### 5. Materiality Service (포트: 8005)
-- **중요도 분석**: ESG 이슈별 우선순위 평가
-- **스테이크홀더 참여**: 이해관계자 의견 수렴
-- **데이터 시각화**: 중요도 매트릭스 및 차트
-- **다중 표준 지원**: KCGS, SASB, 서스틴베스트 통합
-- **업종별 맞춤**: 산업별 특성에 맞는 중요도 평가
-
-##### 📋 중요도 분석 데이터
-- **카테고리별 분류**: 환경(E), 사회(S), 거버넌스(G)
-- **KCGS 지표**: 한국기업지배구조원 중요도 지표
-- **SASB 표준**: Sustainability Accounting Standards Board
-- **서스틴베스트**: 지속가능성 평가 전문 기관
-
-#### 6. GRI Service
-- **GRI 표준**: 글로벌 지속가능성 보고 표준
-- **지표 데이터베이스**: GRI 지표별 가이드라인
-- **보고서 템플릿**: GRI 표준 준수 템플릿 제공
-- **준수성 검증**: GRI 표준 준수 여부 확인
-
-#### 7. Auth Service (포트: 8008)
+#### 5. Auth Service (포트: 8008)
 - **JWT 인증**: 안전한 사용자 인증 시스템
 - **권한 관리**: 역할 기반 접근 제어 (RBAC)
 - **회사별 데이터 격리**: 보안 강화
@@ -130,12 +110,6 @@
 - **토큰 갱신**: 만료 시 자동 갱신
 - **비밀번호 관리**: 안전한 비밀번호 저장 및 검증
 
-#### 8. Chatbot Service
-- **AI 챗봇**: ESG 관련 질의응답
-- **자연어 처리**: 한국어/영어 다국어 지원
-- **지식 베이스**: ESG 표준 및 가이드라인 연동
-- **대화 히스토리**: 사용자별 대화 기록 관리
-
 ## 🎯 주요 기능
 
 ### 1. AI 기반 ESG 분석
@@ -146,28 +120,25 @@
 
 ### 2. 표준 준수 보고서 생성
 - **TCFD 보고서**: 기후 관련 재무정보 공시
-- **GRI 보고서**: 지속가능성 성과 보고
-- **통합 ESG 보고서**: 다중 표준 통합 분석
 - **AI 윤문**: 초안을 바탕으로 한 전문적 텍스트 생성
+- **섹션별 편집**: 거버넌스, 전략, 위험관리, 지표별 개별 편집
 
 ### 3. 문서 다운로드 시스템
 - **Word 문서 (.docx)**: 편집 가능한 전문 보고서
 - **PDF 문서**: 인쇄 및 공유 최적화
-- **Excel 데이터**: 원본 데이터 및 분석 결과
 - **HTML Fallback**: PDF 생성 실패 시 대체 형식
 
 ### 4. 대시보드 및 시각화
 - **실시간 모니터링**: ESG 지표 실시간 추적
 - **인터랙티브 차트**: 데이터 탐색 및 분석
 - **비교 분석**: 업계 평균 대비 성과 비교
-- **기후 시나리오**: SSP2.6, SSP8.5 시나리오별 시각화
+- **기후 시나리오**: SSP1-2.6, SSP5-8.5 시나리오별 시각화
 
 ### 5. 기후 데이터 분석
-- **ONI 시계열**: Oceanic Niño Index 분석
-- **AMO 상관관계**: Atlantic Multidecadal Oscillation
-- **DPR Z-프로파일**: Dual-frequency Precipitation Radar
-- **온도 이상**: 수직 단면도 및 글로벌 맵
-- **강수량 분석**: 강수 강도, 호우일수, 무강수 지속기간
+- **행정구역별 기후 데이터**: 시군구별 맞춤형 기후 분석
+- **기후 변수**: HW33(폭염), RN(강수량), TA(온도), TR25(극한온도), RAIN80(강우)
+- **시나리오별 예측**: SSP1-2.6(저탄소), SSP5-8.5(고탄소) 시나리오
+- **시계열 분석**: 연도별 기후 변화 추세 분석
 
 ## 📱 사용자 인터페이스
 
@@ -185,7 +156,7 @@
 - **섹션별 편집**: 거버넌스, 전략, 위험관리, 지표별 개별 편집
 
 ### 다운로드 센터
-- **형식 선택**: Word, PDF, Excel 중 선택
+- **형식 선택**: Word, PDF 중 선택
 - **일괄 다운로드**: 여러 보고서 동시 다운로드
 - **버전 관리**: 보고서 버전별 이력 관리
 - **파일명 자동화**: 회사명_보고서_날짜시간 형식
@@ -284,9 +255,7 @@ GATEWAY_PORT=8000
 LLM_SERVICE_PORT=8002
 TCFD_SERVICE_PORT=8003
 TCFD_REPORT_SERVICE_PORT=8004
-MATERIALITY_SERVICE_PORT=8005
 AUTH_SERVICE_PORT=8008
-CHATBOT_SERVICE_PORT=8007
 
 # Railway 환경
 RAILWAY_ENVIRONMENT=true
@@ -318,18 +287,14 @@ RAILWAY_AUTH_SERVICE_URL=https://auth-service-production.up.railway.app
 - `GET /api/v1/tcfd/standards/{category}`: 카테고리별 TCFD 표준
 - `POST /api/v1/tcfd/analysis`: TCFD 분석 수행
 - `GET /api/v1/tcfd/climate-scenarios`: 기후 시나리오 데이터
+- `GET /api/v1/tcfd/administrative-regions`: 행정구역 목록 조회
+- `GET /api/v1/tcfd/climate-scenarios/chart-image`: 기후 차트 이미지 생성
 
 ### Auth Service
 - `POST /api/v1/auth/login`: 사용자 로그인
 - `POST /api/v1/auth/signup`: 사용자 등록
 - `GET /api/v1/auth/verify`: 토큰 검증
 - `POST /api/v1/auth/refresh`: 토큰 갱신
-
-### Materiality Service
-- `GET /api/v1/materiality/data/categories`: 중요도 카테고리 데이터
-- `GET /api/v1/materiality/data/kcgs`: KCGS 중요도 지표
-- `GET /api/v1/materiality/data/sasb`: SASB 표준 데이터
-- `GET /api/v1/materiality/data/sustainbest-{e|s|g}`: 서스틴베스트 지표
 
 ## 🔒 보안 및 인증
 
@@ -387,14 +352,15 @@ RAILWAY_AUTH_SERVICE_URL=https://auth-service-production.up.railway.app
 - ✅ RAG 검색 시스템
 - ✅ 사용자 인증 시스템
 - ✅ 기후 데이터 시각화
+- ✅ 행정구역별 기후 데이터 분석
 
 ### Phase 2 (계획)
-- 🔄 GRI 보고서 시스템 강화
 - 🔄 고급 데이터 시각화
 - 🔄 모바일 앱 개발
 - 🔄 다국어 지원 확대
 - 🔄 실시간 알림 시스템
 - 🔄 고급 분석 대시보드
+- 🔄 기후 시나리오 시뮬레이션
 
 ### Phase 3 (미래)
 - 📋 블록체인 기반 데이터 검증
@@ -408,7 +374,7 @@ RAILWAY_AUTH_SERVICE_URL=https://auth-service-production.up.railway.app
 
 **ESG Mate** - 지속가능한 미래를 위한 AI 기반 ESG 분석 플랫폼 🚀
 
-*모든 서비스를 통합하여 제공하는 완전한 ESG 분석 솔루션*
+*AI 기술로 ESG 분석의 복잡성을 단순화하고, 모든 기업이 지속가능한 미래를 위한 의사결정을 내릴 수 있도록 지원하는 혁신적인 플랫폼*
 
 ## 📋 프로젝트 상세 분석 요약
 
@@ -420,17 +386,20 @@ RAILWAY_AUTH_SERVICE_URL=https://auth-service-production.up.railway.app
 - **멀티 모달 AI**: OpenAI와 KoAlpaca 모델의 하이브리드 활용
 - **MSA 아키텍처**: 확장 가능하고 유지보수가 용이한 서비스 구조
 - **실시간 문서 생성**: AI 기반 보고서 자동 생성 및 다운로드
+- **행정구역별 기후 분석**: 지역별 맞춤형 기후 데이터 처리
 
 ### 📊 **데이터 처리 능력**
 - **기업 재무 데이터**: DART, 유가증권시장 데이터 통합
-- **기후 시나리오**: IPCC SSP2.6, SSP8.5 시나리오 분석
-- **ESG 표준**: TCFD, GRI, KCGS, SASB 등 다중 표준 지원
+- **기후 시나리오**: IPCC SSP1-2.6, SSP5-8.5 시나리오 분석
+- **ESG 표준**: TCFD 등 국제 표준 지원
 - **벡터 검색**: 의미론적 유사도를 통한 관련 문서 검색
+- **지역별 기후 데이터**: 시군구별 기후 변수 분석
 
 ### 🚀 **사용자 경험**
 - **직관적 UI**: 포트폴리오 스타일의 대시보드
 - **원클릭 보고서**: AI 기반 자동 보고서 생성
 - **다양한 형식**: Word, PDF, HTML 등 다중 형식 지원
 - **실시간 피드백**: 생성 과정의 실시간 모니터링
+- **지역별 맞춤**: 행정구역별 기후 데이터 시각화
 
 이 프로젝트는 **ESG 분석의 복잡성을 AI로 단순화**하고, **모든 기업이 지속가능한 미래를 위한 의사결정을 내릴 수 있도록** 지원하는 혁신적인 플랫폼입니다.

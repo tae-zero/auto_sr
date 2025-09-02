@@ -3034,7 +3034,7 @@ export default function TcfdSrPage() {
                             최신 데이터 로딩 중...
                     </div>
                         ) : (
-                          '🔄 TCFD 데이터 새로고침 (최신 데이터 자동 선택)'
+                          '🔄 TCFD 데이터 새로고침'
                         )}
                       </button>
                     </div>
