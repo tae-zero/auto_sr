@@ -4121,7 +4121,7 @@ export default function TcfdSrPage() {
                      </div>
                      <div>
                        <h3 className="font-semibold text-gray-800 mb-1">기후시나리오 탭</h3>
-                       <p className="text-gray-600 text-sm">SSP 1-2.6과 SSP 5-8.5 시나리오의 기후 변화 예측을 확인하세요<br/>※ 해당 기업의 사업장 및 한반도의 기후시나리오에 따른 기후변화 예측 가능</p><br/>※ 자사의 확장, 공급망 리시크 대응에 활용할 수 있는 맞춤형 그래프 생성일시
+                       <p className="text-gray-600 text-sm">SSP 1-2.6과 SSP 5-8.5 시나리오의 기후 변화 예측을 확인하세요<br/>※ 해당 기업의 사업장 및 한반도의 기후시나리오에 따른 기후변화 예측 가능<br/>※ 자사의 확장, 공급망 리시크 대응에 활용할 수 있는 맞춤형 그래프 생성일시</p>
                      </div>
                    </div>
                    
