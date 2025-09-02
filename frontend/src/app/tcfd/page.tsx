@@ -2142,7 +2142,7 @@ export default function TcfdSrPage() {
                             <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
                             <p className="text-xs text-black">
                               &ldquo;기후 관련 위험은 기존 ERM(Enterprise Risk Management) 프레임워크에 통합하여 전사적
-                              리스크크 관리 체계의 일부로 운영하고 있습니다.&rdquo;
+                              리스크 관리 체계의 일부로 운영하고 있습니다.&rdquo;
                             </p>
                           </div>
                           {/* AI 문장 생성 버튼 */}
