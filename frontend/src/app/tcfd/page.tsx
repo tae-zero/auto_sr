@@ -3779,26 +3779,54 @@ export default function TcfdSrPage() {
                 <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
                   <h3 className="text-xl font-semibold text-blue-800 mb-3">📊 기후시나리오란?</h3>
                   <p className="text-gray-700 mb-3">
-                    기후시나리오는 미래의 기후 변화를 예측하기 위해 다양한 사회경제적 발전 경로와 온실가스 배출 시나리오를 조합한 것으로 이를 통해 기업과 투자자들이 기후 관련 위험과 기회를 파악하고, 장기적인 의사결정을 내릴 수 있도록 도움을 줍니다.<br/>
+                    기후시나리오는 미래의 기후 변화를 예측하기 위해 다양한 사회경제적 발전 경로와 온실가스 배출 시나리오를 조합한 것입니다. 
+                    이를 통해 기업과 투자자들이 기후 관련 위험과 기회를 파악하고, 장기적인 의사결정을 내릴 수 있도록 도움을 줍니다.
                     SSP(Shared Socioeconomic Pathways)는 기후변화에 대한 사회경제적 발전 경로를 가정한 시나리오 체계로, 인구·경제·에너지 구조 등을 바탕으로 미래 기후 영향을 예측합니다.<br/>
-                    SSP1-2.6은 지속가능한 발전과 글로벌 협력을 전제로 하며, 낮은 탄소배출과 기온 상승 억제를 목표로 합니다.<br/>
-                    반면, SSP5-8.5는 화석연료 중심의 고성장 경로로, 높은 경제성장과 함께 온실가스가 급증해 심각한 기후위기를 초래합니다.<br/>
-                    숫자 2.6과 8.5는 각각 2100년의 방사강제력(W/m²) 수준을 의미하며, 기후변화의 심각도를 나타냅니다.
-                  </p>
-                  <p className="text-gray-700">
 
-                  <br />
-                  🌱SSP1-2.6 (낙관적 저탄소 전환 시나리오)
-                  <br />
-                  글로벌 차원에서 탄소중립이 조기에 달성되고, 친환경 기술과 ESG 규제가 강화됩니다. 기업은 지속가능 기술 투자, 저탄소 공급망 구축, 탄소배출 관리 역량 확보가 경쟁우위의 핵심입니다.
-                  <br />
-                  🔥SSP5-8.5 (비관적 고탄소 시나리오)
-                  <br />
-                  화석연료 중심 성장으로 인해 4℃ 이상 온도 상승이 예상되며, 극한기상·규제 리스크가 폭발적으로 증가합니다. 이 경우 기업은 물리적 리스크 관리(홍수·폭염·공급망 차질)와 기후규제 충격에 대응하는 비용 부담이 가중됩니다.
-                  <br />
-                  <br />  
-                  ➡️ 따라서 기업은 두 시나리오를 동시에 고려해 **Transition Risk(전환 리스크)와 Physical Risk(물리적 리스크)**를 균형 있게 평가하고, 중장기 전략 시뮬레이션을 통해 대응 방안을 마련해야 합니다.
                   </p>
+                  
+                  <div className="space-y-4">
+                    <p className="text-gray-700">
+                      <strong>SSP(Shared Socioeconomic Pathways)</strong>는 기후변화에 대한 사회경제적 발전 경로를 가정한 시나리오 체계입니다. 
+                      인구·경제·에너지 구조 등을 바탕으로 미래 기후 영향을 예측합니다.
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h4 className="font-semibold text-green-800 mb-2 flex items-center">
+                          🌱 SSP1-2.6 (낙관적 저탄소 전환 시나리오)
+                        </h4>
+                        <p className="text-green-700 text-sm leading-relaxed">
+                          글로벌 차원에서 탄소중립이 조기에 달성되고, 친환경 기술과 ESG 규제가 강화됩니다. 
+                          기업은 지속가능 기술 투자, 저탄소 공급망 구축, 탄소배출 관리 역량 확보가 경쟁우위의 핵심입니다.
+                        </p>
+                      </div>
+                      
+                      <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <h4 className="font-semibold text-red-800 mb-2 flex items-center">
+                          🔥 SSP5-8.5 (비관적 고탄소 시나리오)
+                        </h4>
+                        <p className="text-red-700 text-sm leading-relaxed">
+                          화석연료 중심 성장으로 인해 4℃ 이상 온도 상승이 예상되며, 극한기상·규제 리스크가 폭발적으로 증가합니다. 
+                          이 경우 기업은 물리적 리스크 관리(홍수·폭염·공급망 차질)와 기후규제 충격에 대응하는 비용 부담이 가중됩니다.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <p className="text-blue-800 text-sm leading-relaxed">
+                        <strong>➡️ 핵심 포인트:</strong> 따라서 기업은 두 시나리오를 동시에 고려해 
+                        <strong>Transition Risk(전환 리스크)</strong>와 <strong>Physical Risk(물리적 리스크)</strong>를 
+                        균형 있게 평가하고, 중장기 전략 시뮬레이션을 통해 대응 방안을 마련해야 합니다.
+                      </p>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                      <p className="text-gray-600 text-xs">
+                        <strong>참고:</strong> 숫자 2.6과 8.5는 각각 2100년의 방사강제력(W/m²) 수준을 의미하며, 기후변화의 심각도를 나타냅니다.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
