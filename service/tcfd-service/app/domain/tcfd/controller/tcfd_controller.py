@@ -298,6 +298,7 @@ async def generate_climate_chart_image(
     start_year: int = Query(2021, description="시작 연도"),
     end_year: int = Query(2030, description="종료 연도"),
     additional_years: Optional[List[int]] = Query(None, description="추가 연도 목록"),
+    region: Optional[str] = Query(None, description="행정구역 코드 (예: 1100000000)"), # 행정구역 파라미터 추가
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
@@ -313,6 +314,7 @@ async def generate_climate_chart_image(
             start_year=start_year,
             end_year=end_year,
             additional_years=additional_years,
+            region=region,  # 행정구역 파라미터 추가
             current_user=current_user
         )
         return result

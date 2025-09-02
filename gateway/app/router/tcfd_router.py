@@ -806,6 +806,7 @@ async def generate_climate_chart_image(
     start_year: int = Query(2021, description="시작 연도"),
     end_year: int = Query(2030, description="종료 연도"),
     additional_years: Optional[List[int]] = Query(None, description="추가 연도 목록"),
+    region: Optional[str] = Query(None, description="행정구역명 (강남구, 해남군 등)"),
     authorization: str = Header(None)
 ):
     """
@@ -845,7 +846,8 @@ async def generate_climate_chart_image(
             "scenario_code": scenario_code,
             "variable_code": variable_code,
             "start_year": start_year,
-            "end_year": end_year
+            "end_year": end_year,
+            "region": region  # 행정구역 파라미터 추가
         }
         
         # 추가 연도가 있으면 파라미터에 추가

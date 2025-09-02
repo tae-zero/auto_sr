@@ -313,13 +313,15 @@ class TCFDService:
             
             logger.info(f"🔍 데이터 조회 범위: {min_year}년 ~ {max_year}년")
             logger.info(f"🔍 추가 연도: {additional_years}")
+            logger.info(f"🔍 선택된 행정구역: {region}")
             
             # 데이터베이스에서 기후 데이터 조회 (추가 연도를 포함한 전체 범위)
             climate_data = await self.repository.get_climate_scenarios(
                 scenario_code=scenario_code,
                 variable_code=variable_code,
                 start_year=min_year,
-                end_year=max_year
+                end_year=max_year,
+                region=region  # 행정구역 필터링 추가
             )
             
             if not climate_data:

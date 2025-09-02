@@ -515,6 +515,12 @@ class TCFDRepository:
                 query += f" AND ${param_count}"
                 params.append(end_year)
             
+            # 행정구역 필터
+            if region:
+                param_count += 1
+                query += f" AND ar.sub_region_name = ${param_count}"
+                params.append(region)
+            
             # 정렬
             query += " ORDER BY cd.year ASC"
             
