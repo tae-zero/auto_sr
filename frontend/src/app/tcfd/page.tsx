@@ -830,7 +830,7 @@ export default function TcfdSrPage() {
           disclosures: [],
         },
         위험관리: {
-          title: '위험관리',
+          title: '리스크 관리',
           description: '기후 관련 위험 식별, 평가 및 관리',
           color: 'text-yellow-700',
           bgColor: 'bg-yellow-50',
@@ -2129,12 +2129,12 @@ export default function TcfdSrPage() {
                         </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            R2: 위험 관리 프로세스 통합
+                            R2: 리스크 관리 프로세스 통합
                           </label>
                           <textarea
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                             rows={3}
-                            placeholder="조직의 전반적인 위험 관리 프로세스에 기후 관련 위험을 통합하는 방법을 설명하세요..."
+                            placeholder="조직의 전반적인 리스크크 관리 프로세스에 기후 관련 위험을 통합하는 방법을 설명하세요..."
                             value={tcfdInputData.risk_management_r2}
                             onChange={(e) => handleTcfdInputChange('risk_management_r2', e.target.value)}
                           />
@@ -2142,7 +2142,7 @@ export default function TcfdSrPage() {
                             <p className="text-xs text-yellow-700 font-medium mb-1">💡 예시:</p>
                             <p className="text-xs text-black">
                               &ldquo;기후 관련 위험은 기존 ERM(Enterprise Risk Management) 프레임워크에 통합하여 전사적
-                              위험 관리 체계의 일부로 운영하고 있습니다.&rdquo;
+                              리스크크 관리 체계의 일부로 운영하고 있습니다.&rdquo;
                             </p>
                           </div>
                           {/* AI 문장 생성 버튼 */}
@@ -2163,12 +2163,12 @@ export default function TcfdSrPage() {
                         </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            R3: 기후 관련 위험을 전사적 위험 관리 프로세스에 통합
+                            R3: 기후 관련 위험을 전사적 리스크 관리 프로세스에 통합
                           </label>
                           <textarea
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                             rows={3}
-                            placeholder="기후 관련 위험을 조직의 전사적 위험 관리 프로세스에 어떻게 통합하고 있는지 설명하세요..."
+                            placeholder="기후 관련 위험을 조직의 전사적 리스크 관리 프로세스에 어떻게 통합하고 있는지 설명하세요..."
                             value={tcfdInputData.risk_management_r3}
                             onChange={(e) => handleTcfdInputChange('risk_management_r3', e.target.value)}
                           />
@@ -3121,11 +3121,11 @@ export default function TcfdSrPage() {
                           </div>
                         </div>
 
-                        {/* 위험관리 */}
+                        {/* 리스크 관리 */}
                         <div>
                           <h4 className="font-semibold text-orange-700 mb-3 flex items-center">
                             <span className="w-3 h-3 bg-orange-500 rounded-full mr-2"></span>
-                            위험관리 (Risk Management)
+                            리스크 관리 (Risk Management)
                           </h4>
                           <div className="space-y-3">
                             <div>
@@ -3135,13 +3135,13 @@ export default function TcfdSrPage() {
                               </div>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">R2: 기후 관련 위험 관리</label>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">R2: 기후 관련 리스크 관리</label>
                               <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-800 min-h-[60px]">
                                 {tcfdDatabaseData.risk_management_r2 || '입력된 데이터가 없습니다'}
                               </div>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">R3: 위험관리 프로세스에의 통합</label>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">R3: 리스크 관리 프로세스에의 통합</label>
                               <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-800 min-h-[60px]">
                                 {tcfdDatabaseData.risk_management_r3 || '입력된 데이터가 없습니다'}
                               </div>
@@ -4093,7 +4093,7 @@ export default function TcfdSrPage() {
                      </div>
                      <div>
                        <h3 className="font-semibold text-gray-800 mb-1">기후시나리오 탭</h3>
-                       <p className="text-gray-600 text-sm">SSP 1-2.6과 SSP 5-8.5 시나리오의 기후 변화 예측을 확인하세요<br/>※ 해당 기업의 사업장 및 한반도의 기후시나리오에 따른 기후변화 예측 가능</p>
+                       <p className="text-gray-600 text-sm">SSP 1-2.6과 SSP 5-8.5 시나리오의 기후 변화 예측을 확인하세요<br/>※ 해당 기업의 사업장 및 한반도의 기후시나리오에 따른 기후변화 예측 가능</p><br/>※ 자사의 확장, 공급망 리시크 대응에 활용할 수 있는 맞춤형 그래프 생성일시
                      </div>
                    </div>
                    
@@ -4103,7 +4103,7 @@ export default function TcfdSrPage() {
                      </div>
                      <div>
                        <h3 className="font-semibold text-gray-800 mb-1">AI보고서 초안 탭</h3>
-                       <p className="text-gray-600 text-sm">입력된 정보를 바탕으로 AI가 자동으로 보고서를 생성합니다<br/>필요한 윤문들은 Word,Pdf로 받으세요</p>
+                       <p className="text-gray-600 text-sm">입력된 정보를 바탕으로 AI가 자동으로 보고서를 생성합니다<br/>필요한 윤문들은 txt,Word로 받으세요</p>
                      </div>
                    </div>
                  </div>
