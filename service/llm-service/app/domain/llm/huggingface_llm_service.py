@@ -70,18 +70,20 @@ class HuggingFaceLLMService(BaseLLMService):
                 "Content-Type": "application/json"
             }
             
-            # 기본 페이로드 (품질 향상을 위한 조정)
+            # 모델 특성에 최적화된 파라미터 (사용자 학습 모델 기준)
             payload = {
                 "inputs": formatted_prompt,
                 "parameters": {
-                    "max_new_tokens": 512,      # RAG에 적합한 충분한 응답 길이
-                    "temperature": 0.7,         # 적절한 창의성과 일관성 균형
+                    "max_new_tokens": 256,      # 모델 최대 길이(2048) 고려하여 조정
+                    "temperature": 0.7,         # 창의성과 일관성 균형
                     "do_sample": True,
                     "return_full_text": False,
-                    "top_p": 0.9,              # 더 다양한 응답 생성
-                    "repetition_penalty": 1.1,  # 반복 방지 (너무 강하지 않게)
-                    "no_repeat_ngram_size": 3,  # n-gram 반복 방지
-                    "early_stopping": True      # 적절한 시점에 생성 중단
+                    "top_p": 0.9,              # 토큰 선택 범위
+                    "repetition_penalty": 1.1,  # 반복 방지
+                    "no_repeat_ngram_size": 3,  # 3-gram 반복 방지
+                    "early_stopping": True,     # 조기 종료
+                    "pad_token_id": 2,          # <|endoftext|> 토큰 ID
+                    "eos_token_id": 2           # <|endoftext|> 토큰 ID
                 }
             }
             
@@ -162,6 +164,16 @@ class HuggingFaceLLMService(BaseLLMService):
                 logger.error(f"요청 헤더: {headers}")
                 logger.error(f"요청 페이로드: {payload}")
                 
+                # 특수 오류 처리 (paused endpoint 등)
+                if response.status_code == 400:
+                    try:
+                        error_data = response.json()
+                        if "error" in error_data and "paused" in error_data["error"].lower():
+                            logger.error("Inference Endpoint가 일시정지 상태입니다.")
+                            return "[Inference Endpoint 일시정지] 모델이 일시정지 상태입니다. Hugging Face 웹사이트에서 엔드포인트를 재시작해주세요."
+                    except:
+                        pass
+                
                 # 500 오류 시 더 자세한 정보 로깅
                 if response.status_code == 500:
                     logger.error("=== 500 오류 상세 분석 ===")
@@ -202,14 +214,16 @@ class HuggingFaceLLMService(BaseLLMService):
             payload = {
                 "inputs": prompt,
                 "parameters": {
-                    "max_new_tokens": 150,
-                    "temperature": 0.2,
+                    "max_new_tokens": 200,      # fallback용으로 적당한 길이
+                    "temperature": 0.7,         # 일관성 있는 파라미터
                     "do_sample": True,
                     "return_full_text": False,
-                    "top_p": 0.7,
-                    "repetition_penalty": 1.3,
-                    "pad_token_id": 2,
-                    "eos_token_id": 2
+                    "top_p": 0.9,              # 일관성 있는 파라미터
+                    "repetition_penalty": 1.1,  # 일관성 있는 파라미터
+                    "no_repeat_ngram_size": 3,  # 반복 방지
+                    "early_stopping": True,     # 조기 종료
+                    "pad_token_id": 2,          # <|endoftext|> 토큰 ID
+                    "eos_token_id": 2           # <|endoftext|> 토큰 ID
                 }
             }
             
@@ -288,15 +302,21 @@ class HuggingFaceLLMService(BaseLLMService):
         return self._call_hf_inference_endpoint(prompt)
     
     def _format_prompt_for_model(self, prompt: str) -> str:
-        """모델용 프롬프트를 포맷팅합니다."""
-        # 특수 토큰 제거하고 단순한 프롬프트 사용
-        system_prompt = "다음 질문에 대해 한국어로 명확하고 구체적으로 답변해주세요."
+        """모델용 프롬프트를 포맷팅합니다. (사용자 학습 모델 최적화)"""
+        # 특수 토큰 충돌 방지를 위해 <|sep|> 토큰은 사용하지 않음
+        # 하지만 효과적인 프롬프트 구조는 유지
         
-        # 입력 데이터 길이 제한 (RAG를 위해 충분한 길이 확보)
-        if len(prompt) > 1000:  # RAG 컨텍스트를 위해 충분한 길이
-            prompt = prompt[:1000] + "..."
+        # 입력 데이터 길이 제한 (모델 최대 길이 2048 토큰 고려)
+        if len(prompt) > 600:  # 토큰 길이 제한을 고려하여 조정
+            prompt = prompt[:600] + "..."
         
-        return f"{system_prompt}\n\n질문: {prompt}\n\n답변:"
+        # 학습된 모델에 최적화된 프롬프트 구조
+        system_instruction = "다음 질문에 대해 한국어로 명확하고 구체적으로 답변해주세요."
+        
+        # 효과적인 프롬프트 구조 (특수 토큰 없이)
+        formatted_prompt = f"{system_instruction}\n\n질문: {prompt}\n\n답변:"
+        
+        return formatted_prompt
     
     def _generate_text(self, prompt: str) -> str:
         """텍스트 생성 방식에 따라 적절한 메서드를 호출합니다."""
@@ -310,8 +330,57 @@ class HuggingFaceLLMService(BaseLLMService):
             # 기존 API 호출 방식
             return self._call_hf_api(prompt)
     
+    def _create_draft_prompt(self, question: str, context: str, section: str, style_guide: str = "") -> str:
+        """초안 생성 프롬프트를 생성합니다. (사용자 학습 모델 최적화)"""
+        # 입력 길이 제한 (토큰 제한 고려)
+        if len(context) > 800:
+            context = context[:800] + "..."
+        if len(question) > 200:
+            question = question[:200] + "..."
+        
+        # 학습된 모델에 최적화된 프롬프트 구조
+        prompt = f"""다음 근거를 바탕으로 ESG 보고서의 {section} 섹션 초안을 작성해주세요.
+
+요구사항:
+- 근거 문장 인용 시 [1], [2] 번호로 표시
+- 두괄식 요약 → 핵심 bullet 3~5개 → 상세 설명 순서
+- ESG/회계 전문 용어와 수치를 정확히 유지
+- 외부 사실 추정이나 창작 금지
+- 공식적이고 객관적인 문체 사용
+
+질문: {question}
+
+근거: {context}
+
+{style_guide if style_guide else ""}
+
+초안:"""
+        return prompt
+    
+    def _create_polish_prompt(self, text: str, tone: str = "공식적", style_guide: str = "") -> str:
+        """윤문 프롬프트를 생성합니다. (사용자 학습 모델 최적화)"""
+        # 입력 길이 제한
+        if len(text) > 1000:
+            text = text[:1000] + "..."
+        
+        # 학습된 모델에 최적화된 프롬프트 구조
+        prompt = f"""아래 텍스트를 {tone}한 어조로 윤문해주세요.
+
+요구사항:
+- ESG/회계 전문용어 일관성 유지
+- 중복이나 군더더기 제거
+- 문장 간 논리적 연결 강화
+- 숫자, 단위, 연도 표기 통일
+
+{style_guide if style_guide else "ESG/회계 전문용어 유지, 불필요한 수식어 제거, 한국어 문체 통일"}
+
+원문: {text}
+
+윤문된 텍스트:"""
+        return prompt
+
     def generate_draft_section(self, question: str, context: str, section: str, style_guide: str = "") -> str:
-        """섹션별 초안을 생성합니다. (기존 메서드 보존)"""
+        """섹션별 초안을 생성합니다."""
         try:
             prompt = self._create_draft_prompt(question, context, section, style_guide)
             
@@ -324,7 +393,7 @@ class HuggingFaceLLMService(BaseLLMService):
             return f"[오류] {section} 섹션 초안 생성에 실패했습니다: {str(e)}"
     
     def polish_text(self, text: str, tone: str = "공식적", style_guide: str = "") -> str:
-        """텍스트를 윤문합니다. (기존 메서드 보존)"""
+        """텍스트를 윤문합니다."""
         try:
             prompt = self._create_polish_prompt(text, tone, style_guide)
             
