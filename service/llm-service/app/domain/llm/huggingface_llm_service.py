@@ -302,21 +302,28 @@ class HuggingFaceLLMService(BaseLLMService):
         return self._call_hf_inference_endpoint(prompt)
     
     def _format_prompt_for_model(self, prompt: str) -> str:
-        """모델용 프롬프트를 포맷팅합니다. (사용자 학습 모델 최적화)"""
+        """모델용 프롬프트를 포맷팅합니다. (TCFD 보고서 초안 작성 최적화)"""
         # 특수 토큰 충돌 방지를 위해 <|sep|> 토큰은 사용하지 않음
-        # 하지만 효과적인 프롬프트 구조는 유지
         
         # 입력 데이터 길이 제한 (모델 최대 길이 2048 토큰 고려)
         if len(prompt) > 600:  # 토큰 길이 제한을 고려하여 조정
             prompt = prompt[:600] + "..."
         
-        # 학습된 모델에 최적화된 프롬프트 구조
-        system_instruction = "다음 질문에 대해 한국어로 명확하고 구체적으로 답변해주세요."
+        # TCFD 보고서 초안 작성에 특화된 프롬프트 구조
+        system_instruction = """다음 질문에 대해 TCFD 보고서 초안을 작성해주세요.
+
+작성 규칙:
+- TCFD 프레임워크(거버넌스, 전략, 위험관리, 지표 및 목표)에 맞게 작성
+- 기후 관련 재무정보 공시 가이드라인 준수
+- 전문적이고 객관적인 문체 사용
+- 특수문자(#, =, -, *, ~)를 5번 이상 연속으로 사용하지 말 것
+- 구체적이고 실용적인 내용으로 작성
+
+질문: {prompt}
+
+TCFD 보고서 초안:"""
         
-        # 효과적인 프롬프트 구조 (특수 토큰 없이)
-        formatted_prompt = f"{system_instruction}\n\n질문: {prompt}\n\n답변:"
-        
-        return formatted_prompt
+        return system_instruction.format(prompt=prompt)
     
     def _generate_text(self, prompt: str) -> str:
         """텍스트 생성 방식에 따라 적절한 메서드를 호출합니다."""
@@ -331,22 +338,21 @@ class HuggingFaceLLMService(BaseLLMService):
             return self._call_hf_api(prompt)
     
     def _create_draft_prompt(self, question: str, context: str, section: str, style_guide: str = "") -> str:
-        """초안 생성 프롬프트를 생성합니다. (사용자 학습 모델 최적화)"""
+        """초안 생성 프롬프트를 생성합니다. (TCFD 보고서 초안 작성 최적화)"""
         # 입력 길이 제한 (토큰 제한 고려)
         if len(context) > 800:
             context = context[:800] + "..."
         if len(question) > 200:
             question = question[:200] + "..."
         
-        # 학습된 모델에 최적화된 프롬프트 구조
-        prompt = f"""다음 근거를 바탕으로 ESG 보고서의 {section} 섹션 초안을 작성해주세요.
+        # TCFD 보고서 초안 작성에 특화된 프롬프트 구조
+        prompt = f"""다음 근거를 바탕으로 TCFD 보고서의 {section} 섹션 초안을 작성해주세요.
 
-요구사항:
-- 근거 문장 인용 시 [1], [2] 번호로 표시
-- 두괄식 요약 → 핵심 bullet 3~5개 → 상세 설명 순서
-- ESG/회계 전문 용어와 수치를 정확히 유지
+TCFD 보고서 작성 요구사항:
+- TCFD 프레임워크(거버넌스, 전략, 위험관리, 지표 및 목표)에 맞게 작성
 - 외부 사실 추정이나 창작 금지
 - 공식적이고 객관적인 문체 사용
+- 특수문자(#, =, -, *, ~)를 5번 이상 연속으로 사용하지 말 것
 
 질문: {question}
 
@@ -354,29 +360,32 @@ class HuggingFaceLLMService(BaseLLMService):
 
 {style_guide if style_guide else ""}
 
-초안:"""
+TCFD 보고서 초안:"""
         return prompt
     
     def _create_polish_prompt(self, text: str, tone: str = "공식적", style_guide: str = "") -> str:
-        """윤문 프롬프트를 생성합니다. (사용자 학습 모델 최적화)"""
+        """윤문 프롬프트를 생성합니다. (TCFD 보고서 윤문 최적화)"""
         # 입력 길이 제한
         if len(text) > 1000:
             text = text[:1000] + "..."
         
-        # 학습된 모델에 최적화된 프롬프트 구조
-        prompt = f"""아래 텍스트를 {tone}한 어조로 윤문해주세요.
+        # TCFD 보고서 윤문에 특화된 프롬프트 구조
+        prompt = f"""아래 TCFD 보고서 텍스트를 {tone}한 어조로 윤문해주세요.
 
-요구사항:
+TCFD 보고서 윤문 요구사항:
+- TCFD 프레임워크에 맞는 전문적 표현 유지
+- 기후 관련 재무정보 공시 가이드라인 준수
 - ESG/회계 전문용어 일관성 유지
 - 중복이나 군더더기 제거
 - 문장 간 논리적 연결 강화
 - 숫자, 단위, 연도 표기 통일
+- 특수문자(#, =, -, *, ~)를 5번 이상 연속으로 사용하지 말 것
 
-{style_guide if style_guide else "ESG/회계 전문용어 유지, 불필요한 수식어 제거, 한국어 문체 통일"}
+{style_guide if style_guide else "TCFD 보고서 표준에 맞는 전문용어 유지, 불필요한 수식어 제거, 한국어 문체 통일"}
 
 원문: {text}
 
-윤문된 텍스트:"""
+윤문된 TCFD 보고서:"""
         return prompt
 
     def generate_draft_section(self, question: str, context: str, section: str, style_guide: str = "") -> str:
