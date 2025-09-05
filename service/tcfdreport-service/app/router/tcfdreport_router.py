@@ -7,8 +7,9 @@ import os
 from datetime import datetime
 import tempfile
 from docx import Document
-from docx.shared import Inches
+from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml.shared import qn
 import io
 import zipfile
 import urllib.parse
@@ -34,6 +35,25 @@ def cleanup_temp_files(*file_paths: str):
                 logger.info(f"✅ 임시 파일 정리 완료: {file_path}")
         except Exception as e:
             logger.warning(f"⚠️ 임시 파일 정리 실패: {file_path} - {e}")
+
+def set_korean_font(paragraph, font_name='맑은 고딕', font_size=11):
+    """문단의 모든 run에 한글 폰트를 설정하는 함수"""
+    from docx.shared import Pt
+    try:
+        for run in paragraph.runs:
+            run.font.name = font_name
+            run.font.size = Pt(font_size)
+            # 한글 폰트가 없을 경우를 대비한 fallback 설정
+            run._element.rPr.rFonts.set(qn('w:eastAsia'), font_name)
+    except Exception as e:
+        logger.warning(f"폰트 설정 실패: {e}")
+        # 기본 폰트로 fallback
+        try:
+            for run in paragraph.runs:
+                run.font.name = 'Arial'
+                run.font.size = Pt(font_size)
+        except:
+            pass
 
 async def _return_html_fallback(data: Dict[str, Any], error_type: str = "unknown"):
     """HTML fallback 반환 (WeasyPrint 오류 시)"""
@@ -386,21 +406,49 @@ async def download_tcfd_report_as_word(data: Dict[str, Any]):
         # Word 문서 생성
         doc = Document()
         
+        # 한글 폰트 설정을 위한 스타일 정의
+        from docx.shared import Pt
+        from docx.oxml.shared import OxmlElement, qn
+        
+        # 기본 스타일에 한글 폰트 설정
+        style = doc.styles['Normal']
+        font = style.font
+        font.name = '맑은 고딕'
+        font.size = Pt(11)
+        
+        # 제목 스타일 설정
+        title_style = doc.styles['Heading 1']
+        title_font = title_style.font
+        title_font.name = '맑은 고딕'
+        title_font.size = Pt(16)
+        title_font.bold = True
+        
         # 제목 추가
         title = doc.add_heading(f'{company_name} TCFD 보고서', 0)
         title.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
         # 회사 정보 추가
-        doc.add_paragraph(f'생성일시: {datetime.now().strftime("%Y년 %m월 %d일 %H시 %M분")}')
+        info_para = doc.add_paragraph(f'생성일시: {datetime.now().strftime("%Y년 %m월 %d일 %H시 %M분")}')
+        set_korean_font(info_para, '맑은 고딕', 10)
         doc.add_paragraph('')
         
         # 초안 내용 추가
-        doc.add_heading('AI 생성 초안', level=1)
-        doc.add_paragraph(data.get('draft', ''))
+        draft_heading = doc.add_heading('AI 생성 초안', level=1)
+        set_korean_font(draft_heading, '맑은 고딕', 14)
+        for run in draft_heading.runs:
+            run.font.bold = True
+        
+        draft_para = doc.add_paragraph(data.get('draft', ''))
+        set_korean_font(draft_para, '맑은 고딕', 11)
         
         # 윤문된 텍스트 추가
-        doc.add_heading('윤문된 텍스트', level=1)
-        doc.add_paragraph(data.get('polished', ''))
+        polished_heading = doc.add_heading('윤문된 텍스트', level=1)
+        set_korean_font(polished_heading, '맑은 고딕', 14)
+        for run in polished_heading.runs:
+            run.font.bold = True
+        
+        polished_para = doc.add_paragraph(data.get('polished', ''))
+        set_korean_font(polished_para, '맑은 고딕', 11)
         
         # 파일명 생성 (한글 포함)
         filename = f"{safe_company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
@@ -577,17 +625,44 @@ async def _create_word_document(data: Dict[str, Any]) -> io.BytesIO:
         
         doc = Document()
         
+        # 한글 폰트 설정을 위한 스타일 정의
+        from docx.shared import Pt
+        
+        # 기본 스타일에 한글 폰트 설정
+        style = doc.styles['Normal']
+        font = style.font
+        font.name = '맑은 고딕'
+        font.size = Pt(11)
+        
+        # 제목 스타일 설정
+        title_style = doc.styles['Heading 1']
+        title_font = title_style.font
+        title_font.name = '맑은 고딕'
+        title_font.size = Pt(16)
+        title_font.bold = True
+        
         title = doc.add_heading(f'{company_name} TCFD 보고서', 0)
         title.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
-        doc.add_paragraph(f'생성일시: {datetime.now().strftime("%Y년 %m월 %d일 %H시 %M분")}')
+        info_para = doc.add_paragraph(f'생성일시: {datetime.now().strftime("%Y년 %m월 %d일 %H시 %M분")}')
+        set_korean_font(info_para, '맑은 고딕', 10)
         doc.add_paragraph('')
         
-        doc.add_heading('AI 생성 초안', level=1)
-        doc.add_paragraph(data.get('draft', ''))
+        draft_heading = doc.add_heading('AI 생성 초안', level=1)
+        set_korean_font(draft_heading, '맑은 고딕', 14)
+        for run in draft_heading.runs:
+            run.font.bold = True
         
-        doc.add_heading('윤문된 텍스트', level=1)
-        doc.add_paragraph(data.get('polished', ''))
+        draft_para = doc.add_paragraph(data.get('draft', ''))
+        set_korean_font(draft_para, '맑은 고딕', 11)
+        
+        polished_heading = doc.add_heading('윤문된 텍스트', level=1)
+        set_korean_font(polished_heading, '맑은 고딕', 14)
+        for run in polished_heading.runs:
+            run.font.bold = True
+        
+        polished_para = doc.add_paragraph(data.get('polished', ''))
+        set_korean_font(polished_para, '맑은 고딕', 11)
         
         filename = f"{safe_company_name}_보고서_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
         
