@@ -55,7 +55,31 @@
 - **관련성 점수**: 가중치 기반 문서 관련성 평가
 - **임계값 조정**: 검색 정확도 조절 가능
 
-#### 3. TCFD Service (포트: 8003)
+#### 3. RAG Service (포트: 8005)
+- **FAISS 벡터 검색**: 고성능 유사도 검색 엔진
+- **문서 임베딩**: HuggingFace 기반 텍스트 벡터화
+- **PDF 문서 처리**: PyPDFLoader를 통한 PDF 파싱
+- **텍스트 분할**: RecursiveCharacterTextSplitter로 청크 생성
+- **컬렉션 관리**: 다중 벡터 인덱스 관리
+- **실시간 검색**: 질의어 기반 관련 문서 검색
+- **배치 처리**: 대량 문서 일괄 처리 지원
+
+##### 📚 문서 처리 기능
+- **PDF 로딩**: PyPDFLoader를 통한 PDF 문서 파싱
+- **텍스트 분할**: 300자 청크, 150자 오버랩으로 최적화
+- **임베딩 생성**: HuggingFace 모델 기반 벡터 변환
+- **FAISS 인덱싱**: 고속 벡터 검색을 위한 인덱스 구축
+- **컬렉션 관리**: sr_corpus, standards 등 다중 컬렉션 지원
+- **실시간 검색**: 질의어 기반 관련 문서 검색 및 랭킹
+
+##### 🔧 기술적 특징
+- **LangChain 통합**: 문서 처리 파이프라인 자동화
+- **FAISS 최적화**: 메모리 효율적인 벡터 검색
+- **HuggingFace 임베딩**: 다국어 지원 임베딩 모델
+- **JSONL 로깅**: 질의응답 이력 추적 및 분석
+- **배치 처리**: 대량 문서 일괄 인덱싱 지원
+
+#### 4. TCFD Service (포트: 8003)
 - **TCFD 프레임워크**: 4개 핵심 영역 지원
   - 거버넌스 (Governance): 기후변화 대응 조직 구조
   - 전략 (Strategy): 기후변화 위험 및 기회 분석
@@ -75,7 +99,7 @@
 - **준수성 검사**: TCFD 표준 준수 여부 확인
 - **행정구역 데이터**: 시군구별 기후 변수 분석
 
-#### 4. TCFD Report Service (포트: 8004)
+#### 5. TCFD Report Service (포트: 8004)
 - **AI 보고서 생성**: TCFD 프레임워크 기반 자동 생성
 - **문서 다운로드**: Word(.docx) 및 PDF 형식 지원
 - **회사별 맞춤**: 개인화된 보고서 생성
@@ -96,7 +120,7 @@
 - **시스템 의존성**: libcairo2, libpango, libgdk-pixbuf-xlib-2.0-0
 - **Docker 최적화**: Debian 13 (trixie) 호환성
 
-#### 5. Auth Service (포트: 8008)
+#### 6. Auth Service (포트: 8008)
 - **JWT 인증**: 안전한 사용자 인증 시스템
 - **권한 관리**: 역할 기반 접근 제어 (RBAC)
 - **회사별 데이터 격리**: 보안 강화
@@ -182,10 +206,12 @@
 ### AI/ML
 - **LangChain**: LLM 애플리케이션 프레임워크
 - **ChromaDB**: 벡터 데이터베이스
+- **FAISS**: Facebook AI Similarity Search (고성능 벡터 검색)
 - **OpenAI API**: GPT 모델 통합
-- **Hugging Face**: 오픈소스 AI 모델
-- **FAISS**: Facebook AI Similarity Search
+- **Hugging Face**: 오픈소스 AI 모델 및 임베딩
 - **Sentence Transformers**: 텍스트 임베딩 모델
+- **PyPDFLoader**: PDF 문서 파싱
+- **RecursiveCharacterTextSplitter**: 텍스트 청크 분할
 
 ### 문서 처리
 - **python-docx 1.1.0**: Word 문서 생성 및 편집
@@ -253,6 +279,7 @@ HF_MODEL=beomi/KoAlpaca-Polyglot-12.8B
 # 서비스 포트
 GATEWAY_PORT=8000
 LLM_SERVICE_PORT=8002
+RAG_SERVICE_PORT=8005
 TCFD_SERVICE_PORT=8003
 TCFD_REPORT_SERVICE_PORT=8004
 AUTH_SERVICE_PORT=8008
@@ -281,6 +308,13 @@ RAILWAY_AUTH_SERVICE_URL=https://auth-service-production.up.railway.app
 - `POST /api/v1/llm/draft`: 섹션별 초안 생성
 - `POST /api/v1/llm/polish`: 초안 윤문 생성
 - `POST /api/v1/llm/draft-and-polish`: 초안과 윤문 동시 생성
+
+### RAG Service
+- `POST /api/v1/rag/query`: 질의어 기반 문서 검색 및 답변 생성
+- `POST /api/v1/rag/ingest/pdfs`: PDF 문서 일괄 인덱싱
+- `GET /api/v1/rag/health`: 서비스 상태 확인
+- `POST /api/v1/rag/batch`: 배치 문서 처리
+- `GET /api/v1/rag/collections`: 등록된 컬렉션 목록 조회
 
 ### TCFD Service
 - `GET /api/v1/tcfd/standards`: TCFD 표준 정보 조회
