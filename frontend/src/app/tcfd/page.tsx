@@ -1562,59 +1562,60 @@ export default function TcfdSrPage() {
     <div className="min-h-screen bg-gray-100">
       <Header />
       <div className="pt-16">
-                 <div className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-section">
+        <div className="max-w-[95%] mx-auto px-2 sm:px-4 lg:px-6 py-section">
           {/* 헤더 */}
           <div className="text-center mb-8">
-                                           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-brand shadow-soft p-8 max-w-7xl mx-auto relative">
-                 <div className="flex justify-between items-start">
-                   <div className="flex-1">
-                     <h1 className="text-3xl font-bold text-primary-600 mb-3">TCFD ESG SR 작성</h1>
-                     <p className="text-gray-700 text-lg">TCFD(Task Force on Climate-related Financial Disclosures)<br/>
-                   기업이 기후변화로 인한 위험과 기회를 어떻게 관리하고 있는지 투명하게 공시하도록 권고합니다.<br/>
-                   핵심은 거버넌스, 전략, 리스크 관리, 지표 및 목표의 4가지 영역에서 기후 관련 정보를 보고하는 것입니다.<br/>
-                   투자자·금융기관 등이 기후 리스크를 평가하고 의사결정에 반영할 수 있는 국제 표준 프레임워크 역할을 합니다.</p>
-                     {userCompanyName && (
-                       <p className="text-primary-600 font-semibold mt-3">
-                         🏢 접근 가능한 회사: {userCompanyName}
-                       </p>
-                     )}
-                     
-                     {/* TCFD 알아보기 버튼 추가 */}
-                     <div className="mt-4">
-                       <button
-                         onClick={() => window.open('https://www.fsb-tcfd.org/', '_blank')}
-                         className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                       >
-                         <span className="mr-2">🌐</span>
-                         TCFD 알아보기
-                         <span className="ml-2">→</span>
-                       </button>
-                     </div>
-                   </div>
-                                       <button
-                      onClick={() => setIsGuideOpen(true)}
-                      className="ml-6 p-3 bg-blue-100 hover:bg-blue-200 border border-blue-300 rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                      title="이용가이드 보기"
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-brand shadow-soft p-8 max-w-7xl mx-auto relative">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <h1 className="text-3xl font-bold text-primary-600 mb-3">TCFD ESG SR 작성</h1>
+                  <p className="text-gray-700 text-lg">TCFD(Task Force on Climate-related Financial Disclosures)<br/>
+                    기업이 기후변화로 인한 위험과 기회를 어떻게 관리하고 있는지 투명하게 공시하도록 권고합니다.<br/>
+                    핵심은 거버넌스, 전략, 리스크 관리, 지표 및 목표의 4가지 영역에서 기후 관련 정보를 보고하는 것입니다.<br/>
+                    투자자·금융기관 등이 기후 리스크를 평가하고 의사결정에 반영할 수 있는 국제 표준 프레임워크 역할을 합니다.</p>
+                  {userCompanyName && (
+                    <p className="text-primary-600 font-semibold mt-3">
+                      🏢 접근 가능한 회사: {userCompanyName}
+                    </p>
+                  )}
+                  
+                  {/* TCFD 알아보기 버튼 추가 */}
+                  <div className="mt-4">
+                    <button
+                      onClick={() => window.open('https://www.fsb-tcfd.org/', '_blank')}
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
-                      <div className="w-6 h-6 bg-blue-600 text-white rounded flex items-center justify-center text-sm font-bold">
-                        !
-                      </div>
+                      <span className="mr-2">🌐</span>
+                      TCFD 알아보기
+                      <span className="ml-2">→</span>
                     </button>
-                 </div>
-               </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsGuideOpen(true)}
+                  className="ml-6 p-3 bg-blue-100 hover:bg-blue-200 border border-blue-300 rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  title="이용가이드 보기"
+                >
+                  <div className="w-6 h-6 bg-blue-600 text-white rounded flex items-center justify-center text-sm font-bold">
+                    !
+                  </div>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* 탭 네비게이션과 컨텐츠를 가로로 배치 */}
-                     <div className="flex gap-8">
+          <div className="flex gap-8">
             {/* 왼쪽 세로 탭 네비게이션 */}
-                         <div className="w-72 bg-white rounded-brand shadow-soft border border-gray-300 p-4">
+            <div className="w-72 bg-white rounded-brand shadow-soft border border-gray-300 p-4">
               <nav className="space-y-2" aria-label="Tabs">
                 {[
-                  { id: 1, name: '회사정보', icon: '🏢' },
-                  { id: 2, name: '재무정보', icon: '💰' },
-                  { id: 3, name: 'TCFD 프레임워크', icon: '📊' },
-                  { id: 4, name: '기후시나리오', icon: '🌍' },
-                  { id: 5, name: 'AI보고서 초안', icon: '🤖', subtitle: 'OpenAI + KoAlpaca' },
+                  { id: 1, name: '프로젝트 요약', icon: '📋' },
+                  { id: 2, name: '회사정보', icon: '🏢' },
+                  { id: 3, name: '재무정보', icon: '💰' },
+                  { id: 4, name: 'TCFD 프레임워크', icon: '📊' },
+                  { id: 5, name: '기후시나리오', icon: '🌍' },
+                  { id: 6, name: 'AI보고서 초안', icon: '🤖', subtitle: 'OpenAI + KoAlpaca' },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -1642,119 +1643,410 @@ export default function TcfdSrPage() {
           </div>
 
             {/* 오른쪽 탭 컨텐츠 */}
-                         <div className="flex-1 bg-white rounded-brand shadow-soft border border-gray-300 p-8">
-            {/* 탭 1: 회사정보 */}
+            <div className="flex-1 bg-white rounded-brand shadow-soft border border-gray-300 p-8">
+            {/* 탭 1: 프로젝트 요약 */}
             {activeTab === 1 && (
-                <div className="space-y-6">
-                                     <div className="flex items-center gap-3 mb-6">
-                     <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                       <span className="text-lg font-bold text-primary-600">🏢</span>
-                     </div>
-                     <h2 className="text-xl font-semibold text-gray-800">회사정보</h2>
-                   </div>
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                    <span className="text-lg font-bold text-primary-600">📋</span>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-800">프로젝트 요약</h2>
+                </div>
+
+                {/* 프로젝트 개요 */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200 mb-6">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">🚀 ESG Mate - AI 기반 ESG 분석 및 보고서 생성 플랫폼</h3>
+                  <p className="text-gray-600 mb-4">
+                    ESG Mate는 기업의 ESG(환경, 사회, 거버넌스) 성과를 AI 기술로 분석하고, TCFD 등 국제 표준에 맞는 전문 보고서를 자동으로 생성하는 통합 플랫폼입니다.
+                  </p>
+                </div>
+
+                {/* 프로젝트 의의 */}
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 border border-green-200 mb-6">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">🎯 프로젝트 의의</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">🤖</span>
+                        <div>
+                          <h5 className="font-semibold text-gray-800">AI 기술을 활용한 ESG 분석의 민주화</h5>
+                          <p className="text-sm text-gray-600">복잡한 ESG 표준과 데이터를 AI가 자동으로 분석하여 모든 기업이 쉽게 ESG 공시를 수행할 수 있도록 지원</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">📊</span>
+                        <div>
+                          <h5 className="font-semibold text-gray-800">전문가 수준의 보고서 자동 생성</h5>
+                          <p className="text-sm text-gray-600">AI가 TCFD 프레임워크를 기반으로 전문가 수준의 지속가능성 보고서를 자동 생성</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">🌍</span>
+                        <div>
+                          <h5 className="font-semibold text-gray-800">지속가능한 미래를 위한 의사결정 지원</h5>
+                          <p className="text-sm text-gray-600">기후 시나리오 분석을 통한 기업의 지속가능한 미래를 위한 전략적 의사결정 지원</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">🔍</span>
+                        <div>
+                          <h5 className="font-semibold text-gray-800">RAG 기반 지능형 문서 검색</h5>
+                          <p className="text-sm text-gray-600">LangChain과 ChromaDB를 활용한 의미론적 문서 검색으로 관련 정보 자동 추출</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 기대효과 */}
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-200 mb-6">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">✨ 기대효과</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-3xl mb-2">⚡</div>
+                      <h5 className="font-semibold text-gray-800 mb-2">효율성 향상</h5>
+                      <p className="text-sm text-gray-600">수개월 소요되던 ESG 보고서 작성 시간을 수시간으로 단축</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl mb-2">🎯</div>
+                      <h5 className="font-semibold text-gray-800 mb-2">정확성 보장</h5>
+                      <p className="text-sm text-gray-600">AI 기반 분석으로 일관성 있고 정확한 ESG 데이터 제공</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl mb-2">💰</div>
+                      <h5 className="font-semibold text-gray-800 mb-2">비용 절감</h5>
+                      <p className="text-sm text-gray-600">외부 컨설팅 비용 없이 내부적으로 전문 보고서 생성</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 기술 스택 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {/* Frontend */}
+                  <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <span className="text-2xl">🎨</span>
+                      Frontend
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Next.js</span>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">15.4.5</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">TypeScript</span>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">5.9.2</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Tailwind CSS</span>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">3.4.17</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Zustand</span>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">5.0.7</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Next PWA</span>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">5.6.0</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Backend */}
+                  <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <span className="text-2xl">⚙️</span>
+                      Backend
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">FastAPI</span>
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">MSA</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">PostgreSQL</span>
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">15+</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Redis</span>
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">7+</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">SQLAlchemy</span>
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">ORM</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Celery</span>
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Queue</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AI/ML */}
+                  <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <span className="text-2xl">🤖</span>
+                      AI/ML
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">OpenAI GPT-4o-mini</span>
+                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">API</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">KoAlpaca</span>
+                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">12.8B</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">LangChain</span>
+                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">RAG</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">ChromaDB</span>
+                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Vector</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">FAISS</span>
+                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Search</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* DevOps */}
+                  <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <span className="text-2xl">🚀</span>
+                      DevOps
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Docker</span>
+                        <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">Container</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Kubernetes</span>
+                        <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">K8s</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Railway</span>
+                        <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">Cloud</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">GitHub Actions</span>
+                        <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">CI/CD</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Debian 13</span>
+                        <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">OS</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* TCFD 페이지 서비스 요약 */}
+                <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg p-6 border border-amber-200 mb-6">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">📋 TCFD 페이지 주요 서비스</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <span className="text-xl">🏢</span>
+                        <div>
+                          <h5 className="font-semibold text-gray-800">회사정보 관리</h5>
+                          <p className="text-sm text-gray-600">기업 개요, 재무 데이터, DART 연동을 통한 실시간 기업 정보 조회</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <span className="text-xl">💰</span>
+                        <div>
+                          <h5 className="font-semibold text-gray-800">재무정보 분석</h5>
+                          <p className="text-sm text-gray-600">재무상태표, 손익계산서, 현금흐름표 등 종합 재무 데이터 시각화</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <span className="text-xl">📊</span>
+                        <div>
+                          <h5 className="font-semibold text-gray-800">TCFD 프레임워크</h5>
+                          <p className="text-sm text-gray-600">거버넌스, 전략, 위험관리, 지표 및 목표 4개 핵심 영역 분석</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <span className="text-xl">🌍</span>
+                        <div>
+                          <h5 className="font-semibold text-gray-800">기후시나리오 분석</h5>
+                          <p className="text-sm text-gray-600">SSP1-2.6, SSP5-8.5 시나리오별 기후 위험 및 기회 분석</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <span className="text-xl">🤖</span>
+                        <div>
+                          <h5 className="font-semibold text-gray-800">AI 보고서 생성</h5>
+                          <p className="text-sm text-gray-600">OpenAI GPT-4o-mini와 KoAlpaca를 활용한 전문 보고서 자동 생성</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <span className="text-xl">📄</span>
+                        <div>
+                          <h5 className="font-semibold text-gray-800">문서 다운로드</h5>
+                          <p className="text-sm text-gray-600">Word(.docx) 및 PDF 형식으로 전문 보고서 다운로드 지원</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 사용 방법 */}
+                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg p-6 border border-indigo-200">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">💡 사용 방법</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-600">1</div>
+                        <span className="text-sm text-gray-700">회사정보 탭에서 기업명 검색 및 기본 정보 확인</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-600">2</div>
+                        <span className="text-sm text-gray-700">재무정보 탭에서 상세한 재무 데이터 분석</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-600">3</div>
+                        <span className="text-sm text-gray-700">TCFD 프레임워크 탭에서 4개 핵심 영역 평가</span>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-600">4</div>
+                        <span className="text-sm text-gray-700">기후시나리오 탭에서 기후 위험 및 기회 분석</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-600">5</div>
+                        <span className="text-sm text-gray-700">AI보고서 초안 탭에서 전문 보고서 자동 생성</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-600">6</div>
+                        <span className="text-sm text-gray-700">Word 또는 PDF 형식으로 보고서 다운로드</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 탭 2: 회사정보 */}
+            {activeTab === 2 && (
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                    <span className="text-lg font-bold text-primary-600">🏢</span>
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-800">회사정보</h2>
+                </div>
 
                 {/* 회사 검색 */}
-                  <div className="space-y-4">
-                    <label className="block text-sm font-medium text-gray-700">
-                        회사명 검색
-                      </label>
-                    {userCompanyName && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-brand p-3">
-                        <p className="text-blue-700 text-sm">
-                          ℹ️ 회원가입 시 입력한 회사이름 &ldquo;{userCompanyName}&rdquo;만 검색 가능합니다.
-                        </p>
-                      </div>
-                    )}
-                    <div className="flex gap-3">
-                      <input
-                        type="text"
-                        value={companyName}
-                        onChange={(e) => setCompanyName(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && loadCompanyFinancialData(companyName)}
-                        placeholder={userCompanyName ? `검색할 회사명: ${userCompanyName}` : "회사명을 입력하세요"}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-brand focus:ring-2 focus:ring-primary-500 focus:border-transparent text-black placeholder-gray-500"
-                      />
+                <div className="space-y-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    회사명 검색
+                  </label>
+                  {userCompanyName && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-brand p-3">
+                      <p className="text-blue-700 text-sm">
+                        ℹ️ 회원가입 시 입력한 회사이름 &ldquo;{userCompanyName}&rdquo;만 검색 가능합니다.
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && loadCompanyFinancialData(companyName)}
+                      placeholder={userCompanyName ? `검색할 회사명: ${userCompanyName}` : "회사명을 입력하세요"}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-brand focus:ring-2 focus:ring-primary-500 focus:border-transparent text-black placeholder-gray-500"
+                    />
                     <button
-                        onClick={() => loadCompanyFinancialData(companyName)}
-                        disabled={isLoadingCompany || !companyName.trim()}
-                        className="px-6 py-2 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => loadCompanyFinancialData(companyName)}
+                      disabled={isLoadingCompany || !companyName.trim()}
+                      className="px-6 py-2 bg-primary-600 text-white rounded-brand shadow-soft hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoadingCompany ? '검색 중...' : '검색'}
                     </button>
-                    </div>
                   </div>
-
-                  {/* 검색 결과 */}
-                  {companyError && (
-                    <div className="bg-red-50 border border-red-200 rounded-brand p-4">
-                      <p className="text-red-700">{companyError}</p>
                 </div>
-                  )}
-
-                  {/* 기업개요 정보 표시 */}
-                  {companyOverview && (
-                    <div className="bg-success-50 border border-success-200 rounded-brand p-6">
-                                             <h3 className="text-lg font-semibold text-black mb-4">
-                         ✅ {companyOverview.종목명}
-                      </h3>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-3">
-                                                     <div>
-                             <span className="font-medium text-gray-700">종목코드:</span>
-                             <span className="ml-2 text-gray-900">{companyOverview.종목코드?.toString().padStart(6, '0')}</span>
-                           </div>
-                          <div>
-                            <span className="font-medium text-gray-700">설립일:</span>
-                            <span className="ml-2 text-gray-900">{companyOverview.설립일 || '정보 없음'}</span>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-700">대표자:</span>
-                            <span className="ml-2 text-gray-900">{companyOverview.대표자 || '정보 없음'}</span>
-                          </div>
-                    </div>
-
-                        <div className="space-y-3">
-                          <div>
-                            <span className="font-medium text-gray-700">주소:</span>
-                            <span className="ml-2 text-gray-900">{companyOverview.주소 || '정보 없음'}</span>
+  
+                {/* 검색 결과 */}
+                {companyError && (
+                  <div className="bg-red-50 border border-red-200 rounded-brand p-4">
+                    <p className="text-red-700">{companyError}</p>
                   </div>
-                          <div>
-                            <span className="font-medium text-gray-700">전화번호:</span>
-                            <span className="ml-2 text-gray-900">{companyOverview.전화번호 || '정보 없음'}</span>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-700">홈페이지:</span>
-                            <span className="ml-2 text-gray-900">
-                              {companyOverview.홈페이지 ? (
-                                <a href={companyOverview.홈페이지} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                  {companyOverview.홈페이지}
-                                </a>
-                              ) : (
-                                '정보 없음'
-                              )}
-                            </span>
-                          </div>
+                )}
+
+                {/* 기업개요 정보 표시 */}
+                {companyOverview && (
+                  <div className="bg-success-50 border border-success-200 rounded-brand p-6">
+                    <h3 className="text-lg font-semibold text-black mb-4">
+                      ✅ {companyOverview.종목명}
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div>
+                          <span className="font-medium text-gray-700">종목코드:</span>
+                          <span className="ml-2 text-gray-900">{companyOverview.종목코드?.toString().padStart(6, '0')}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">설립일:</span>
+                          <span className="ml-2 text-gray-900">{companyOverview.설립일 || '정보 없음'}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">대표자:</span>
+                          <span className="ml-2 text-gray-900">{companyOverview.대표자 || '정보 없음'}</span>
                         </div>
                       </div>
-                      
-                      <div className="mt-6 text-center">
-                        <p className="text-black mb-4">
-                          기업개요 정보가 성공적으로 검색되었습니다. 재무정보 탭에서 상세한 재무 데이터를 확인하세요.
-                        </p>
-                        <button
-                          onClick={() => setActiveTab(2)}
-                          className="px-6 py-2 bg-success-600 text-black rounded-brand shadow-soft hover:bg-success-700 transition-colors focus:outline-none focus:ring-2 focus:ring-success-100"
-                        >
-                          재무정보 탭으로 이동
-                        </button>
+
+                      <div className="space-y-3">
+                        <div>
+                          <span className="font-medium text-gray-700">주소:</span>
+                          <span className="ml-2 text-gray-900">{companyOverview.주소 || '정보 없음'}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">전화번호:</span>
+                          <span className="ml-2 text-gray-900">{companyOverview.전화번호 || '정보 없음'}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">홈페이지:</span>
+                          <span className="ml-2 text-gray-900">
+                            {companyOverview.홈페이지 ? (
+                              <a href={companyOverview.홈페이지} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                {companyOverview.홈페이지}
+                              </a>
+                            ) : (
+                              '정보 없음'
+                            )}
+                          </span>
                       </div>
                     </div>
-                  )}
+                    
+                    <div className="mt-6 text-center">
+                      <p className="text-black mb-4">
+                        기업개요 정보가 성공적으로 검색되었습니다. 재무정보 탭에서 상세한 재무 데이터를 확인하세요.
+                      </p>
+                      <button
+                        onClick={() => setActiveTab(3)}
+                        className="px-6 py-2 bg-success-600 text-black rounded-brand shadow-soft hover:bg-success-700 transition-colors focus:outline-none focus:ring-2 focus:ring-success-100"
+                      >
+                        재무정보 탭으로 이동
+                      </button>
+                    </div>
+                  </div>
+                )}
 
-                  {/* 기존 성공 메시지 (기업개요 정보가 없을 때만 표시) */}
-                  {companyFinancialData && !companyOverview && (
-                    <div className="bg-success-50 border border-success-200 rounded-brand p-6 text-center">
+                {/* 기존 성공 메시지 (기업개요 정보가 없을 때만 표시) */}
+                {companyFinancialData && !companyOverview && (
+                  <div className="bg-success-50 border border-success-200 rounded-brand p-6 text-center">
                       <h3 className="text-lg font-semibold text-black mb-2">
                         ✅ {companyFinancialData.company_name} 검색 완료
                       </h3>
@@ -1772,8 +2064,8 @@ export default function TcfdSrPage() {
               </div>
             )}
 
-            {/* 탭 2: 재무정보 */}
-            {activeTab === 2 && (
+            {/* 탭 3: 재무정보 */}
+            {activeTab === 3 && (
               <div>
                 <h2 className="text-2xl font-bold text-primary-600 mb-6">💰 재무정보</h2>
 
@@ -1812,8 +2104,8 @@ export default function TcfdSrPage() {
               </div>
             )}
 
-            {/* 탭 3: TCFD 프레임워크 */}
-            {activeTab === 3 && (
+            {/* 탭 4: TCFD 프레임워크 */}
+            {activeTab === 4 && (
               <div>
                 <h2 className="text-2xl font-bold text-primary-600 mb-6">📊 TCFD 프레임워크</h2>
 
@@ -2324,8 +2616,8 @@ export default function TcfdSrPage() {
               </div>
             )}
 
-            {/* 탭 4: 기후시나리오 */}
-            {activeTab === 4 && (
+            {/* 탭 5: 기후시나리오 */}
+            {activeTab === 5 && (
               <div>
                 <h2 className="text-2xl font-bold text-primary-600 mb-6">🌍 기후시나리오</h2>
                 
@@ -2922,8 +3214,8 @@ export default function TcfdSrPage() {
               </div>
             )}
 
-            {/* 탭 5: AI보고서 초안 */}
-            {activeTab === 5 && (
+            {/* 탭 6: AI보고서 초안 */}
+            {activeTab === 6 && (
               <div>
                 <h2 className="text-2xl font-bold text-primary-600 mb-6">🤖 AI보고서 초안</h2>
                 
