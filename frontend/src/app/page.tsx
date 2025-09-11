@@ -183,7 +183,7 @@ export default function Home() {
                         </Link>
                       ) : item.title === "재무대시보드" ? (
                         <button 
-                          onClick={() => window.open('https://finance-dashboard-git-main-jeongtaeyeongs-projects.vercel.app', '_blank')}
+                          onClick={() => window.open('https://finance.taezero.com', '_blank')}
                           className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
                         >
                           MORE
