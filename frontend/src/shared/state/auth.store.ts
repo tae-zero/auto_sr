@@ -21,9 +21,15 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  isAuthenticated: false,
-  isInitialized: false,
-  user: null,
+  // 🔧 임시로 인증 시스템 비활성화 - 항상 인증된 상태로 설정
+  isAuthenticated: true,
+  isInitialized: true,
+  user: {
+    username: 'temp_user',
+    email: 'temp@example.com',
+    name: '임시 사용자',
+    company_id: 'temp_company'
+  },
 
   refreshToken: async () => {
     try {
@@ -49,6 +55,21 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   checkAuthStatus: async () => {
+    // 🔧 임시로 인증 시스템 비활성화 - 항상 인증된 상태 유지
+    console.log('🔧 인증 시스템이 임시로 비활성화되어 있습니다. 모든 사용자가 인증된 상태로 처리됩니다.');
+    set({ 
+      isAuthenticated: true, 
+      isInitialized: true,
+      user: {
+        username: 'temp_user',
+        email: 'temp@example.com',
+        name: '임시 사용자',
+        company_id: 'temp_company'
+      }
+    });
+    
+    /* 
+    // 🔧 기존 인증 로직 (주석 처리됨 - 필요시 주석 해제)
     try {
       const token = localStorage.getItem('auth_token');
       const userData = localStorage.getItem('user_data');
@@ -108,9 +129,28 @@ export const useAuthStore = create<AuthState>((set) => ({
         });
       }
     }
+    */
   },
 
   login: async (username: string, userData?: UserData, token?: string) => {
+    // 🔧 임시로 인증 시스템 비활성화 - 항상 로그인 성공
+    console.log('🔧 인증 시스템이 임시로 비활성화되어 있습니다. 로그인이 자동으로 성공 처리됩니다.');
+    
+    const finalUserData: UserData = userData || {
+      username: username || 'temp_user',
+      email: `${username || 'temp_user'}@example.com`,
+      name: '임시 사용자',
+      company_id: 'temp_company'
+    };
+    
+    set({ 
+      isAuthenticated: true,
+      isInitialized: true,
+      user: finalUserData
+    });
+    
+    /* 
+    // 🔧 기존 로그인 로직 (주석 처리됨 - 필요시 주석 해제)
     try {
       // 서버에서 받은 사용자 데이터가 있으면 사용, 없으면 기본값 사용
       const finalUserData: UserData = userData || {
@@ -129,9 +169,27 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.error('로그인 중 오류가 발생했습니다.');
       throw error;
     }
+    */
   },
 
   logout: async () => {
+    // 🔧 임시로 인증 시스템 비활성화 - 로그아웃해도 인증 상태 유지
+    console.log('🔧 인증 시스템이 임시로 비활성화되어 있습니다. 로그아웃이 무시됩니다.');
+    
+    // 로그아웃해도 인증 상태 유지
+    set({ 
+      isAuthenticated: true,
+      isInitialized: true,
+      user: {
+        username: 'temp_user',
+        email: 'temp@example.com',
+        name: '임시 사용자',
+        company_id: 'temp_company'
+      }
+    });
+    
+    /* 
+    // 🔧 기존 로그아웃 로직 (주석 처리됨 - 필요시 주석 해제)
     try {
       // TODO: 실제 로그아웃 API 호출
       localStorage.removeItem('auth_token');
@@ -145,6 +203,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.error('로그아웃 중 오류:', error);
       throw error;
     }
+    */
   },
 
   setUserData: (userData: UserData) => {
