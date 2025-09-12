@@ -77,6 +77,15 @@ export default function Home() {
       ),
       title: "Materiality",
       description: "Materiality INDEX"
+    },
+    {
+      icon: (
+        <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+      ),
+      title: "Law",
+      description: "법률 서비스"
     }
   ];
 
@@ -189,13 +198,12 @@ export default function Home() {
                           MORE
                         </button>
                       ) : item.title === "ESG 공시 챗봇" ? (
-                        <Link href="/chatbot">
-                          <button 
-                            className="border-2 border-green-400 text-green-600 hover:bg-green-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
-                          >
-                            MORE
-                          </button>
-                        </Link>
+                        <button 
+                          onClick={() => window.open('https://esgchatbot.taezero.com', '_blank')}
+                          className="border-2 border-green-400 text-green-600 hover:bg-green-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                        >
+                          MORE
+                        </button>
                       ) : item.title === "GRI" ? (
                         <Link href="/gri">
                           <button 
@@ -204,6 +212,13 @@ export default function Home() {
                             MORE
                           </button>
                         </Link>
+                      ) : item.title === "Law" ? (
+                        <button 
+                          onClick={() => window.open('https://law.taezero.com', '_blank')}
+                          className="border-2 border-red-400 text-red-600 hover:bg-red-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                        >
+                          MORE
+                        </button>
                       ) : (
                        <button className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium">
                          MORE

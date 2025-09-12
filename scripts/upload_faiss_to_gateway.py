@@ -2,7 +2,7 @@
 """
 FAISS 파일을 게이트웨이를 통해 LLM 서비스로 업로드하는 스크립트
 
-사용법:
+:
     python upload_faiss_to_gateway.py --gateway-url <게이트웨이_URL> --index <인덱스_파일> --store <스토어_파일> --token <JWT_토큰>
 
 예시:
