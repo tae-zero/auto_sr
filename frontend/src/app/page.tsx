@@ -66,8 +66,8 @@ export default function Home() {
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
         </svg>
       ),
-      title: "GRI",
-      description: "GRI INDEX"
+      title: "Weather",
+      description: "Weather"
     },
     {
       icon: (
@@ -204,14 +204,13 @@ export default function Home() {
                         >
                           MORE
                         </button>
-                      ) : item.title === "GRI" ? (
-                        <Link href="/gri">
-                          <button 
-                            className="border-2 border-blue-400 text-blue-600 hover:bg-blue-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
-                          >
-                            MORE
-                          </button>
-                        </Link>
+                      ) : item.title === "Weather" ? (
+                        <button 
+                          onClick={() => window.open('https://weather.taezero.com', '_blank')}
+                          className="border-2 border-orange-400 text-orange-600 hover:bg-orange-400 hover:text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                        >
+                          MORE
+                        </button>
                       ) : item.title === "Law" ? (
                         <button 
                           onClick={() => window.open('https://law.taezero.com', '_blank')}
